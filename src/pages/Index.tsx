@@ -82,6 +82,7 @@ const Index = () => {
   };
 
   const handleTelegramAuth = async (telegramUser: any) => {
+    console.log('Telegram auth data:', telegramUser);
     try {
       const response = await fetch(
         "https://functions.poehali.dev/1010306b-8aa0-4c54-828b-5427008a0172",
@@ -94,22 +95,23 @@ const Index = () => {
         },
       );
 
+      const responseData = await response.json();
+      console.log('Backend response:', responseData);
+
       if (response.ok) {
-        const userData = await response.json();
         setUser({
-          username: userData.username,
-          avatar: userData.avatar,
+          username: responseData.username,
+          avatar: responseData.avatar,
           phone: "Telegram",
-          energy: userData.energy,
+          energy: responseData.energy,
         });
         setIsRegistering(false);
       } else {
-        const error = await response.json();
-        alert("Ошибка авторизации: " + (error.error || "Попробуйте позже"));
+        alert("Ошибка: " + (responseData.error || "Проверьте TELEGRAM_BOT_TOKEN в секретах"));
       }
     } catch (error) {
       console.error("Telegram auth error:", error);
-      alert("Ошибка подключения к Telegram");
+      alert("Ошибка подключения. Проверьте консоль (F12)");
     }
   };
 
@@ -557,15 +559,24 @@ const Index = () => {
                 <p className="text-sm text-muted-foreground mb-6">
                   Авторизуйтесь через Telegram за пару секунд
                 </p>
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4 text-left">
+                  <h4 className="font-semibold text-sm mb-2 flex items-center gap-2 text-yellow-800">
+                    <span>⚠️</span>
+                    Настройка Telegram авторизации:
+                  </h4>
+                  <ol className="text-xs space-y-1 list-decimal list-inside text-yellow-700">
+                    <li>Откройте Telegram → @BotFather</li>
+                    <li>Отправьте /newbot и создайте бота</li>
+                    <li>Скопируйте токен и добавьте в секрет TELEGRAM_BOT_TOKEN выше ☝️</li>
+                    <li>Замените auxchat_login_bot ниже на username вашего бота</li>
+                  </ol>
+                </div>
                 <TelegramLoginButton
                   botUsername="auxchat_login_bot"
                   onAuth={handleTelegramAuth}
                 />
                 <p className="text-xs text-muted-foreground mt-4">
-                  ⚠️ Замените YOUR_BOT_USERNAME на username вашего бота
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Не забудьте добавить TELEGRAM_BOT_TOKEN в секреты
+                  После настройки здесь появится кнопка "Login with Telegram"
                 </p>
               </div>
             </TabsContent>
