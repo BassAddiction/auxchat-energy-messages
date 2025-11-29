@@ -1,13 +1,19 @@
-import { useState, useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import Icon from '@/components/ui/icon';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import TelegramLoginButton from '@/components/TelegramLoginButton';
+import { useState, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import Icon from "@/components/ui/icon";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import TelegramLoginButton from "@/components/TelegramLoginButton";
 
 interface Message {
   id: number;
@@ -30,74 +36,80 @@ const Index = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      username: 'Космонавт',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Cosmonaut',
-      text: 'Привет, AuxChat! Первое сообщение в чате!',
+      username: "Космонавт",
+      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Cosmonaut",
+      text: "Привет, AuxChat! Первое сообщение в чате!",
       timestamp: new Date(Date.now() - 3600000),
-      reactions: [{ emoji: '❤️', count: 5 }, { emoji: '🔥', count: 3 }]
+      reactions: [
+        { emoji: "❤️", count: 5 },
+        { emoji: "🔥", count: 3 },
+      ],
     },
     {
       id: 2,
-      username: 'Энергетик',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Energy',
-      text: 'Система энергии работает отлично!',
+      username: "Энергетик",
+      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Energy",
+      text: "Система энергии работает отлично!",
       timestamp: new Date(Date.now() - 1800000),
-      reactions: [{ emoji: '👍', count: 8 }]
-    }
+      reactions: [{ emoji: "👍", count: 8 }],
+    },
   ]);
-  const [messageText, setMessageText] = useState('');
+  const [messageText, setMessageText] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
-  const [username, setUsername] = useState('');
-  const [phone, setPhone] = useState('');
-  const [smsCode, setSmsCode] = useState('');
-  const [step, setStep] = useState<'phone' | 'code' | 'profile'>('phone');
-  const [avatarFile, setAvatarFile] = useState<string>('');
+  const [username, setUsername] = useState("");
+  const [phone, setPhone] = useState("");
+  const [smsCode, setSmsCode] = useState("");
+  const [step, setStep] = useState<"phone" | "code" | "profile">("phone");
+  const [avatarFile, setAvatarFile] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showProfile, setShowProfile] = useState(false);
   const [isEditingUsername, setIsEditingUsername] = useState(false);
-  const [newUsername, setNewUsername] = useState('');
+  const [newUsername, setNewUsername] = useState("");
 
-  const reactionEmojis = ['❤️', '👍', '🔥', '🎉', '😂', '😍'];
+  const reactionEmojis = ["❤️", "👍", "🔥", "🎉", "😂", "😍"];
 
   const handlePhoneSubmit = () => {
     if (phone.length >= 10) {
-      setStep('code');
-      alert('SMS-код отправлен на ваш телефон!');
+      setStep("code");
+      alert("SMS-код отправлен на ваш телефон!");
     }
   };
 
   const handleCodeSubmit = () => {
     if (smsCode.length === 4) {
-      setStep('profile');
+      setStep("profile");
     }
   };
 
   const handleTelegramAuth = async (telegramUser: any) => {
     try {
-      const response = await fetch('https://functions.poehali.dev/1010306b-8aa0-4c54-828b-5427008a0172', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        "https://functions.poehali.dev/1010306b-8aa0-4c54-828b-5427008a0172",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(telegramUser),
         },
-        body: JSON.stringify(telegramUser)
-      });
-      
+      );
+
       if (response.ok) {
         const userData = await response.json();
         setUser({
           username: userData.username,
           avatar: userData.avatar,
-          phone: 'Telegram',
-          energy: userData.energy
+          phone: "Telegram",
+          energy: userData.energy,
         });
         setIsRegistering(false);
       } else {
         const error = await response.json();
-        alert('Ошибка авторизации: ' + (error.error || 'Попробуйте позже'));
+        alert("Ошибка авторизации: " + (error.error || "Попробуйте позже"));
       }
     } catch (error) {
-      console.error('Telegram auth error:', error);
-      alert('Ошибка подключения к Telegram');
+      console.error("Telegram auth error:", error);
+      alert("Ошибка подключения к Telegram");
     }
   };
 
@@ -110,7 +122,7 @@ const Index = () => {
     if (user && newUsername.trim()) {
       setUser({ ...user, username: newUsername.trim() });
       setIsEditingUsername(false);
-      setNewUsername('');
+      setNewUsername("");
     }
   };
 
@@ -129,16 +141,18 @@ const Index = () => {
     if (username.trim() && phone) {
       setUser({
         username: username.trim(),
-        avatar: avatarFile || `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
+        avatar:
+          avatarFile ||
+          `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
         phone: phone,
-        energy: 100
+        energy: 100,
       });
       setIsRegistering(false);
-      setStep('phone');
-      setPhone('');
-      setSmsCode('');
-      setUsername('');
-      setAvatarFile('');
+      setStep("phone");
+      setPhone("");
+      setSmsCode("");
+      setUsername("");
+      setAvatarFile("");
     }
   };
 
@@ -149,7 +163,7 @@ const Index = () => {
     }
 
     if (user.energy < 10) {
-      alert('Недостаточно энергии! Пополните баланс.');
+      alert("Недостаточно энергии! Пополните баланс.");
       return;
     }
 
@@ -160,35 +174,37 @@ const Index = () => {
         avatar: user.avatar,
         text: messageText.trim(),
         timestamp: new Date(),
-        reactions: []
+        reactions: [],
       };
 
       setMessages([...messages, newMessage].slice(-10));
-      setMessageText('');
+      setMessageText("");
       setUser({ ...user, energy: user.energy - 10 });
     }
   };
 
   const handleAddReaction = (messageId: number, emoji: string) => {
-    setMessages(messages.map(msg => {
-      if (msg.id === messageId) {
-        const existingReaction = msg.reactions.find(r => r.emoji === emoji);
-        if (existingReaction) {
-          return {
-            ...msg,
-            reactions: msg.reactions.map(r =>
-              r.emoji === emoji ? { ...r, count: r.count + 1 } : r
-            )
-          };
-        } else {
-          return {
-            ...msg,
-            reactions: [...msg.reactions, { emoji, count: 1 }]
-          };
+    setMessages(
+      messages.map((msg) => {
+        if (msg.id === messageId) {
+          const existingReaction = msg.reactions.find((r) => r.emoji === emoji);
+          if (existingReaction) {
+            return {
+              ...msg,
+              reactions: msg.reactions.map((r) =>
+                r.emoji === emoji ? { ...r, count: r.count + 1 } : r,
+              ),
+            };
+          } else {
+            return {
+              ...msg,
+              reactions: [...msg.reactions, { emoji, count: 1 }],
+            };
+          }
         }
-      }
-      return msg;
-    }));
+        return msg;
+      }),
+    );
   };
 
   const handleTopUp = (amount: number) => {
@@ -201,7 +217,7 @@ const Index = () => {
   const handleUpdateAvatar = () => {
     if (user && avatarFile) {
       setUser({ ...user, avatar: avatarFile });
-      setAvatarFile('');
+      setAvatarFile("");
       setShowProfile(false);
     }
   };
@@ -214,14 +230,18 @@ const Index = () => {
             <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-2xl">
               ⚡
             </div>
-            <h1 className="font-heading text-2xl font-bold text-foreground">AuxChat</h1>
+            <h1 className="font-heading text-2xl font-bold text-foreground">
+              AuxChat
+            </h1>
           </div>
 
           {user ? (
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2 bg-secondary/20 px-4 py-2 rounded-lg">
                 <Icon name="Zap" className="text-primary" size={20} />
-                <span className="font-semibold text-foreground">{user.energy}</span>
+                <span className="font-semibold text-foreground">
+                  {user.energy}
+                </span>
               </div>
               <Dialog>
                 <DialogTrigger asChild>
@@ -236,22 +256,34 @@ const Index = () => {
                   </DialogHeader>
                   <div className="space-y-4 pt-4">
                     <div className="grid grid-cols-2 gap-3">
-                      <Button onClick={() => handleTopUp(50)} className="h-20 flex-col gap-1">
+                      <Button
+                        onClick={() => handleTopUp(50)}
+                        className="h-20 flex-col gap-1"
+                      >
                         <span className="text-2xl">⚡</span>
                         <span className="text-sm">+50 энергии</span>
                         <span className="text-xs opacity-80">100 ₽</span>
                       </Button>
-                      <Button onClick={() => handleTopUp(100)} className="h-20 flex-col gap-1">
+                      <Button
+                        onClick={() => handleTopUp(100)}
+                        className="h-20 flex-col gap-1"
+                      >
                         <span className="text-2xl">⚡⚡</span>
                         <span className="text-sm">+100 энергии</span>
                         <span className="text-xs opacity-80">180 ₽</span>
                       </Button>
-                      <Button onClick={() => handleTopUp(250)} className="h-20 flex-col gap-1">
+                      <Button
+                        onClick={() => handleTopUp(250)}
+                        className="h-20 flex-col gap-1"
+                      >
                         <span className="text-2xl">⚡⚡⚡</span>
                         <span className="text-sm">+250 энергии</span>
                         <span className="text-xs opacity-80">400 ₽</span>
                       </Button>
-                      <Button onClick={() => handleTopUp(500)} className="h-20 flex-col gap-1 bg-primary hover:bg-primary/90">
+                      <Button
+                        onClick={() => handleTopUp(500)}
+                        className="h-20 flex-col gap-1 bg-primary hover:bg-primary/90"
+                      >
                         <span className="text-2xl">🔥</span>
                         <span className="text-sm">+500 энергии</span>
                         <span className="text-xs opacity-80">700 ₽</span>
@@ -263,12 +295,17 @@ const Index = () => {
                   </div>
                 </DialogContent>
               </Dialog>
-              <button onClick={() => setShowProfile(true)} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <button
+                onClick={() => setShowProfile(true)}
+                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+              >
                 <Avatar className="w-9 h-9 border-2 border-primary/30">
                   <AvatarImage src={user.avatar} />
                   <AvatarFallback>{user.username[0]}</AvatarFallback>
                 </Avatar>
-                <span className="font-medium text-foreground">{user.username}</span>
+                <span className="font-medium text-foreground">
+                  {user.username}
+                </span>
               </button>
             </div>
           ) : (
@@ -292,9 +329,14 @@ const Index = () => {
                   </Avatar>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-semibold text-foreground">{msg.username}</span>
+                      <span className="font-semibold text-foreground">
+                        {msg.username}
+                      </span>
                       <span className="text-xs text-muted-foreground">
-                        {msg.timestamp.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
+                        {msg.timestamp.toLocaleTimeString("ru-RU", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
                       </span>
                     </div>
                     <div className="bg-card border border-border rounded-lg p-3 mb-2">
@@ -304,11 +346,15 @@ const Index = () => {
                       {msg.reactions.map((reaction, idx) => (
                         <button
                           key={idx}
-                          onClick={() => handleAddReaction(msg.id, reaction.emoji)}
+                          onClick={() =>
+                            handleAddReaction(msg.id, reaction.emoji)
+                          }
                           className="bg-secondary/30 hover:bg-secondary/50 px-2 py-1 rounded-full text-sm flex items-center gap-1 transition-colors"
                         >
                           <span>{reaction.emoji}</span>
-                          <span className="text-muted-foreground">{reaction.count}</span>
+                          <span className="text-muted-foreground">
+                            {reaction.count}
+                          </span>
                         </button>
                       ))}
                       <Dialog>
@@ -327,7 +373,11 @@ const Index = () => {
                                 key={emoji}
                                 onClick={() => {
                                   handleAddReaction(msg.id, emoji);
-                                  document.querySelector<HTMLButtonElement>('[data-state="open"]')?.click();
+                                  document
+                                    .querySelector<HTMLButtonElement>(
+                                      '[data-state="open"]',
+                                    )
+                                    ?.click();
                                 }}
                                 className="text-3xl hover:scale-125 transition-transform p-2"
                               >
@@ -349,14 +399,22 @@ const Index = () => {
               <Input
                 value={messageText}
                 onChange={(e) => setMessageText(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                placeholder={user ? "Написать сообщение..." : "Войдите, чтобы отправить сообщение"}
+                onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+                placeholder={
+                  user
+                    ? "Написать сообщение..."
+                    : "Войдите, чтобы отправить сообщение"
+                }
                 className="flex-1"
                 disabled={!user}
               />
-              <Button onClick={handleSendMessage} disabled={!user || !messageText.trim()} className="gap-2">
+              <Button
+                onClick={handleSendMessage}
+                disabled={!user || !messageText.trim()}
+                className="gap-2"
+              >
                 <Icon name="Send" size={18} />
-                {user ? '10 ⚡' : 'Войти'}
+                {user ? "10 ⚡" : "Войти"}
               </Button>
             </div>
           </div>
@@ -374,7 +432,7 @@ const Index = () => {
               <TabsTrigger value="telegram">Telegram</TabsTrigger>
             </TabsList>
             <TabsContent value="phone" className="space-y-4 pt-4">
-              {step === 'phone' && (
+              {step === "phone" && (
                 <>
                   <div>
                     <Label htmlFor="phone">Номер телефона</Label>
@@ -387,13 +445,17 @@ const Index = () => {
                       className="mt-2"
                     />
                   </div>
-                  <Button onClick={handlePhoneSubmit} disabled={phone.length < 10} className="w-full">
+                  <Button
+                    onClick={handlePhoneSubmit}
+                    disabled={phone.length < 10}
+                    className="w-full"
+                  >
                     Получить код
                   </Button>
                 </>
               )}
-              
-              {step === 'code' && (
+
+              {step === "code" && (
                 <>
                   <div>
                     <Label htmlFor="code">Код из SMS</Label>
@@ -401,22 +463,34 @@ const Index = () => {
                       id="code"
                       type="text"
                       value={smsCode}
-                      onChange={(e) => setSmsCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      onChange={(e) =>
+                        setSmsCode(
+                          e.target.value.replace(/\D/g, "").slice(0, 4),
+                        )
+                      }
                       placeholder="____"
                       className="mt-2 text-center text-2xl tracking-widest"
                       maxLength={4}
                     />
                   </div>
-                  <Button onClick={handleCodeSubmit} disabled={smsCode.length !== 4} className="w-full">
+                  <Button
+                    onClick={handleCodeSubmit}
+                    disabled={smsCode.length !== 4}
+                    className="w-full"
+                  >
                     Подтвердить
                   </Button>
-                  <Button variant="ghost" onClick={() => setStep('phone')} className="w-full">
+                  <Button
+                    variant="ghost"
+                    onClick={() => setStep("phone")}
+                    className="w-full"
+                  >
                     Изменить номер
                   </Button>
                 </>
               )}
-              
-              {step === 'profile' && (
+
+              {step === "profile" && (
                 <>
                   <div>
                     <Label htmlFor="username">Имя пользователя</Label>
@@ -432,8 +506,15 @@ const Index = () => {
                     <Label>Фото профиля</Label>
                     <div className="mt-2 flex items-center gap-4">
                       <Avatar className="w-20 h-20">
-                        <AvatarImage src={avatarFile || `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`} />
-                        <AvatarFallback className="text-3xl">{username[0] || '?'}</AvatarFallback>
+                        <AvatarImage
+                          src={
+                            avatarFile ||
+                            `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`
+                          }
+                        />
+                        <AvatarFallback className="text-3xl">
+                          {username[0] || "?"}
+                        </AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
                         <input
@@ -454,24 +535,30 @@ const Index = () => {
                       </div>
                     </div>
                   </div>
-                  <Button onClick={handleRegister} disabled={!username.trim()} className="w-full">
+                  <Button
+                    onClick={handleRegister}
+                    disabled={!username.trim()}
+                    className="w-full"
+                  >
                     Зарегистрироваться и получить 100 ⚡
                   </Button>
                 </>
               )}
             </TabsContent>
-            
+
             <TabsContent value="telegram" className="space-y-4 pt-4">
               <div className="text-center py-6">
                 <div className="w-16 h-16 bg-[#0088cc] rounded-full flex items-center justify-center mx-auto mb-4">
                   <Icon name="Send" size={32} className="text-white" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2">Быстрый вход через Telegram</h3>
+                <h3 className="text-lg font-semibold mb-2">
+                  Быстрый вход через Telegram
+                </h3>
                 <p className="text-sm text-muted-foreground mb-6">
                   Авторизуйтесь через Telegram за пару секунд
                 </p>
-                <TelegramLoginButton 
-                  botUsername="YOUR_BOT_USERNAME"
+                <TelegramLoginButton
+                  botUsername="auxchat_login_bot"
                   onAuth={handleTelegramAuth}
                 />
                 <p className="text-xs text-muted-foreground mt-4">
@@ -496,7 +583,9 @@ const Index = () => {
               <div className="flex flex-col items-center gap-4">
                 <Avatar className="w-24 h-24 border-4 border-primary/20">
                   <AvatarImage src={avatarFile || user.avatar} />
-                  <AvatarFallback className="text-4xl">{user.username[0]}</AvatarFallback>
+                  <AvatarFallback className="text-4xl">
+                    {user.username[0]}
+                  </AvatarFallback>
                 </Avatar>
                 <input
                   type="file"
@@ -559,7 +648,7 @@ const Index = () => {
                           size="sm"
                           onClick={() => {
                             setIsEditingUsername(false);
-                            setNewUsername('');
+                            setNewUsername("");
                           }}
                           className="h-7 w-7 p-0"
                         >
