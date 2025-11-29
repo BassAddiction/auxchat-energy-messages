@@ -53,6 +53,8 @@ const Index = () => {
   const [avatarFile, setAvatarFile] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showProfile, setShowProfile] = useState(false);
+  const [isEditingUsername, setIsEditingUsername] = useState(false);
+  const [newUsername, setNewUsername] = useState('');
 
   const reactionEmojis = ['❤️', '👍', '🔥', '🎉', '😂', '😍'];
 
@@ -70,14 +72,27 @@ const Index = () => {
   };
 
   const handleTelegramLogin = () => {
-    const randomName = 'Пользователь' + Math.floor(Math.random() * 1000);
+    const telegramUsername = '@user' + Math.floor(Math.random() * 10000);
     setUser({
-      username: randomName,
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${randomName}`,
+      username: telegramUsername,
+      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${telegramUsername}`,
       phone: 'Telegram',
       energy: 100
     });
     setIsRegistering(false);
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    setShowProfile(false);
+  };
+
+  const handleUpdateUsername = () => {
+    if (user && newUsername.trim()) {
+      setUser({ ...user, username: newUsername.trim() });
+      setIsEditingUsername(false);
+      setNewUsername('');
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -479,10 +494,55 @@ const Index = () => {
                   </Button>
                 )}
               </div>
-              <div className="space-y-2 border-t pt-4">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Имя:</span>
-                  <span className="font-medium">{user.username}</span>
+              <div className="space-y-3 border-t pt-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Имя:</span>
+                    {!isEditingUsername ? (
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{user.username}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setIsEditingUsername(true);
+                            setNewUsername(user.username);
+                          }}
+                          className="h-7 w-7 p-0"
+                        >
+                          <Icon name="Pencil" size={14} />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Input
+                          value={newUsername}
+                          onChange={(e) => setNewUsername(e.target.value)}
+                          className="h-8 w-32"
+                          autoFocus
+                        />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleUpdateUsername}
+                          className="h-7 w-7 p-0"
+                        >
+                          <Icon name="Check" size={14} />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setIsEditingUsername(false);
+                            setNewUsername('');
+                          }}
+                          className="h-7 w-7 p-0"
+                        >
+                          <Icon name="X" size={14} />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Телефон:</span>
@@ -492,6 +552,16 @@ const Index = () => {
                   <span className="text-muted-foreground">Энергия:</span>
                   <span className="font-medium">{user.energy} ⚡</span>
                 </div>
+              </div>
+              <div className="border-t pt-4">
+                <Button
+                  variant="destructive"
+                  onClick={handleLogout}
+                  className="w-full gap-2"
+                >
+                  <Icon name="LogOut" size={16} />
+                  Выйти из профиля
+                </Button>
               </div>
             </div>
           )}
