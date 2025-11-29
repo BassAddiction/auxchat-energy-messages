@@ -12,8 +12,6 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import Icon from "@/components/ui/icon";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import TelegramLoginButton from "@/components/TelegramLoginButton";
 
 interface Message {
   id: number;
@@ -78,40 +76,6 @@ const Index = () => {
   const handleCodeSubmit = () => {
     if (smsCode.length === 4) {
       setStep("profile");
-    }
-  };
-
-  const handleTelegramAuth = async (telegramUser: any) => {
-    console.log('Telegram auth data:', telegramUser);
-    try {
-      const response = await fetch(
-        "https://functions.poehali.dev/1010306b-8aa0-4c54-828b-5427008a0172",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(telegramUser),
-        },
-      );
-
-      const responseData = await response.json();
-      console.log('Backend response:', responseData);
-
-      if (response.ok) {
-        setUser({
-          username: responseData.username,
-          avatar: responseData.avatar,
-          phone: "Telegram",
-          energy: responseData.energy,
-        });
-        setIsRegistering(false);
-      } else {
-        alert("Ошибка: " + (responseData.error || "Проверьте TELEGRAM_BOT_TOKEN в секретах"));
-      }
-    } catch (error) {
-      console.error("Telegram auth error:", error);
-      alert("Ошибка подключения. Проверьте консоль (F12)");
     }
   };
 
@@ -428,12 +392,7 @@ const Index = () => {
           <DialogHeader>
             <DialogTitle>Вход в AuxChat</DialogTitle>
           </DialogHeader>
-          <Tabs defaultValue="phone" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="phone">По телефону</TabsTrigger>
-              <TabsTrigger value="telegram">Telegram</TabsTrigger>
-            </TabsList>
-            <TabsContent value="phone" className="space-y-4 pt-4">
+          <div className="space-y-4 pt-4">
               {step === "phone" && (
                 <>
                   <div>
@@ -546,29 +505,7 @@ const Index = () => {
                   </Button>
                 </>
               )}
-            </TabsContent>
-
-            <TabsContent value="telegram" className="space-y-4 pt-4">
-              <div className="text-center py-6">
-                <div className="w-16 h-16 bg-[#0088cc] rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Icon name="Send" size={32} className="text-white" />
-                </div>
-                <h3 className="text-lg font-semibold mb-2">
-                  Быстрый вход через Telegram
-                </h3>
-                <p className="text-sm text-muted-foreground mb-6">
-                  Авторизуйтесь через Telegram за пару секунд
-                </p>
-                <TelegramLoginButton
-                  botUsername="auxchat_web_login_bot"
-                  onAuth={handleTelegramAuth}
-                />
-                <p className="text-xs text-muted-foreground mt-4">
-                  Нажмите кнопку выше для входа через Telegram
-                </p>
-              </div>
-            </TabsContent>
-          </Tabs>
+          </div>
         </DialogContent>
       </Dialog>
 
