@@ -559,24 +559,12 @@ const Index = () => {
                 <p className="text-sm text-muted-foreground mb-6">
                   Авторизуйтесь через Telegram за пару секунд
                 </p>
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4 text-left">
-                  <h4 className="font-semibold text-sm mb-2 flex items-center gap-2 text-yellow-800">
-                    <span>⚠️</span>
-                    Настройка Telegram авторизации:
-                  </h4>
-                  <ol className="text-xs space-y-1 list-decimal list-inside text-yellow-700">
-                    <li>Откройте Telegram → @BotFather</li>
-                    <li>Отправьте /newbot и создайте бота</li>
-                    <li>Скопируйте токен и добавьте в секрет TELEGRAM_BOT_TOKEN выше ☝️</li>
-                    <li>Замените auxchat_login_bot ниже на username вашего бота</li>
-                  </ol>
-                </div>
                 <TelegramLoginButton
                   botUsername="auxchat_login_bot"
                   onAuth={handleTelegramAuth}
                 />
                 <p className="text-xs text-muted-foreground mt-4">
-                  После настройки здесь появится кнопка "Login with Telegram"
+                  Нажмите кнопку выше для входа через Telegram
                 </p>
               </div>
             </TabsContent>
