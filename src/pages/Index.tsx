@@ -81,7 +81,11 @@ const Index = () => {
         console.log("SMS response:", response.status, data);
         if (response.ok) {
           setStep("code");
-          alert("SMS-код отправлен на ваш телефон!");
+          if (data.test_code) {
+            alert(`ТЕСТОВЫЙ РЕЖИМ: Ваш код ${data.test_code}`);
+          } else {
+            alert("SMS-код отправлен на ваш телефон!");
+          }
         } else {
           alert("Ошибка: " + (data.error || "Не удалось отправить SMS"));
         }
