@@ -164,14 +164,8 @@ const Index = () => {
     loadMessages();
     if (userId) {
       loadProfilePhotos();
+      loadUnreadCount();
     }
-    const interval = setInterval(() => {
-      loadMessages();
-      if (userId) {
-        loadUnreadCount();
-      }
-    }, 5000);
-    return () => clearInterval(interval);
   }, [userId]);
 
   useEffect(() => {

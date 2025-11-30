@@ -28,8 +28,6 @@ export default function Conversations() {
       return;
     }
     loadConversations();
-    const interval = setInterval(loadConversations, 5000);
-    return () => clearInterval(interval);
   }, []);
 
   const loadConversations = async () => {

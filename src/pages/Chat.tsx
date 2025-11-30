@@ -34,71 +34,18 @@ export default function Chat() {
   const [currentUserProfile, setCurrentUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const prevMessageCountRef = useRef<number>(0);
 
   const currentUserId = localStorage.getItem('auxchat_user_id');
   const currentUsername = localStorage.getItem('username') || 'Я';
 
   useEffect(() => {
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
-    }
-  }, []);
-
-  useEffect(() => {
-    const audio = new Audio();
-    audio.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYJGGS77+OSUxQSWLPn77FwJAYzbM7x0H0uBiaI1/LPfzQHIXjH8N2PQBAQW7Pi77BxJAYzbM/y0H0vByKE0vLRgjMGIHfC7+CRSwwQVrHi7rRxJAYzbM/y0H0vBiKD0vLRgjMGIHfC7+CQSwwQV7Hh7rVwJAYzbM/y0H0vBiKD0vLRgjMGIHfC7+CQSwwQV7Hh7rVwJAYzbM/y0H0vBiKD0vLRgjMGIHfC7+CQSwwQV7Hh7rVwJAYzbM/y0H0vBiKD0vLRgjMGIHfC7+CQSwwQV7Hh7rVwJAYzbM/y0H0vBiKD0vLRgjMGIHfC7+CQSwwQV7Hh7rVwJAYzbM/y0H0vBiKD0vLRgjMGIHfC7+CQSwwQV7Hh7rVwJAYzbM/y0H0vBiKD0vLRgjMGIHfC7+CQSwwQV7Hh7rVwJAYzbM/y0H0vBiKD0vLRgjMGIHfC7+CQSwwQV7Hh7rVwJAYzbM/y0H0vBiKD0vLRgjMGIHfC7+CQSwwQV7Hh7rVwJAYzbM/y0H0vBiKD0vLRgjMGIHfC7+CQSwwQV7Hh7rVwJAYzbM/y0H0vBiKD0vLRgjMGIHfC7+CQSwwQV7Hh7rVwJAYzbM/y0H0vBiKD0vLRgjMGIHfC7+CQSwwQV7Hh7rVwJAYzbM/y0H0vBiKD0vLRgjMGIHfC7+CQSwwQV7Hh7rVwJAYzbM/y0H0vBiKD0vLRgjMGIHfC7+CQSwwQV7Hh7rVwJAYzbM/y0H0vBiKD0vLRgjMGIHfC7+CQSwwQV7Hh7rVw==';
-    audioRef.current = audio;
     loadProfile();
     loadCurrentUserProfile();
     loadMessages();
-    const interval = setInterval(loadMessages, 3000);
-    return () => clearInterval(interval);
   }, [userId]);
 
   useEffect(() => {
     scrollToBottom();
-    
-    if (prevMessageCountRef.current > 0 && messages.length > prevMessageCountRef.current) {
-      const newMessages = messages.slice(prevMessageCountRef.current);
-      const hasNewMessageFromOther = newMessages.some(
-        msg => String(msg.senderId) !== String(currentUserId)
-      );
-      
-      if (hasNewMessageFromOther) {
-        try {
-          const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-          const oscillator = audioContext.createOscillator();
-          const gainNode = audioContext.createGain();
-          
-          oscillator.type = 'sine';
-          oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-          oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
-          
-          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-          
-          oscillator.connect(gainNode);
-          gainNode.connect(audioContext.destination);
-          
-          oscillator.start();
-          oscillator.stop(audioContext.currentTime + 0.1);
-        } catch (e) {
-          console.log('Audio play failed:', e);
-        }
-        
-        if ('Notification' in window && Notification.permission === 'granted') {
-          const lastMsg = newMessages[newMessages.length - 1];
-          new Notification(`${lastMsg.sender.username}`, {
-            body: lastMsg.text,
-            icon: lastMsg.sender.avatarUrl || '/favicon.svg',
-            tag: 'auxchat-message'
-          });
-        }
-      }
-    }
-    
-    prevMessageCountRef.current = messages.length;
   }, [messages]);
 
   const scrollToBottom = () => {
