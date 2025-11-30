@@ -35,7 +35,7 @@ export default function Chat() {
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const currentUserId = localStorage.getItem('userId');
+  const currentUserId = localStorage.getItem('auxchat_user_id');
   const currentUsername = localStorage.getItem('username') || 'Я';
 
   useEffect(() => {
