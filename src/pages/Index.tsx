@@ -423,7 +423,7 @@ const Index = () => {
 
     try {
       const response = await fetch(
-        "https://functions.poehali.dev/f9307039-6dd4-4bc5-9b0e-992b36715215",
+        "https://functions.poehali.dev/f92685aa-bd08-4a3c-9170-4d421a00058c",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -436,10 +436,12 @@ const Index = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setUser({ ...user, energy: data.new_energy });
+        if (data.payment_url) {
+          window.location.href = data.payment_url;
+        }
       }
     } catch (error) {
-      console.error("Add energy error:", error);
+      console.error("Payment error:", error);
     }
   };
 
@@ -541,21 +543,19 @@ const Index = () => {
                       <div className="flex gap-2">
                         <Button
                           size="sm"
-                          variant="outline"
-                          className="flex-1"
+                          className="flex-1 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600"
                           onClick={() => handleAddEnergy(50)}
                         >
-                          <Icon name="Plus" size={16} className="mr-1" />
-                          +50 энергии
+                          <Icon name="Zap" size={16} className="mr-1" />
+                          +50 за 50₽
                         </Button>
                         <Button
                           size="sm"
-                          variant="outline"
-                          className="flex-1"
+                          className="flex-1 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600"
                           onClick={() => handleAddEnergy(100)}
                         >
-                          <Icon name="Plus" size={16} className="mr-1" />
-                          +100 энергии
+                          <Icon name="Zap" size={16} className="mr-1" />
+                          +100 за 90₽
                         </Button>
                       </div>
                     </div>

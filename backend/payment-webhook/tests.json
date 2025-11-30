@@ -1,0 +1,29 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS request for CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Handle webhook",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "event": "payment.succeeded",
+        "object": {
+          "metadata": {
+            "user_id": "1",
+            "energy_amount": "50"
+          }
+        }
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "status": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

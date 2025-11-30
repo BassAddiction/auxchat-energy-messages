@@ -1,0 +1,25 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS request for CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Create payment",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "user_id": 1,
+        "amount": 50
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "payment_url": "string",
+        "payment_id": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
