@@ -28,6 +28,7 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [photoUrl, setPhotoUrl] = useState('');
   const [isAddingPhoto, setIsAddingPhoto] = useState(false);
+  const [uploadingFile, setUploadingFile] = useState(false);
 
   const currentUserId = localStorage.getItem('userId');
   const isOwnProfile = String(currentUserId) === String(userId);
@@ -125,6 +126,49 @@ export default function Profile() {
     navigate(`/chat/${userId}`);
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Пожалуйста, выберите изображение');
+      return;
+    }
+
+    setUploadingFile(true);
+    try {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64 = reader.result as string;
+        
+        const response = await fetch(
+          'https://functions.poehali.dev/6ab5e5ca-f93c-438c-bc46-7eb7a75e2734',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-User-Id': currentUserId || '0'
+            },
+            body: JSON.stringify({ photoUrl: base64 })
+          }
+        );
+
+        if (response.ok) {
+          toast.success('Фото добавлено');
+          loadPhotos();
+        } else {
+          const error = await response.json();
+          toast.error(error.error || 'Ошибка добавления фото');
+        }
+        setUploadingFile(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      toast.error('Ошибка загрузки фото');
+      setUploadingFile(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -202,17 +246,54 @@ export default function Profile() {
             </div>
 
             {isOwnProfile && photos.length < 6 && (
-              <div className="mb-4 flex gap-2">
-                <input
-                  type="text"
-                  placeholder="URL фотографии"
-                  value={photoUrl}
-                  onChange={(e) => setPhotoUrl(e.target.value)}
-                  className="flex-1 px-3 py-2 rounded-lg bg-background border border-border"
-                />
-                <Button onClick={addPhoto} disabled={isAddingPhoto || !photoUrl.trim()}>
-                  <Icon name="Plus" size={16} />
-                </Button>
+              <div className="mb-4 space-y-3">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="URL фотографии"
+                    value={photoUrl}
+                    onChange={(e) => setPhotoUrl(e.target.value)}
+                    className="flex-1 px-3 py-2 rounded-lg bg-background border border-border"
+                  />
+                  <Button onClick={addPhoto} disabled={isAddingPhoto || !photoUrl.trim()}>
+                    <Icon name="Link" size={16} className="mr-2" />
+                    Добавить
+                  </Button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 border-t border-border"></div>
+                  <span className="text-sm text-muted-foreground">или</span>
+                  <div className="flex-1 border-t border-border"></div>
+                </div>
+                <label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    disabled={uploadingFile}
+                  />
+                  <Button 
+                    asChild
+                    disabled={uploadingFile}
+                    className="w-full"
+                    variant="outline"
+                  >
+                    <span className="cursor-pointer">
+                      {uploadingFile ? (
+                        <>
+                          <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
+                          Загрузка...
+                        </>
+                      ) : (
+                        <>
+                          <Icon name="Upload" size={16} className="mr-2" />
+                          Загрузить с компьютера
+                        </>
+                      )}
+                    </span>
+                  </Button>
+                </label>
               </div>
             )}
 
