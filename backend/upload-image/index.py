@@ -63,7 +63,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     try:
         file_bytes = base64.b64decode(file_data)
+        print(f"[DEBUG] Decoded file bytes: {len(file_bytes)}")
     except Exception as e:
+        print(f"[ERROR] Base64 decode failed: {e}")
         return {
             'statusCode': 400,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
@@ -75,9 +77,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         ext = 'jpg'
     
     unique_name = f"user-{user_id}-{uuid.uuid4()}.{ext}"
+    print(f"[DEBUG] Unique name: {unique_name}")
     
     upload_url = 'https://poehali.dev/api/upload-to-s3'
     boundary = f"----Boundary{uuid.uuid4().hex}"
+    print(f"[DEBUG] Starting S3 upload...")
     
     body_parts = []
     body_parts.append(f'--{boundary}'.encode())
@@ -100,23 +104,29 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     )
     
     try:
+        print(f"[DEBUG] Sending request to S3...")
         with urllib.request.urlopen(req, timeout=30) as response:
+            print(f"[DEBUG] S3 response status: {response.status}")
             result = json.loads(response.read().decode())
+            print(f"[DEBUG] S3 response body: {result}")
             public_url = result.get('url')
             
             if not public_url:
+                print(f"[ERROR] No URL in S3 response")
                 return {
                     'statusCode': 500,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                     'body': json.dumps({'error': 'Upload failed - no URL returned'})
                 }
             
+            print(f"[DEBUG] Upload success, URL: {public_url}")
             return {
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                 'body': json.dumps({'url': public_url})
             }
     except Exception as e:
+        print(f"[ERROR] Upload exception: {str(e)}")
         return {
             'statusCode': 500,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
