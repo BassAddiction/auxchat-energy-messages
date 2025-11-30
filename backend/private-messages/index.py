@@ -56,16 +56,17 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             other_user_id = int(other_user_id_str)
             
-            cur.execute("""
+            query = f"""
                 SELECT pm.id, pm.sender_id, pm.receiver_id, pm.text, pm.is_read, pm.created_at,
                        u.username, u.avatar_url
                 FROM t_p53416936_auxchat_energy_messa.private_messages pm
                 JOIN t_p53416936_auxchat_energy_messa.users u ON u.id = pm.sender_id
-                WHERE (pm.sender_id = %s AND pm.receiver_id = %s) 
-                   OR (pm.sender_id = %s AND pm.receiver_id = %s)
+                WHERE (pm.sender_id = {user_id} AND pm.receiver_id = {other_user_id}) 
+                   OR (pm.sender_id = {other_user_id} AND pm.receiver_id = {user_id})
                 ORDER BY pm.created_at ASC
                 LIMIT 100
-            """, (user_id, other_user_id, other_user_id, user_id))
+            """
+            cur.execute(query)
             
             rows = cur.fetchall()
             
@@ -82,11 +83,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 for row in rows
             ]
             
-            cur.execute("""
+            update_query = f"""
                 UPDATE t_p53416936_auxchat_energy_messa.private_messages 
                 SET is_read = TRUE 
-                WHERE receiver_id = %s AND sender_id = %s AND is_read = FALSE
-            """, (user_id, other_user_id))
+                WHERE receiver_id = {user_id} AND sender_id = {other_user_id} AND is_read = FALSE
+            """
+            cur.execute(update_query)
             conn.commit()
             
             cur.close()
@@ -112,12 +114,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'body': json.dumps({'error': 'receiverId and text required'})
                 }
             
-            cur.execute("""
+            escaped_text = text.replace("'", "''")
+            insert_query = f"""
                 INSERT INTO t_p53416936_auxchat_energy_messa.private_messages 
                 (sender_id, receiver_id, text) 
-                VALUES (%s, %s, %s) 
+                VALUES ({user_id}, {receiver_id}, '{escaped_text}') 
                 RETURNING id
-            """, (user_id, receiver_id, text))
+            """
+            cur.execute(insert_query)
             
             message_id = cur.fetchone()[0]
             conn.commit()
