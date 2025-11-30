@@ -10,7 +10,10 @@ import psycopg2
 from typing import Dict, Any
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
+    print(f'=== HANDLER START ===')
+    print(f'Event: {json.dumps(event)}')
     method: str = event.get('httpMethod', 'GET')
+    print(f'Method: {method}')
     
     if method == 'OPTIONS':
         return {
@@ -38,10 +41,13 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             }
         
         user_id = int(user_id_str)
+        print(f'User ID: {user_id}')
         dsn = os.environ.get('DATABASE_URL')
+        print(f'Connecting to DB...')
         
         conn = psycopg2.connect(dsn)
         cur = conn.cursor()
+        print(f'DB connected successfully')
         
         if method == 'GET':
             query_params = event.get('queryStringParameters', {}) or {}
@@ -58,6 +64,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 }
             
             other_user_id = int(other_user_id_str)
+            print(f'Other user ID: {other_user_id}')
             
             query = f"""
                 SELECT pm.id, pm.sender_id, pm.receiver_id, pm.text, pm.is_read, pm.created_at,
@@ -69,9 +76,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 ORDER BY pm.created_at ASC
                 LIMIT 100
             """
+            print(f'Executing query...')
             cur.execute(query)
+            print(f'Query executed')
             
             rows = cur.fetchall()
+            print(f'Fetched {len(rows)} rows')
             
             messages = []
             for row in rows:
