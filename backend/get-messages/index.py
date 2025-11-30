@@ -95,7 +95,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         messages.append({
             'id': msg_id,
             'text': text,
-            'created_at': created_at.isoformat(),
+            'created_at': created_at.isoformat() + 'Z',
             'user': {
                 'id': user_id,
                 'username': username,
