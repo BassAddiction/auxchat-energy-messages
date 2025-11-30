@@ -1091,7 +1091,7 @@ const Index = () => {
                       {msg.username}
                     </button>
                     <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-                      {msg.timestamp.toLocaleTimeString()}
+                      {msg.timestamp.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
                   <p className="text-sm mb-1.5 break-words">{msg.text}</p>
