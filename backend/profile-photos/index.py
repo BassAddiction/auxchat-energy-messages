@@ -45,8 +45,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         target_user_id = query_params.get('userId', user_id)
         
         cur.execute(
-            "SELECT id, photo_url, created_at, display_order FROM t_p53416936_auxchat_energy_messa.user_photos WHERE user_id = %s ORDER BY display_order ASC, created_at DESC LIMIT 6",
-            (target_user_id,)
+            f"SELECT id, photo_url, created_at, display_order FROM t_p53416936_auxchat_energy_messa.user_photos WHERE user_id = {target_user_id} ORDER BY display_order ASC, created_at DESC LIMIT 6"
         )
         rows = cur.fetchall()
         
@@ -78,8 +77,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             }
         
         cur.execute(
-            "SELECT COUNT(*) FROM t_p53416936_auxchat_energy_messa.user_photos WHERE user_id = %s",
-            (user_id,)
+            f"SELECT COUNT(*) FROM t_p53416936_auxchat_energy_messa.user_photos WHERE user_id = {user_id}"
         )
         count = cur.fetchone()[0]
         
@@ -92,9 +90,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'body': json.dumps({'error': 'Maximum 6 photos allowed'})
             }
         
+        photo_url_escaped = photo_url.replace("'", "''")
         cur.execute(
-            "INSERT INTO t_p53416936_auxchat_energy_messa.user_photos (user_id, photo_url) VALUES (%s, %s) RETURNING id",
-            (user_id, photo_url)
+            f"INSERT INTO t_p53416936_auxchat_energy_messa.user_photos (user_id, photo_url) VALUES ({user_id}, '{photo_url_escaped}') RETURNING id"
         )
         photo_id = cur.fetchone()[0]
         conn.commit()
@@ -122,13 +120,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             }
         
         cur.execute(
-            "UPDATE t_p53416936_auxchat_energy_messa.user_photos SET display_order = 999 WHERE user_id = %s",
-            (user_id,)
+            f"UPDATE t_p53416936_auxchat_energy_messa.user_photos SET display_order = 999 WHERE user_id = {user_id}"
         )
         
         cur.execute(
-            "UPDATE t_p53416936_auxchat_energy_messa.user_photos SET display_order = 0 WHERE id = %s AND user_id = %s",
-            (photo_id, user_id)
+            f"UPDATE t_p53416936_auxchat_energy_messa.user_photos SET display_order = 0 WHERE id = {photo_id} AND user_id = {user_id}"
         )
         
         conn.commit()
@@ -157,8 +153,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         photo_id = int(photo_id_str)
         
         cur.execute(
-            "DELETE FROM t_p53416936_auxchat_energy_messa.user_photos WHERE id = %s AND user_id = %s",
-            (photo_id, user_id)
+            f"DELETE FROM t_p53416936_auxchat_energy_messa.user_photos WHERE id = {photo_id} AND user_id = {user_id}"
         )
         affected = cur.rowcount
         conn.commit()
