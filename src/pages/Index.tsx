@@ -52,6 +52,11 @@ const Index = () => {
   const [showProfile, setShowProfile] = useState(false);
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   const [newUsername, setNewUsername] = useState("");
+  const [profilePhotos, setProfilePhotos] = useState<{id: number; url: string}[]>([]);
+  const [photoUrl, setPhotoUrl] = useState("");
+  const [isAddingPhoto, setIsAddingPhoto] = useState(false);
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const photoFileInputRef = useRef<HTMLInputElement>(null);
 
   const reactionEmojis = ["❤️", "👍", "🔥", "🎉", "😂", "😍"];
 
@@ -102,6 +107,9 @@ const Index = () => {
 
   useEffect(() => {
     loadMessages();
+    if (userId) {
+      loadProfilePhotos();
+    }
     const interval = setInterval(loadMessages, 5000);
     return () => clearInterval(interval);
   }, []);
@@ -287,6 +295,100 @@ const Index = () => {
     setSmsCode("");
     setAvatarFile("");
     setSmsStep("phone");
+  };
+
+  const loadProfilePhotos = async () => {
+    if (!userId) return;
+    try {
+      const response = await fetch(
+        `https://functions.poehali.dev/6ab5e5ca-f93c-438c-bc46-7eb7a75e2734?userId=${userId}`,
+        {
+          headers: {
+            'X-User-Id': userId.toString()
+          }
+        }
+      );
+      const data = await response.json();
+      setProfilePhotos(data.photos || []);
+    } catch (error) {
+      console.error('Error loading photos:', error);
+    }
+  };
+
+  const addPhotoByUrl = async () => {
+    if (!photoUrl.trim() || !userId) return;
+    setIsAddingPhoto(true);
+    try {
+      const response = await fetch(
+        'https://functions.poehali.dev/6ab5e5ca-f93c-438c-bc46-7eb7a75e2734',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-User-Id': userId.toString()
+          },
+          body: JSON.stringify({ photoUrl })
+        }
+      );
+      if (response.ok) {
+        alert('Фото добавлено');
+        setPhotoUrl('');
+        loadProfilePhotos();
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Ошибка');
+      }
+    } finally {
+      setIsAddingPhoto(false);
+    }
+  };
+
+  const handlePhotoFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !userId) return;
+    if (!file.type.startsWith('image/')) {
+      alert('Выберите изображение');
+      return;
+    }
+    setUploadingFile(true);
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64 = reader.result as string;
+      const response = await fetch(
+        'https://functions.poehali.dev/6ab5e5ca-f93c-438c-bc46-7eb7a75e2734',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-User-Id': userId.toString()
+          },
+          body: JSON.stringify({ photoUrl: base64 })
+        }
+      );
+      if (response.ok) {
+        alert('Фото добавлено');
+        loadProfilePhotos();
+      }
+      setUploadingFile(false);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const deletePhoto = async (photoId: number) => {
+    if (!userId) return;
+    const response = await fetch(
+      `https://functions.poehali.dev/6ab5e5ca-f93c-438c-bc46-7eb7a75e2734?photoId=${photoId}`,
+      {
+        method: 'DELETE',
+        headers: {
+          'X-User-Id': userId.toString()
+        }
+      }
+    );
+    if (response.ok) {
+      alert('Фото удалено');
+      loadProfilePhotos();
+    }
   };
 
   const handleLogout = () => {
@@ -584,6 +686,81 @@ const Index = () => {
                         </Button>
                       </div>
                     </div>
+                    <div className="border-t pt-4">
+                      <h3 className="font-semibold mb-3">Фотографии ({profilePhotos.length}/6)</h3>
+                      
+                      {profilePhotos.length < 6 && (
+                        <div className="mb-4 space-y-2">
+                          <div className="flex gap-2">
+                            <Input
+                              type="text"
+                              placeholder="URL фото"
+                              value={photoUrl}
+                              onChange={(e) => setPhotoUrl(e.target.value)}
+                              className="flex-1"
+                            />
+                            <Button size="sm" onClick={addPhotoByUrl} disabled={isAddingPhoto || !photoUrl.trim()}>
+                              <Icon name="Link" size={14} />
+                            </Button>
+                          </div>
+                          <div className="text-center text-xs text-muted-foreground">или</div>
+                          <label>
+                            <input
+                              ref={photoFileInputRef}
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={handlePhotoFileUpload}
+                              disabled={uploadingFile}
+                            />
+                            <Button 
+                              asChild
+                              variant="outline" 
+                              size="sm" 
+                              className="w-full"
+                              disabled={uploadingFile}
+                            >
+                              <span className="cursor-pointer">
+                                {uploadingFile ? (
+                                  <>
+                                    <Icon name="Loader2" size={14} className="mr-2 animate-spin" />
+                                    Загрузка...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Icon name="Upload" size={14} className="mr-2" />
+                                    Загрузить фото
+                                  </>
+                                )}
+                              </span>
+                            </Button>
+                          </label>
+                        </div>
+                      )}
+
+                      {profilePhotos.length > 0 ? (
+                        <div className="grid grid-cols-3 gap-2 mb-4">
+                          {profilePhotos.map((photo) => (
+                            <div key={photo.id} className="relative group aspect-square">
+                              <img
+                                src={photo.url}
+                                alt="Photo"
+                                className="w-full h-full object-cover rounded-lg"
+                              />
+                              <button
+                                onClick={() => deletePhoto(photo.id)}
+                                className="absolute top-1 right-1 p-1 bg-red-500/80 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <Icon name="Trash2" size={12} className="text-white" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground text-center py-4">Добавьте фото</p>
+                      )}
+                    </div>
+
                     <Button
                       variant="outline"
                       className="w-full"
