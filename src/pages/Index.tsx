@@ -386,6 +386,63 @@ const Index = () => {
     }
   };
 
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !userId) return;
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64 = reader.result as string;
+      
+      try {
+        const response = await fetch(
+          "https://functions.poehali.dev/7ad164df-b661-49f1-882d-10407afaa9d8",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              user_id: userId,
+              avatar: base64,
+            }),
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          setUser({ ...user!, avatar: data.avatar_url });
+        }
+      } catch (error) {
+        console.error("Avatar update error:", error);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAddEnergy = async (amount: number) => {
+    if (!userId || !user) return;
+
+    try {
+      const response = await fetch(
+        "https://functions.poehali.dev/f9307039-6dd4-4bc5-9b0e-992b36715215",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            user_id: userId,
+            amount: amount,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setUser({ ...user, energy: data.new_energy });
+      }
+    } catch (error) {
+      console.error("Add energy error:", error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex flex-col">
       <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 p-4 flex justify-between items-center sticky top-0 z-10">
@@ -416,10 +473,27 @@ const Index = () => {
                   </DialogHeader>
                   <div className="space-y-4">
                     <div className="flex items-center gap-4">
-                      <Avatar className="h-20 w-20">
-                        <AvatarImage src={user.avatar} alt={user.username} />
-                        <AvatarFallback>{user.username[0]}</AvatarFallback>
-                      </Avatar>
+                      <div className="relative">
+                        <Avatar className="h-20 w-20">
+                          <AvatarImage src={user.avatar} alt={user.username} />
+                          <AvatarFallback>{user.username[0]}</AvatarFallback>
+                        </Avatar>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="absolute bottom-0 right-0 h-6 w-6 rounded-full p-0 bg-white shadow-md"
+                          onClick={() => fileInputRef.current?.click()}
+                        >
+                          <Icon name="Camera" size={14} />
+                        </Button>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleAvatarChange}
+                        />
+                      </div>
                       <div>
                         {isEditingUsername ? (
                           <div className="flex gap-2">
@@ -454,13 +528,35 @@ const Index = () => {
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 p-3 bg-yellow-50 rounded-lg">
-                      <Icon name="Zap" className="text-yellow-500" size={24} />
-                      <div>
-                        <p className="font-semibold">{user.energy} энергии</p>
-                        <p className="text-xs text-muted-foreground">
-                          1 сообщение = 10 энергии
-                        </p>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 p-3 bg-yellow-50 rounded-lg">
+                        <Icon name="Zap" className="text-yellow-500" size={24} />
+                        <div className="flex-1">
+                          <p className="font-semibold">{user.energy} энергии</p>
+                          <p className="text-xs text-muted-foreground">
+                            1 сообщение = 10 энергии
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => handleAddEnergy(50)}
+                        >
+                          <Icon name="Plus" size={16} className="mr-1" />
+                          +50 энергии
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => handleAddEnergy(100)}
+                        >
+                          <Icon name="Plus" size={16} className="mr-1" />
+                          +100 энергии
+                        </Button>
                       </div>
                     </div>
                     <Button

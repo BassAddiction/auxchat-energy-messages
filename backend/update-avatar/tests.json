@@ -1,0 +1,24 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS request for CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Update avatar",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "user_id": 1,
+        "avatar": "https://example.com/avatar.png"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "avatar_url": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

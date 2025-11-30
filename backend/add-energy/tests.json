@@ -1,0 +1,24 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS request for CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Add energy",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "user_id": 1,
+        "amount": 50
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "new_energy": "number"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
