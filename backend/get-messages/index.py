@@ -32,7 +32,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     
     params = event.get('queryStringParameters') or {}
-    limit = int(params.get('limit', 10))
+    limit = int(params.get('limit', 5))
     offset = int(params.get('offset', 0))
     
     dsn = os.environ.get('DATABASE_URL')
@@ -42,11 +42,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     cur.execute(f"""
         SELECT 
             m.id, m.text, m.created_at,
-            u.id, u.username, 
-            CASE 
-                WHEN u.avatar_url LIKE 'http%' THEN u.avatar_url
-                ELSE NULL
-            END as avatar_url
+            u.id, u.username, u.avatar_url
         FROM t_p53416936_auxchat_energy_messa.messages m
         JOIN t_p53416936_auxchat_energy_messa.users u ON m.user_id = u.id
         ORDER BY m.created_at DESC
@@ -68,7 +64,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         reactions = [{'emoji': r[0], 'count': r[1]} for r in cur.fetchall()]
         
-        avatar = avatar_url if avatar_url else f'https://api.dicebear.com/7.x/avataaars/svg?seed={username}'
+        if avatar_url and avatar_url.startswith('http'):
+            avatar = avatar_url
+        elif avatar_url and avatar_url.startswith('data:image'):
+            avatar = avatar_url
+        else:
+            avatar = f'https://api.dicebear.com/7.x/avataaars/svg?seed={username}'
         
         messages.append({
             'id': msg_id,
