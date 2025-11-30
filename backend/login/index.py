@@ -93,10 +93,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'body': json.dumps({'error': 'User is banned'})
         }
     
-    cur.execute("SELECT energy FROM t_p53416936_auxchat_energy_messa.user_energy WHERE user_id = %s", (user_id,))
-    energy_row = cur.fetchone()
-    energy = energy_row[0] if energy_row else 100
-    
     cur.close()
     conn.close()
     
