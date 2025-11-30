@@ -14,6 +14,7 @@ from urllib.parse import urlencode
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     method: str = event.get('httpMethod', 'POST')
+    print(f"[DEBUG] Method: {method}")
     
     if method == 'OPTIONS':
         return {
@@ -36,6 +37,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     headers = event.get('headers', {})
     user_id = headers.get('X-User-Id') or headers.get('x-user-id')
+    print(f"[DEBUG] User ID: {user_id}")
     
     if not user_id:
         return {
@@ -47,6 +49,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     body_data = json.loads(event.get('body', '{}'))
     file_data = body_data.get('fileData', '')
     file_name = body_data.get('fileName', 'image.jpg')
+    print(f"[DEBUG] File name: {file_name}, Data length: {len(file_data)}")
     
     if not file_data:
         return {
