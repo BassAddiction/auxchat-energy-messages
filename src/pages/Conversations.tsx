@@ -20,7 +20,7 @@ export default function Conversations() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const currentUserId = localStorage.getItem('auxchat_user_id');
+  const currentUserId = localStorage.getItem('userId');
 
   useEffect(() => {
     if (!currentUserId) {

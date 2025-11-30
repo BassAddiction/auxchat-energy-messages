@@ -53,11 +53,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'body': json.dumps({'error': 'Phone number required'})
         }
     
-    # Тестовый режим для разработки
-    if phone == '+79999999999':
-        code = '1234'
-    else:
-        code = str(random.randint(1000, 9999))
+    # Генерируем 4-значный код
+    code = str(random.randint(1000, 9999))
     
     # Сохраняем в БД
     dsn = os.environ.get('DATABASE_URL')

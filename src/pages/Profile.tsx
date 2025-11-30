@@ -32,14 +32,10 @@ export default function Profile() {
   const [viewerOpen, setViewerOpen] = useState(false);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
-  const currentUserId = localStorage.getItem('auxchat_user_id');
+  const currentUserId = localStorage.getItem('userId');
   const isOwnProfile = String(currentUserId) === String(userId);
 
   useEffect(() => {
-    if (!currentUserId) {
-      navigate('/');
-      return;
-    }
     loadProfile();
     loadPhotos();
   }, [userId]);
