@@ -82,7 +82,7 @@ const Index = () => {
           timestamp: new Date(msg.created_at),
           reactions: msg.reactions || [],
         }));
-        setMessages(formattedMessages.reverse());
+        setMessages(formattedMessages);
       }
     } catch (error) {
       console.error("Load messages error:", error);
