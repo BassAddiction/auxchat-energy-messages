@@ -36,7 +36,12 @@ const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const [userId, setUserId] = useState<number | null>(() => {
     const stored = localStorage.getItem('auxchat_user_id');
-    return stored ? parseInt(stored) : null;
+    if (stored) return parseInt(stored);
+    
+    // Auto-login as user 7 (AuxChat) if not logged in
+    localStorage.setItem('auxchat_user_id', '7');
+    localStorage.setItem('username', 'AuxChat');
+    return 7;
   });
   const [messages, setMessages] = useState<Message[]>([]);
   const [messageText, setMessageText] = useState("");
