@@ -46,7 +46,19 @@ export default function Profile() {
         `https://functions.poehali.dev/518f730f-1a8e-45ad-b0ed-e9a66c5a3784?user_id=${userId}`
       );
       const data = await response.json();
-      setProfile(data);
+      
+      const photosResponse = await fetch(
+        `https://functions.poehali.dev/6ab5e5ca-f93c-438c-bc46-7eb7a75e2734?userId=${userId}`,
+        {
+          headers: { 'X-User-Id': currentUserId || '0' }
+        }
+      );
+      const photosData = await photosResponse.json();
+      const userAvatar = photosData.photos && photosData.photos.length > 0 
+        ? photosData.photos[0].url 
+        : `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.username}`;
+      
+      setProfile({ ...data, avatar: userAvatar });
     } catch (error) {
       toast.error('Ошибка загрузки профиля');
     } finally {
@@ -216,19 +228,19 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-purple-950/20 to-background">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="container mx-auto px-3 py-4 md:px-4 md:py-8 max-w-4xl">
         <Button
           variant="ghost"
           onClick={() => navigate('/')}
-          className="mb-4"
+          className="mb-3 h-9 px-2"
         >
-          <Icon name="ArrowLeft" size={20} className="mr-2" />
+          <Icon name="ArrowLeft" size={18} className="mr-1" />
           Назад
         </Button>
 
-        <Card className="p-6 bg-card/90 backdrop-blur border-purple-500/20">
-          <div className="flex items-start gap-6 mb-6">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-3xl font-bold flex-shrink-0">
+        <Card className="p-4 md:p-6 bg-card/90 backdrop-blur border-purple-500/20">
+          <div className="flex items-start gap-3 md:gap-6 mb-4 md:mb-6">
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-3xl font-bold flex-shrink-0">
               {profile.avatar ? (
                 <img src={profile.avatar} alt={profile.username} className="w-full h-full rounded-full object-cover" />
               ) : (
@@ -236,10 +248,10 @@ export default function Profile() {
               )}
             </div>
 
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-2xl font-bold">{profile.username}</h1>
-                <span className={`px-2 py-1 rounded-full text-xs ${
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1.5">
+                <h1 className="text-xl md:text-2xl font-bold truncate">{profile.username}</h1>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] md:text-xs whitespace-nowrap ${
                   profile.status === 'online' ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'
                 }`}>
                   {profile.status === 'online' ? 'Онлайн' : 'Не в сети'}
@@ -247,26 +259,26 @@ export default function Profile() {
               </div>
 
               {profile.bio && (
-                <p className="text-muted-foreground mb-4">{profile.bio}</p>
+                <p className="text-sm text-muted-foreground mb-3">{profile.bio}</p>
               )}
 
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-                <Icon name="Zap" size={16} className="text-yellow-500" />
-                <span>{profile.energy} энергии</span>
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-3">
+                <Icon name="Zap" size={14} className="text-yellow-500" />
+                <span className="text-sm">{profile.energy} энергии</span>
               </div>
 
               {!isOwnProfile && (
-                <Button onClick={openChat} className="bg-gradient-to-r from-purple-500 to-pink-500">
-                  <Icon name="MessageCircle" size={16} className="mr-2" />
+                <Button onClick={openChat} className="bg-gradient-to-r from-purple-500 to-pink-500 h-9 text-sm w-full md:w-auto">
+                  <Icon name="MessageCircle" size={14} className="mr-2" />
                   Написать сообщение
                 </Button>
               )}
             </div>
           </div>
 
-          <div className="border-t border-border pt-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold">Фотографии</h2>
+          <div className="border-t border-border pt-4 md:pt-6">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg md:text-xl font-semibold">Фотографии</h2>
               {isOwnProfile && photos.length < 6 && (
                 <span className="text-sm text-muted-foreground">{photos.length}/6</span>
               )}
@@ -325,7 +337,7 @@ export default function Profile() {
             )}
 
             {photos.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
                 {photos.map((photo, index) => (
                   <div key={photo.id} className="relative group aspect-square">
                     <button
