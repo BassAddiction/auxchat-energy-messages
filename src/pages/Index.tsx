@@ -66,7 +66,7 @@ const Index = () => {
 
   const reactionEmojis = ["❤️", "👍", "🔥", "🎉", "😂", "😍"];
 
-  const loadMessages = async () => {
+  const loadMessages = async (retryCount = 0) => {
     try {
       const response = await fetch(
         "https://functions.poehali.dev/392f3078-9f28-4640-ab86-dcabecaf721a?limit=20&offset=0",
@@ -80,6 +80,9 @@ const Index = () => {
       
       if (!response.ok) {
         console.error("Response not OK:", response.status, response.statusText);
+        if (retryCount < 2) {
+          setTimeout(() => loadMessages(retryCount + 1), 1000);
+        }
         return;
       }
       
@@ -98,6 +101,9 @@ const Index = () => {
       }
     } catch (error) {
       console.error("Load messages error:", error);
+      if (retryCount < 2) {
+        setTimeout(() => loadMessages(retryCount + 1), 1000);
+      }
     }
   };
 
