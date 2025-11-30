@@ -9,7 +9,7 @@
     {
       "name": "Get messages",
       "method": "GET",
-      "path": "/",
+      "path": "/?limit=5",
       "expectedStatus": 200,
       "expectedBody": {
         "messages": "array"
