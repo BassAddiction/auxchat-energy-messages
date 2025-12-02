@@ -857,12 +857,12 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex flex-col">
-      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 px-3 py-2 flex justify-between items-center sticky top-0 z-10">
-        <div className="flex items-center gap-2">
-          <Icon name="MessageCircle" className="text-red-500" size={24} />
-          <h1 className="text-xl font-bold text-red-500">AuxChat</h1>
+      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 px-2 md:px-3 py-2 flex justify-between items-center sticky top-0 z-10">
+        <div className="flex items-center gap-1.5 md:gap-2">
+          <Icon name="MessageCircle" className="text-red-500" size={20} />
+          <h1 className="text-lg md:text-xl font-bold text-red-500">AuxChat</h1>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5 md:gap-1">
           {user ? (
             <>
               <Button
@@ -873,7 +873,7 @@ const Index = () => {
               >
                 <Icon name="MessageCircle" size={18} />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
@@ -886,23 +886,23 @@ const Index = () => {
               >
                 <Icon name="Users" size={18} />
                 {subscribedUsers.size > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-purple-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                  <span className="absolute -top-1 -right-1 bg-purple-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
                     {subscribedUsers.size}
                   </span>
                 )}
               </Button>
-              <div className="flex items-center gap-1">
-                <Icon name="Zap" className="text-yellow-500" size={16} />
-                <span className="text-sm font-semibold">{user.energy}</span>
+              <div className="flex items-center gap-0.5 px-1">
+                <Icon name="Zap" className="text-yellow-500" size={14} />
+                <span className="text-xs md:text-sm font-semibold">{user.energy}</span>
               </div>
               <Dialog open={showProfile} onOpenChange={setShowProfile}>
                 <DialogTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-8 px-2">
-                    <Avatar className="h-7 w-7">
+                  <Button variant="ghost" size="sm" className="h-8 px-1.5 md:px-2">
+                    <Avatar className="h-6 w-6 md:h-7 md:w-7">
                       <AvatarImage src={user.avatar} alt={user.username} />
                       <AvatarFallback>{user.username[0]}</AvatarFallback>
                     </Avatar>
-                    <span className="ml-1.5 text-sm">{user.username}</span>
+                    <span className="ml-1 md:ml-1.5 text-xs md:text-sm max-w-[60px] md:max-w-none truncate">{user.username}</span>
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
@@ -961,21 +961,21 @@ const Index = () => {
                           </p>
                         </div>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="grid grid-cols-2 gap-2">
                         <Button
                           size="sm"
-                          className="flex-1 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600"
+                          className="bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-xs md:text-sm"
                           onClick={() => handleAddEnergy(50)}
                         >
-                          <Icon name="Zap" size={16} className="mr-1" />
+                          <Icon name="Zap" size={14} className="mr-1" />
                           +50 за 50₽
                         </Button>
                         <Button
                           size="sm"
-                          className="flex-1 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600"
+                          className="bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-xs md:text-sm"
                           onClick={() => handleAddEnergy(100)}
                         >
-                          <Icon name="Zap" size={16} className="mr-1" />
+                          <Icon name="Zap" size={14} className="mr-1" />
                           +100 за 90₽
                         </Button>
                       </div>
