@@ -1360,17 +1360,23 @@ const Index = () => {
           
           <div className="p-2 md:p-4 border-t bg-white flex-shrink-0">
             <div className="space-y-1">
-              <div className="flex gap-1.5">
-                <Input
+              <div className="flex gap-2">
+                <textarea
                   placeholder={user ? "Напишите сообщение..." : "Войдите для отправки"}
                   value={messageText}
                   onChange={(e) => setMessageText(e.target.value.slice(0, 140))}
-                  onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+                  onKeyPress={(e) => e.key === "Enter" && !e.shiftKey && handleSendMessage()}
                   disabled={!user}
                   maxLength={140}
+                  rows={3}
+                  className="flex-1 px-4 py-3 rounded-lg border border-input bg-background resize-none focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 text-sm"
                 />
-                <Button onClick={handleSendMessage} disabled={!user} className="h-9 w-9 p-0">
-                  <Icon name="Send" size={18} />
+                <Button 
+                  onClick={handleSendMessage} 
+                  disabled={!user} 
+                  className="h-auto px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold text-base"
+                >
+                  Go
                 </Button>
               </div>
               {user && (
