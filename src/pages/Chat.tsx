@@ -263,22 +263,28 @@ export default function Chat() {
   };
 
   const startRecording = async () => {
+    console.log('🎤 Starting recording...');
     try {
+      console.log('🎤 Requesting microphone access...');
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      console.log('🎤 Microphone access granted!');
       audioStreamRef.current = stream;
       audioChunksRef.current = [];
       
       const recorder = new MediaRecorder(stream, {
         mimeType: MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4'
       });
+      console.log('🎤 MediaRecorder created, mime:', recorder.mimeType);
 
       recorder.ondataavailable = (e) => {
+        console.log('🎤 Data available, size:', e.data.size);
         if (e.data.size > 0) {
           audioChunksRef.current.push(e.data);
         }
       };
 
       recorder.start();
+      console.log('🎤 Recording started!');
       mediaRecorderRef.current = recorder;
       setIsRecording(true);
       setRecordingTime(0);
@@ -287,17 +293,20 @@ export default function Chat() {
         setRecordingTime(prev => prev + 1);
       }, 1000);
     } catch (error) {
-      console.error('Recording error:', error);
-      toast.error('Нет доступа к микрофону');
+      console.error('❌ Recording error:', error);
+      toast.error('Нет доступа к микрофону: ' + (error instanceof Error ? error.message : String(error)));
     }
   };
 
   const stopRecording = () => {
+    console.log('🛑 Stopping recording...');
     const recorder = mediaRecorderRef.current;
     if (recorder && recorder.state !== 'inactive') {
       recorder.onstop = async () => {
+        console.log('🛑 Recorder stopped, chunks:', audioChunksRef.current.length);
         const mimeType = recorder.mimeType;
         const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+        console.log('🛑 Created blob, size:', audioBlob.size, 'type:', audioBlob.type);
         await uploadVoiceMessage(audioBlob);
         
         if (audioStreamRef.current) {
