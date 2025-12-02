@@ -136,6 +136,25 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'isBase64Encoded': False
                 }
             
+            # Проверяем блокировку в обе стороны
+            block_check_query = f"""
+                SELECT COUNT(*) FROM t_p53416936_auxchat_energy_messa.blacklist
+                WHERE (user_id = {user_id} AND blocked_user_id = {receiver_id})
+                   OR (user_id = {receiver_id} AND blocked_user_id = {user_id})
+            """
+            cur.execute(block_check_query)
+            is_blocked = cur.fetchone()[0] > 0
+            
+            if is_blocked:
+                cur.close()
+                conn.close()
+                return {
+                    'statusCode': 403,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'Вы не можете отправлять сообщения этому пользователю'}),
+                    'isBase64Encoded': False
+                }
+            
             escaped_text = text.replace("'", "''")
             insert_query = f"""
                 INSERT INTO t_p53416936_auxchat_energy_messa.private_messages 
