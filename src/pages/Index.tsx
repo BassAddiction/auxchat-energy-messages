@@ -1316,23 +1316,23 @@ const Index = () => {
               return (
               <div 
                 key={msg.id} 
-                className={`flex gap-2 p-3 rounded-lg transition-colors shadow-sm hover:shadow-md ${
+                className={`flex gap-2 p-2 md:p-3 rounded-lg transition-colors shadow-sm hover:shadow-md ${
                   isSubscribedUser 
                     ? 'bg-purple-50 hover:bg-purple-100 ring-2 ring-purple-300' 
                     : 'bg-white/60 hover:bg-white/80'
                 }`}
               >
                 <button onClick={() => navigate(`/profile/${msg.userId}`)}>
-                  <Avatar className="cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all h-8 w-8 md:h-10 md:w-10">
+                  <Avatar className="cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all h-9 w-9 md:h-10 md:w-10 flex-shrink-0">
                     <AvatarImage src={msg.avatar} alt={msg.username} />
                     <AvatarFallback>{msg.username[0]}</AvatarFallback>
                   </Avatar>
                 </button>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 mb-0.5">
+                  <div className="flex items-center gap-1 md:gap-1.5 mb-0.5">
                     <button 
                       onClick={() => navigate(`/profile/${msg.userId}`)}
-                      className="font-semibold text-sm hover:text-purple-500 transition-colors truncate"
+                      className="font-semibold text-xs md:text-sm hover:text-purple-500 transition-colors truncate max-w-[120px] md:max-w-none"
                     >
                       {msg.username}
                     </button>
@@ -1340,15 +1340,15 @@ const Index = () => {
                       {msg.timestamp.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
-                  <p className="text-sm mb-1.5 break-words">{msg.text}</p>
+                  <p className="text-xs md:text-sm mb-1 md:mb-1.5 break-words leading-relaxed">{msg.text}</p>
                   {msg.userId !== userId && (
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="h-7 px-3 text-xs"
+                      className="h-6 md:h-7 px-2 md:px-3 text-[11px] md:text-xs -ml-2"
                       onClick={() => openSubscriptionModal(msg.userId, msg.username)}
                     >
-                      <Icon name="Plus" size={14} className="mr-1" />
+                      <Icon name="Plus" size={12} className="mr-0.5 md:mr-1" />
                       Подписаться
                     </Button>
                   )}
