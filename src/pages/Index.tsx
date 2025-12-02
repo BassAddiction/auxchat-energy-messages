@@ -81,7 +81,12 @@ const Index = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const prevUnreadRef = useRef(0);
 
-  const reactionEmojis = ["❤️", "👍", "🔥", "🎉", "😂", "😍"];
+  const [subscriptionModalOpen, setSubscriptionModalOpen] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [selectedUsername, setSelectedUsername] = useState("");
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [checkingSubscription, setCheckingSubscription] = useState(false);
+  const [subscribedUsers, setSubscribedUsers] = useState<Set<number>>(new Set());
 
   const playNotificationSound = () => {
     try {
@@ -209,11 +214,28 @@ const Index = () => {
     }
   };
 
+  const loadSubscribedUsers = async () => {
+    if (!userId) return;
+    try {
+      const response = await fetch(
+        'https://functions.poehali.dev/ac3ea823-b6ec-4987-9602-18e412db6458',
+        {
+          headers: { 'X-User-Id': userId.toString() }
+        }
+      );
+      const data = await response.json();
+      setSubscribedUsers(new Set(data.subscribedUserIds || []));
+    } catch (error) {
+      console.error('Load subscribed users error:', error);
+    }
+  };
+
   useEffect(() => {
     loadMessages();
     if (userId) {
       loadProfilePhotos();
       loadUnreadCount();
+      loadSubscribedUsers();
     }
     const interval = setInterval(() => {
       loadMessages();
@@ -675,32 +697,90 @@ const Index = () => {
     }
   };
 
-  const handleReaction = async (messageId: number, emoji: string) => {
-    if (!userId) {
-      setIsAuthOpen(true);
-      return;
-    }
-
+  const checkSubscription = async (targetUserId: number) => {
+    if (!userId) return;
+    setCheckingSubscription(true);
     try {
       const response = await fetch(
-        "https://functions.poehali.dev/3c9e0b04-92f9-42ab-a40e-ebc29add4ac4",
+        `https://functions.poehali.dev/332c7a6c-5c6e-4f84-85de-81c8fd6ab8d5?targetUserId=${targetUserId}`,
+        {
+          headers: { 'X-User-Id': userId.toString() }
+        }
+      );
+      const data = await response.json();
+      setIsSubscribed(data.isSubscribed || false);
+    } catch (error) {
+      console.error('Check subscription error:', error);
+    } finally {
+      setCheckingSubscription(false);
+    }
+  };
+
+  const handleSubscribe = async () => {
+    if (!userId || !selectedUserId) return;
+    
+    try {
+      const response = await fetch(
+        "https://functions.poehali.dev/332c7a6c-5c6e-4f84-85de-81c8fd6ab8d5",
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            user_id: userId,
-            message_id: messageId,
-            emoji,
-          }),
+          headers: {
+            "Content-Type": "application/json",
+            "X-User-Id": userId.toString()
+          },
+          body: JSON.stringify({ targetUserId: selectedUserId }),
         }
       );
       
       if (response.ok) {
-        loadMessages();
+        setIsSubscribed(true);
+        loadSubscribedUsers();
+        alert(`Вы подписались на ${selectedUsername}!`);
+        setSubscriptionModalOpen(false);
       }
     } catch (error) {
-      console.error("Reaction error:", error);
+      console.error("Subscribe error:", error);
+      alert("Ошибка подписки");
     }
+  };
+
+  const handleUnsubscribe = async () => {
+    if (!userId || !selectedUserId) return;
+    
+    try {
+      const response = await fetch(
+        `https://functions.poehali.dev/332c7a6c-5c6e-4f84-85de-81c8fd6ab8d5?targetUserId=${selectedUserId}`,
+        {
+          method: "DELETE",
+          headers: { "X-User-Id": userId.toString() }
+        }
+      );
+      
+      if (response.ok) {
+        setIsSubscribed(false);
+        loadSubscribedUsers();
+        alert(`Вы отписались от ${selectedUsername}`);
+        setSubscriptionModalOpen(false);
+      }
+    } catch (error) {
+      console.error("Unsubscribe error:", error);
+      alert("Ошибка отписки");
+    }
+  };
+
+  const openSubscriptionModal = (targetUserId: number, username: string) => {
+    if (!userId) {
+      setIsAuthOpen(true);
+      return;
+    }
+    if (targetUserId === userId) {
+      alert("Нельзя подписаться на самого себя");
+      return;
+    }
+    setSelectedUserId(targetUserId);
+    setSelectedUsername(username);
+    setSubscriptionModalOpen(true);
+    checkSubscription(targetUserId);
   };
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -795,6 +875,19 @@ const Index = () => {
                 {unreadCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
                     {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/subscriptions')}
+                className="relative h-8 w-8 p-0"
+              >
+                <Icon name="Users" size={18} />
+                {subscribedUsers.size > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-purple-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                    {subscribedUsers.size}
                   </span>
                 )}
               </Button>
@@ -1218,8 +1311,17 @@ const Index = () => {
                 </Button>
               </div>
             )}
-            {messages.slice(-displayLimit).map((msg) => (
-              <div key={msg.id} className="flex gap-2 p-3 rounded-lg bg-white/60 hover:bg-white/80 transition-colors shadow-sm hover:shadow-md">
+            {messages.slice(-displayLimit).map((msg) => {
+              const isSubscribedUser = subscribedUsers.has(msg.userId);
+              return (
+              <div 
+                key={msg.id} 
+                className={`flex gap-2 p-3 rounded-lg transition-colors shadow-sm hover:shadow-md ${
+                  isSubscribedUser 
+                    ? 'bg-purple-50 hover:bg-purple-100 ring-2 ring-purple-300' 
+                    : 'bg-white/60 hover:bg-white/80'
+                }`}
+              >
                 <button onClick={() => navigate(`/profile/${msg.userId}`)}>
                   <Avatar className="cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all h-8 w-8 md:h-10 md:w-10">
                     <AvatarImage src={msg.avatar} alt={msg.username} />
@@ -1239,44 +1341,21 @@ const Index = () => {
                     </span>
                   </div>
                   <p className="text-sm mb-1.5 break-words">{msg.text}</p>
-                  <div className="flex flex-wrap gap-1">
-                    {msg.reactions.map((reaction, i) => (
-                      <button
-                        key={i}
-                        className="px-2 py-1 bg-gray-100 rounded-full text-xs hover:bg-gray-200 transition-colors"
-                        onClick={() => handleReaction(msg.id, reaction.emoji)}
-                      >
-                        {reaction.emoji} {reaction.count}
-                      </button>
-                    ))}
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button size="sm" variant="ghost" className="h-6 px-2">
-                          <Icon name="Plus" size={14} />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-xs">
-                        <DialogHeader>
-                          <DialogTitle>Добавить реакцию</DialogTitle>
-                        </DialogHeader>
-                        <div className="grid grid-cols-3 gap-2">
-                          {reactionEmojis.map((emoji) => (
-                            <Button
-                              key={emoji}
-                              variant="outline"
-                              className="text-2xl h-16"
-                              onClick={() => handleReaction(msg.id, emoji)}
-                            >
-                              {emoji}
-                            </Button>
-                          ))}
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
+                  {msg.userId !== userId && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 px-3 text-xs"
+                      onClick={() => openSubscriptionModal(msg.userId, msg.username)}
+                    >
+                      <Icon name="Plus" size={14} className="mr-1" />
+                      Подписаться
+                    </Button>
+                  )}
                 </div>
               </div>
-            ))}
+            );
+            })}
           </div>
           
           <div className="p-2 md:p-4 border-t bg-white flex-shrink-0">
@@ -1357,6 +1436,47 @@ const Index = () => {
           )}
         </div>
       )}
+
+      {/* Subscription Modal */}
+      <Dialog open={subscriptionModalOpen} onOpenChange={setSubscriptionModalOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Подписка на {selectedUsername}</DialogTitle>
+          </DialogHeader>
+          {checkingSubscription ? (
+            <div className="flex items-center justify-center py-8">
+              <Icon name="Loader2" size={32} className="animate-spin text-purple-500" />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                {isSubscribed 
+                  ? `Вы подписаны на ${selectedUsername}. Все сообщения этого пользователя будут выделены в общем чате.`
+                  : `Подпишитесь на ${selectedUsername}, чтобы следить за всеми сообщениями в общем чате.`
+                }
+              </p>
+              {isSubscribed ? (
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={handleUnsubscribe}
+                >
+                  <Icon name="UserMinus" size={16} className="mr-2" />
+                  Отписаться
+                </Button>
+              ) : (
+                <Button
+                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90"
+                  onClick={handleSubscribe}
+                >
+                  <Icon name="UserPlus" size={16} className="mr-2" />
+                  Подписаться
+                </Button>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

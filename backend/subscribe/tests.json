@@ -1,0 +1,47 @@
+{
+  "tests": [
+    {
+      "name": "Check subscription status (not subscribed)",
+      "method": "GET",
+      "path": "/?targetUserId=5",
+      "headers": {
+        "X-User-Id": "7"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "isSubscribed": false
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Subscribe to user",
+      "method": "POST",
+      "path": "/",
+      "headers": {
+        "X-User-Id": "7",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "targetUserId": 5
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Unsubscribe from user",
+      "method": "DELETE",
+      "path": "/?targetUserId=5",
+      "headers": {
+        "X-User-Id": "7"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

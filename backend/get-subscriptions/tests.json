@@ -1,0 +1,17 @@
+{
+  "tests": [
+    {
+      "name": "Get subscribed user IDs",
+      "method": "GET",
+      "path": "/",
+      "headers": {
+        "X-User-Id": "7"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "subscribedUserIds": []
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
