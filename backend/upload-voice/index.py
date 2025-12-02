@@ -66,7 +66,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         s3_access_key = os.environ.get('TIMEWEB_S3_ACCESS_KEY')
         s3_secret_key = os.environ.get('TIMEWEB_S3_SECRET_KEY')
         s3_bucket = os.environ.get('TIMEWEB_S3_BUCKET_NAME')
-        s3_endpoint = os.environ.get('TIMEWEB_S3_ENDPOINT', 'https://s3.twcstorage.ru')
+        s3_endpoint = os.environ.get('TIMEWEB_S3_ENDPOINT', 'https://s3.timeweb.cloud')
         s3_region = os.environ.get('TIMEWEB_S3_REGION', 'ru-1')
         print(f'S3 config: endpoint={s3_endpoint}, bucket={s3_bucket}, region={s3_region}')
         print(f'Credentials present: access_key={bool(s3_access_key)}, secret_key={bool(s3_secret_key)}')
