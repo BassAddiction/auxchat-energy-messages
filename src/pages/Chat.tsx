@@ -244,20 +244,20 @@ export default function Chat() {
         </div>
       </div>
 
-      <div className="flex-1 container mx-auto max-w-4xl px-3 sm:px-4 py-4 sm:py-6 overflow-y-auto">
+      <div className="flex-1 container mx-auto max-w-4xl px-2 md:px-4 py-3 md:py-6 overflow-y-auto">
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full gap-4">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-2xl">
+          <div className="flex flex-col items-center justify-center h-full gap-3 md:gap-4">
+            <div className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-xl md:text-2xl">
               {profile?.avatar ? (
                 <img src={profile.avatar} alt={profile.username} className="w-full h-full rounded-full object-cover" />
               ) : (
                 profile?.username[0]?.toUpperCase()
               )}
             </div>
-            <p className="text-muted-foreground text-center px-4">Нет сообщений. Начните диалог!</p>
+            <p className="text-muted-foreground text-center px-4 text-sm md:text-base">Нет сообщений. Начните диалог!</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-2 md:space-y-4">
             {messages.map((message) => {
               const isOwn = String(message.senderId) === String(currentUserId);
               return (
@@ -265,14 +265,14 @@ export default function Chat() {
                   key={message.id}
                   className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div className="max-w-[75%] sm:max-w-[65%]">
-                    <Card className={`p-2 sm:p-3 ${
+                  <div className="max-w-[80%] md:max-w-[70%]">
+                    <Card className={`p-2.5 md:p-3 ${
                       isOwn
                         ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
                         : 'bg-card'
                     }`}>
-                      <p className="break-words text-sm sm:text-base">{message.text}</p>
-                      <p className={`text-xs mt-1 ${
+                      <p className="break-words text-xs md:text-sm leading-relaxed">{message.text}</p>
+                      <p className={`text-[10px] md:text-xs mt-0.5 md:mt-1 ${
                         isOwn ? 'text-purple-100' : 'text-muted-foreground'
                       }`}>
                         {new Date(message.createdAt).toLocaleTimeString('ru-RU', {
@@ -290,23 +290,26 @@ export default function Chat() {
         )}
       </div>
 
-      <div className="bg-card/90 backdrop-blur border-t border-purple-500/20 p-3 sm:p-4">
-        <div className="container mx-auto max-w-4xl flex gap-2">
-          <textarea
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Написать сообщение..."
-            className="flex-1 px-3 sm:px-4 py-2 sm:py-3 rounded-lg bg-background border border-border resize-none text-sm sm:text-base"
-            rows={1}
-          />
-          <Button
-            onClick={sendMessage}
-            disabled={!newMessage.trim()}
-            className="bg-gradient-to-r from-purple-500 to-pink-500 px-4 sm:px-6 flex-shrink-0"
-          >
-            <Icon name="Send" size={18} className="sm:w-5 sm:h-5" />
-          </Button>
+      <div className="bg-card/90 backdrop-blur border-t border-purple-500/20 p-2 md:p-4">
+        <div className="container mx-auto max-w-4xl">
+          <div className="relative flex items-end">
+            <textarea
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Написать сообщение..."
+              className="flex-1 pl-3 md:pl-4 pr-12 md:pr-14 py-2.5 md:py-3 rounded-3xl border-2 border-gray-200 bg-gray-50 resize-none focus:outline-none focus:border-purple-400 focus:bg-white text-sm md:text-base transition-all"
+              rows={1}
+              style={{ minHeight: '44px', maxHeight: '120px' }}
+            />
+            <Button
+              onClick={sendMessage}
+              disabled={!newMessage.trim()}
+              className="absolute right-1 md:right-1.5 bottom-1 md:bottom-1.5 h-8 w-8 md:h-9 md:w-9 p-0 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:opacity-40 disabled:cursor-not-allowed shadow-md"
+            >
+              <Icon name="Send" size={16} className="ml-0.5" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>

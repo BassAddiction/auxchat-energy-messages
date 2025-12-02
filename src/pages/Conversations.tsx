@@ -109,15 +109,18 @@ export default function Conversations() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-purple-950/20 to-background">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">Сообщения</h1>
+      <div className="container mx-auto px-2 md:px-4 py-4 md:py-8 max-w-4xl">
+        <div className="flex items-center justify-between mb-4 md:mb-6">
+          <h1 className="text-xl md:text-2xl font-bold">Сообщения</h1>
           <Button
             variant="ghost"
+            size="sm"
             onClick={() => navigate('/')}
+            className="h-8 md:h-10"
           >
-            <Icon name="ArrowLeft" size={20} className="mr-2" />
-            Назад в чат
+            <Icon name="ArrowLeft" size={18} className="mr-1 md:mr-2" />
+            <span className="hidden sm:inline">Назад в чат</span>
+            <span className="sm:hidden">Назад</span>
           </Button>
         </div>
 
@@ -135,25 +138,25 @@ export default function Conversations() {
             {conversations.map((conv) => (
               <Card
                 key={conv.userId}
-                className="p-4 bg-card/90 backdrop-blur border-purple-500/20 hover:bg-accent/50 transition-colors cursor-pointer"
+                className="p-3 md:p-4 bg-card/90 backdrop-blur border-purple-500/20 hover:bg-accent/50 transition-colors cursor-pointer"
                 onClick={() => openChat(conv.userId)}
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xl font-bold flex-shrink-0 relative">
+                <div className="flex items-center gap-2 md:gap-4">
+                  <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-lg md:text-xl font-bold flex-shrink-0 relative">
                     {conv.avatarUrl ? (
                       <img src={conv.avatarUrl} alt={conv.username} className="w-full h-full rounded-full object-cover" />
                     ) : (
                       conv.username[0]?.toUpperCase()
                     )}
                     {conv.status === 'online' && (
-                      <span className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-background"></span>
+                      <span className="absolute bottom-0 right-0 w-3 h-3 md:w-4 md:h-4 bg-green-500 rounded-full border-2 border-background"></span>
                     )}
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <h3 className="font-semibold truncate">{conv.username}</h3>
-                      <span className="text-xs text-muted-foreground">
+                    <div className="flex items-center justify-between mb-0.5 md:mb-1">
+                      <h3 className="font-semibold text-sm md:text-base truncate">{conv.username}</h3>
+                      <span className="text-[10px] md:text-xs text-muted-foreground whitespace-nowrap ml-2">
                         {new Date(conv.lastMessageAt).toLocaleTimeString('ru-RU', {
                           hour: '2-digit',
                           minute: '2-digit'
@@ -161,18 +164,18 @@ export default function Conversations() {
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <p className="text-sm text-muted-foreground truncate flex-1">
+                      <p className="text-xs md:text-sm text-muted-foreground truncate flex-1">
                         {conv.lastMessage}
                       </p>
                       {conv.unreadCount > 0 && (
-                        <span className="ml-2 px-2 py-1 bg-purple-500 text-white text-xs rounded-full">
+                        <span className="ml-2 px-1.5 md:px-2 py-0.5 md:py-1 bg-purple-500 text-white text-[10px] md:text-xs rounded-full flex-shrink-0">
                           {conv.unreadCount}
                         </span>
                       )}
                     </div>
                   </div>
 
-                  <Icon name="ChevronRight" size={20} className="text-muted-foreground flex-shrink-0" />
+                  <Icon name="ChevronRight" size={18} className="text-muted-foreground flex-shrink-0" />
                 </div>
               </Card>
             ))}
