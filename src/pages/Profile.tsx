@@ -247,19 +247,19 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-purple-950/20 to-background">
-      <div className="container mx-auto px-3 py-4 md:px-4 md:py-8 max-w-4xl">
+      <div className="container mx-auto px-2 md:px-4 py-3 md:py-8 max-w-4xl">
         <Button
           variant="ghost"
           onClick={() => navigate('/')}
-          className="mb-3 h-9 px-2"
+          className="mb-2 md:mb-3 h-8 md:h-9 px-2"
         >
           <Icon name="ArrowLeft" size={18} className="mr-1" />
-          Назад
+          <span className="text-sm">Назад</span>
         </Button>
 
-        <Card className="p-4 md:p-6 bg-card/90 backdrop-blur border-purple-500/20">
-          <div className="flex items-start gap-3 md:gap-6 mb-4 md:mb-6">
-            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-3xl font-bold flex-shrink-0">
+        <Card className="p-3 md:p-6 bg-card/90 backdrop-blur border-purple-500/20">
+          <div className="flex items-start gap-3 md:gap-6 mb-3 md:mb-6">
+            <div className="w-16 h-16 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-2xl md:text-3xl font-bold flex-shrink-0">
               {profile.avatar ? (
                 <img src={profile.avatar} alt={profile.username} className="w-full h-full rounded-full object-cover" />
               ) : (
@@ -268,9 +268,9 @@ export default function Profile() {
             </div>
 
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1.5">
-                <h1 className="text-xl md:text-2xl font-bold truncate">{profile.username}</h1>
-                <span className={`px-2 py-0.5 rounded-full text-[10px] md:text-xs whitespace-nowrap ${
+              <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 mb-1 md:mb-1.5">
+                <h1 className="text-lg md:text-2xl font-bold truncate">{profile.username}</h1>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] md:text-xs whitespace-nowrap self-start ${
                   profile.status === 'online' ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'
                 }`}>
                   {profile.status === 'online' ? 'Онлайн' : 'Не в сети'}
@@ -278,32 +278,32 @@ export default function Profile() {
               </div>
 
               {profile.bio && (
-                <p className="text-sm text-muted-foreground mb-3">{profile.bio}</p>
+                <p className="text-xs md:text-sm text-muted-foreground mb-2 md:mb-3">{profile.bio}</p>
               )}
 
               {isOwnProfile && (
-                <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-3">
+                <div className="flex items-center gap-1 md:gap-1.5 text-muted-foreground mb-2 md:mb-3">
                   <Icon name="Zap" size={14} className="text-yellow-500" />
-                  <span className="text-sm">{profile.energy} энергии</span>
+                  <span className="text-xs md:text-sm">{profile.energy} энергии</span>
                 </div>
               )}
 
               {!isOwnProfile && (
-                <Button onClick={openChat} className="bg-gradient-to-r from-purple-500 to-pink-500 h-9 text-sm w-full md:w-auto">
-                  <Icon name="MessageCircle" size={14} className="mr-2" />
-                  Написать сообщение
+                <Button onClick={openChat} className="bg-gradient-to-r from-purple-500 to-pink-500 h-8 md:h-9 text-xs md:text-sm w-full md:w-auto">
+                  <Icon name="MessageCircle" size={14} className="mr-1.5" />
+                  Написать
                 </Button>
               )}
             </div>
           </div>
 
-          <div className="border-t border-border pt-4 md:pt-6">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg md:text-xl font-semibold">Фотографии ({photos.length}/6)</h2>
+          <div className="border-t border-border pt-3 md:pt-6">
+            <div className="flex items-center justify-between mb-2 md:mb-3">
+              <h2 className="text-base md:text-xl font-semibold">Фотографии ({photos.length}/6)</h2>
             </div>
 
             {isOwnProfile && photos.length < 6 && (
-              <div className="mb-4">
+              <div className="mb-3 md:mb-4">
                 <label>
                   <input
                     type="file"
@@ -315,18 +315,18 @@ export default function Profile() {
                   <Button 
                     asChild
                     disabled={uploadingFile}
-                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90"
+                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90 h-9 md:h-10 text-sm"
                   >
                     <span className="cursor-pointer flex items-center justify-center">
                       {uploadingFile ? (
                         <>
-                          <Icon name="Loader2" size={20} className="mr-2 animate-spin" />
-                          Загрузка...
+                          <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
+                          <span className="text-xs md:text-sm">Загрузка...</span>
                         </>
                       ) : (
                         <>
-                          <Icon name="Upload" size={20} className="mr-2" />
-                          Загрузить фото
+                          <Icon name="Upload" size={16} className="mr-2" />
+                          <span className="text-xs md:text-sm">Загрузить фото</span>
                         </>
                       )}
                     </span>
@@ -336,7 +336,7 @@ export default function Profile() {
             )}
 
             {photos.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
+              <div className="grid grid-cols-3 gap-1.5 md:gap-4">
                 {photos.map((photo, index) => (
                   <div key={photo.id} className="relative group aspect-square">
                     <button
@@ -346,7 +346,7 @@ export default function Profile() {
                       <img
                         src={photo.url}
                         alt="User photo"
-                        className="w-full h-full object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
+                        className="w-full h-full object-cover rounded-md md:rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
                       />
                     </button>
                     {isOwnProfile && (
@@ -355,7 +355,7 @@ export default function Profile() {
                           e.stopPropagation();
                           deletePhoto(photo.id);
                         }}
-                        className="absolute top-2 right-2 p-2 bg-red-500/80 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                        className="absolute top-1 right-1 md:top-2 md:right-2 p-1.5 md:p-2 bg-red-500/80 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
                       >
                         <Icon name="Trash2" size={16} className="text-white" />
                       </button>
