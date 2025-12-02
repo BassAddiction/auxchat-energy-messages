@@ -72,12 +72,20 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'isBase64Encoded': False
             }
         
+        from botocore.config import Config
+        
         s3_client = boto3.client(
             's3',
             aws_access_key_id=s3_access_key,
             aws_secret_access_key=s3_secret_key,
             region_name=s3_region,
-            endpoint_url=s3_endpoint
+            endpoint_url=s3_endpoint,
+            config=Config(
+                signature_version='s3v4',
+                s3={'addressing_style': 'path'},
+                connect_timeout=5,
+                read_timeout=10
+            )
         )
         
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
