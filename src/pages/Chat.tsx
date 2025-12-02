@@ -197,7 +197,10 @@ export default function Chat() {
   };
 
   const sendMessage = async (voiceUrl?: string, voiceDuration?: number) => {
-    if (!newMessage.trim() && !voiceUrl) return;
+    if (!newMessage.trim() && !voiceUrl) {
+      console.log('sendMessage: no message and no voice');
+      return;
+    }
 
     try {
       const body: any = {
@@ -207,11 +210,15 @@ export default function Chat() {
       if (voiceUrl) {
         body.voiceUrl = voiceUrl;
         body.voiceDuration = voiceDuration;
+        console.log('sendMessage: voice message', body);
       }
       
       if (newMessage.trim()) {
         body.text = newMessage;
+        console.log('sendMessage: text message', body);
       }
+
+      console.log('Sending POST request with body:', JSON.stringify(body));
 
       const response = await fetch(
         'https://functions.poehali.dev/0222e582-5c06-4780-85fa-c9145e5bba14',
@@ -225,11 +232,15 @@ export default function Chat() {
         }
       );
 
+      console.log('Response status:', response.status);
+
       if (response.ok) {
+        console.log('Message sent successfully');
         setNewMessage('');
         loadMessages();
       } else {
         const data = await response.json();
+        console.error('Send message failed:', response.status, data);
         if (response.status === 403) {
           toast.error('Вы не можете отправлять сообщения этому пользователю', {
             description: 'Один из вас заблокировал другого'
@@ -239,7 +250,8 @@ export default function Chat() {
         }
       }
     } catch (error) {
-      toast.error('Ошибка отправки сообщения');
+      console.error('sendMessage error:', error);
+      toast.error('Ошибка отправки сообщения: ' + (error instanceof Error ? error.message : String(error)));
     }
   };
 
@@ -330,25 +342,47 @@ export default function Chat() {
     setRecordingTime(0);
     
     try {
+      console.log('Uploading voice message, size:', audioBlob.size, 'type:', audioBlob.type, 'duration:', duration);
+      
+      if (audioBlob.size === 0) {
+        console.error('Audio blob is empty');
+        toast.error('Запись пуста, попробуйте еще раз');
+        return;
+      }
+      
+      if (audioBlob.size < 100) {
+        console.error('Audio blob too small:', audioBlob.size);
+        toast.error('Слишком короткая запись');
+        return;
+      }
+      
       const extension = audioBlob.type.includes('webm') ? 'webm' : 'mp4';
       const formData = new FormData();
       formData.append('file', audioBlob, `voice-${Date.now()}.${extension}`);
 
+      console.log('Uploading to S3...');
       const uploadResponse = await fetch('https://poehali.dev/api/upload-to-s3', {
         method: 'POST',
         body: formData
       });
 
+      console.log('Upload response status:', uploadResponse.status);
+      
       if (!uploadResponse.ok) {
+        const errorText = await uploadResponse.text();
+        console.error('Upload failed:', errorText);
         toast.error('Ошибка загрузки голосового сообщения');
         return;
       }
 
-      const { url } = await uploadResponse.json();
-      await sendMessage(url, duration);
+      const responseData = await uploadResponse.json();
+      console.log('Upload successful, URL:', responseData.url);
+      
+      console.log('Sending message with voiceUrl:', responseData.url, 'duration:', duration);
+      await sendMessage(responseData.url, duration);
     } catch (error) {
       console.error('Upload voice error:', error);
-      toast.error('Ошибка отправки голосового сообщения');
+      toast.error('Ошибка отправки голосового сообщения: ' + (error instanceof Error ? error.message : String(error)));
     }
   };
 
