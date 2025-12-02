@@ -230,20 +230,39 @@ const Index = () => {
     }
   };
 
+  const updateActivity = async () => {
+    if (!userId) return;
+    try {
+      await fetch('https://functions.poehali.dev/a70b420b-cb23-4948-9a56-b8cefc96f976', {
+        method: 'POST',
+        headers: { 'X-User-Id': userId.toString() }
+      });
+    } catch (error) {
+      console.error('Error updating activity:', error);
+    }
+  };
+
   useEffect(() => {
     loadMessages();
     if (userId) {
+      updateActivity();
       loadProfilePhotos();
       loadUnreadCount();
       loadSubscribedUsers();
     }
-    const interval = setInterval(() => {
+    const messagesInterval = setInterval(() => {
       loadMessages();
       if (userId) {
         loadUnreadCount();
       }
     }, 5000);
-    return () => clearInterval(interval);
+    const activityInterval = setInterval(() => {
+      if (userId) updateActivity();
+    }, 60000);
+    return () => {
+      clearInterval(messagesInterval);
+      clearInterval(activityInterval);
+    };
   }, [userId]);
 
   useEffect(() => {

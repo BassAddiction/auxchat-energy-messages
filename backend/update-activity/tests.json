@@ -1,0 +1,15 @@
+{
+  "tests": [
+    {
+      "name": "Update user activity",
+      "method": "POST",
+      "headers": {
+        "X-User-Id": "1"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      }
+    }
+  ]
+}

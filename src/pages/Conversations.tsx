@@ -23,14 +23,30 @@ export default function Conversations() {
 
   const currentUserId = localStorage.getItem('auxchat_user_id');
 
+  const updateActivity = async () => {
+    try {
+      await fetch('https://functions.poehali.dev/a70b420b-cb23-4948-9a56-b8cefc96f976', {
+        method: 'POST',
+        headers: { 'X-User-Id': currentUserId || '0' }
+      });
+    } catch (error) {
+      console.error('Error updating activity:', error);
+    }
+  };
+
   useEffect(() => {
     if (!currentUserId) {
       navigate('/');
       return;
     }
+    updateActivity();
     loadConversations();
-    const interval = setInterval(loadConversations, 5000);
-    return () => clearInterval(interval);
+    const conversationsInterval = setInterval(loadConversations, 5000);
+    const activityInterval = setInterval(updateActivity, 60000);
+    return () => {
+      clearInterval(conversationsInterval);
+      clearInterval(activityInterval);
+    };
   }, []);
 
   const playNotificationSound = () => {

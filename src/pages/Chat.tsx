@@ -49,16 +49,30 @@ export default function Chat() {
   const currentUserId = localStorage.getItem('auxchat_user_id');
   const currentUsername = localStorage.getItem('username') || 'Я';
 
+  const updateActivity = async () => {
+    try {
+      await fetch('https://functions.poehali.dev/a70b420b-cb23-4948-9a56-b8cefc96f976', {
+        method: 'POST',
+        headers: { 'X-User-Id': currentUserId || '0' }
+      });
+    } catch (error) {
+      console.error('Error updating activity:', error);
+    }
+  };
+
   useEffect(() => {
+    updateActivity();
     loadProfile();
     loadCurrentUserProfile();
     loadMessages();
     checkBlockStatus();
     const messagesInterval = setInterval(loadMessages, 3000);
     const profileInterval = setInterval(loadProfile, 10000);
+    const activityInterval = setInterval(updateActivity, 60000);
     return () => {
       clearInterval(messagesInterval);
       clearInterval(profileInterval);
+      clearInterval(activityInterval);
     };
   }, [userId]);
 

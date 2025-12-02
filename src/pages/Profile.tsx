@@ -37,16 +37,30 @@ export default function Profile() {
   const currentUserId = localStorage.getItem('auxchat_user_id');
   const isOwnProfile = String(currentUserId) === String(userId);
 
+  const updateActivity = async () => {
+    try {
+      await fetch('https://functions.poehali.dev/a70b420b-cb23-4948-9a56-b8cefc96f976', {
+        method: 'POST',
+        headers: { 'X-User-Id': currentUserId || '0' }
+      });
+    } catch (error) {
+      console.error('Error updating activity:', error);
+    }
+  };
+
   useEffect(() => {
     if (!currentUserId) {
       navigate('/');
       return;
     }
+    updateActivity();
     loadProfile();
     loadPhotos();
     if (!isOwnProfile) {
       checkBlockStatus();
     }
+    const activityInterval = setInterval(updateActivity, 60000);
+    return () => clearInterval(activityInterval);
   }, [userId]);
 
   const loadProfile = async () => {
