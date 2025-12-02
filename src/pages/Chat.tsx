@@ -43,8 +43,12 @@ export default function Chat() {
     loadProfile();
     loadCurrentUserProfile();
     loadMessages();
-    const interval = setInterval(loadMessages, 3000);
-    return () => clearInterval(interval);
+    const messagesInterval = setInterval(loadMessages, 3000);
+    const profileInterval = setInterval(loadProfile, 10000);
+    return () => {
+      clearInterval(messagesInterval);
+      clearInterval(profileInterval);
+    };
   }, [userId]);
 
   useEffect(() => {
