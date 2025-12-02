@@ -7,12 +7,10 @@ Returns: HTTP response with S3 URL
 import json
 import os
 import base64
-import hmac
-import hashlib
-import requests
+import boto3
+from botocore.config import Config
 from typing import Dict, Any
 from datetime import datetime
-from urllib.parse import quote
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     method: str = event.get('httpMethod', 'POST')
@@ -69,7 +67,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         s3_access_key = os.environ.get('TIMEWEB_S3_ACCESS_KEY')
         s3_secret_key = os.environ.get('TIMEWEB_S3_SECRET_KEY')
         s3_bucket = os.environ.get('TIMEWEB_S3_BUCKET_NAME')
-        s3_endpoint = os.environ.get('TIMEWEB_S3_ENDPOINT', 'https://s3.timeweb.cloud')
+        s3_endpoint = os.environ.get('TIMEWEB_S3_ENDPOINT', 'https://s3.twcstorage.ru')
+        s3_region = os.environ.get('TIMEWEB_S3_REGION', 'ru-1')
         
         if not all([s3_access_key, s3_secret_key, s3_bucket]):
             return {
@@ -79,44 +78,42 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'isBase64Encoded': False
             }
         
-        print(f'S3 config: endpoint={s3_endpoint}, bucket={s3_bucket}')
+        print(f'S3 config: endpoint={s3_endpoint}, bucket={s3_bucket}, region={s3_region}')
         
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         filename = f'voice-messages/voice_{timestamp}.{file_extension}'
         content_type = 'audio/webm' if file_extension == 'webm' else 'audio/mp4'
         
-        print(f'=== STEP 4: Uploading to Timeweb S3 via HTTP: {filename} ===')
+        print(f'=== STEP 4: Creating boto3 S3 client for Timeweb ===')
         
         try:
-            url = f'{s3_endpoint}/{s3_bucket}/{filename}'
+            s3_client = boto3.client(
+                's3',
+                endpoint_url=s3_endpoint,
+                aws_access_key_id=s3_access_key,
+                aws_secret_access_key=s3_secret_key,
+                region_name=s3_region,
+                config=Config(
+                    signature_version='s3v4',
+                    s3={'addressing_style': 'path'},
+                    connect_timeout=3,
+                    read_timeout=5,
+                    retries={'max_attempts': 1}
+                )
+            )
+            print('S3 client created')
             
-            headers_to_sign = {
-                'Content-Type': content_type,
-                'x-amz-acl': 'public-read'
-            }
+            print(f'=== STEP 5: Uploading to S3: {filename} ===')
             
-            print(f'Uploading to: {url}')
-            
-            response = requests.put(
-                url,
-                data=audio_bytes,
-                headers=headers_to_sign,
-                auth=(s3_access_key, s3_secret_key),
-                timeout=10
+            s3_client.put_object(
+                Bucket=s3_bucket,
+                Key=filename,
+                Body=audio_bytes,
+                ContentType=content_type,
+                ACL='public-read'
             )
             
-            print(f'Upload response status: {response.status_code}')
-            print(f'Upload response: {response.text[:200]}')
-            
-            if response.status_code not in [200, 201, 204]:
-                return {
-                    'statusCode': 500,
-                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'error': f'S3 upload failed: {response.status_code}'}),
-                    'isBase64Encoded': False
-                }
-            
-            file_url = url
+            file_url = f'{s3_endpoint}/{s3_bucket}/{filename}'
             print(f'Upload successful! URL: {file_url}')
             
         except Exception as upload_error:
@@ -124,7 +121,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             import traceback
             print(traceback.format_exc())
             raise
-        print(f'File URL: {file_url}')
         
         return {
             'statusCode': 200,
