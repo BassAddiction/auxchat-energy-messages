@@ -1,0 +1,15 @@
+{
+  "tests": [
+    {
+      "name": "Generate upload URL",
+      "method": "GET",
+      "path": "/?contentType=audio/webm&extension=webm",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "uploadUrl": "string",
+        "fileUrl": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

@@ -351,7 +351,7 @@ export default function Chat() {
     setRecordingTime(0);
     
     try {
-      console.log('Uploading voice to Timeweb S3, size:', audioBlob.size, 'type:', audioBlob.type, 'duration:', duration);
+      console.log('Uploading voice, size:', audioBlob.size, 'type:', audioBlob.type, 'duration:', duration);
       
       if (audioBlob.size === 0) {
         console.error('Audio blob is empty');
@@ -366,23 +366,27 @@ export default function Chat() {
       }
       
       const extension = audioBlob.type.includes('webm') ? 'webm' : 'mp4';
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const filename = `voice-messages/voice_${timestamp}.${extension}`;
       const contentType = audioBlob.type || 'audio/webm';
       
-      const s3Endpoint = 'https://s3.twcstorage.ru';
-      const s3Bucket = '27fe14e8-df1b0140-f925-43fc-9e59-9c13eb081128';
-      const s3AccessKey = import.meta.env.VITE_TIMEWEB_S3_ACCESS_KEY || 'ba295667';
+      console.log('Step 1: Getting pre-signed URL...');
+      const urlResponse = await fetch(
+        `https://functions.poehali.dev/559ff756-6b7f-42fc-8a61-2dac6de68639?contentType=${encodeURIComponent(contentType)}&extension=${extension}`
+      );
       
-      const uploadUrl = `${s3Endpoint}/${s3Bucket}/${filename}`;
+      if (!urlResponse.ok) {
+        console.error('Failed to get upload URL:', urlResponse.status);
+        toast.error('Ошибка получения ссылки для загрузки');
+        return;
+      }
       
-      console.log('Direct upload to Timeweb S3:', uploadUrl);
+      const { uploadUrl, fileUrl } = await urlResponse.json();
+      console.log('Got upload URL, uploading file...');
       
+      console.log('Step 2: Uploading to S3 with pre-signed URL...');
       const uploadResponse = await fetch(uploadUrl, {
         method: 'PUT',
         headers: {
-          'Content-Type': contentType,
-          'x-amz-acl': 'public-read'
+          'Content-Type': contentType
         },
         body: audioBlob
       });
@@ -392,14 +396,13 @@ export default function Chat() {
       if (!uploadResponse.ok) {
         const errorText = await uploadResponse.text();
         console.error('Upload failed:', uploadResponse.status, errorText);
-        toast.error('Ошибка загрузки на Timeweb S3');
+        toast.error('Ошибка загрузки файла');
         return;
       }
 
-      const fileUrl = uploadUrl;
       console.log('Upload successful, URL:', fileUrl);
       
-      console.log('Sending message with voiceUrl:', fileUrl, 'duration:', duration);
+      console.log('Step 3: Sending message with voiceUrl:', fileUrl, 'duration:', duration);
       await sendMessage(fileUrl, duration);
     } catch (error) {
       console.error('Upload voice error:', error);
