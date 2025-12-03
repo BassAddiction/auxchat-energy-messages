@@ -506,6 +506,165 @@ async def blacklist_user(data: BlacklistRequest, x_user_id: str = Header(None)):
         cur.close()
         conn.close()
 
+@app.get("/blacklist/{target_user_id}")
+async def check_block_status(target_user_id: int, x_user_id: str = Header(None)):
+    user_id = verify_token(x_user_id)
+    conn = get_db()
+    cur = conn.cursor()
+    
+    try:
+        cur.execute(
+            "SELECT id FROM blacklist WHERE user_id = %s AND blocked_user_id = %s",
+            (user_id, target_user_id)
+        )
+        is_blocked = cur.fetchone() is not None
+        
+        return {"isBlocked": is_blocked}
+    finally:
+        cur.close()
+        conn.close()
+
+@app.delete("/blacklist/{target_user_id}")
+async def unblock_user(target_user_id: int, x_user_id: str = Header(None)):
+    user_id = verify_token(x_user_id)
+    conn = get_db()
+    cur = conn.cursor()
+    
+    try:
+        cur.execute(
+            "DELETE FROM blacklist WHERE user_id = %s AND blocked_user_id = %s",
+            (user_id, target_user_id)
+        )
+        conn.commit()
+        
+        return {"success": True}
+    finally:
+        cur.close()
+        conn.close()
+
+@app.get("/unread-count")
+async def get_unread_count(x_user_id: str = Header(None)):
+    user_id = verify_token(x_user_id)
+    conn = get_db()
+    cur = conn.cursor()
+    
+    try:
+        cur.execute("""
+            SELECT c.id, COUNT(m.id) as unread_count
+            FROM conversations c
+            LEFT JOIN messages m ON m.conversation_id = c.id 
+                AND m.sender_id != %s 
+                AND m.is_read = FALSE
+            WHERE c.user1_id = %s OR c.user2_id = %s
+            GROUP BY c.id
+        """, (user_id, user_id, user_id))
+        
+        conversations = []
+        for row in cur.fetchall():
+            conversations.append({
+                "conversationId": row['id'],
+                "unreadCount": row['unread_count']
+            })
+        
+        return {"conversations": conversations}
+    finally:
+        cur.close()
+        conn.close()
+
+@app.post("/update-activity")
+async def update_activity_endpoint(x_user_id: str = Header(None)):
+    user_id = verify_token(x_user_id)
+    conn = get_db()
+    cur = conn.cursor()
+    
+    try:
+        cur.execute(
+            "UPDATE users SET last_active_at = NOW() WHERE id = %s",
+            (user_id,)
+        )
+        conn.commit()
+        return {"success": True}
+    finally:
+        cur.close()
+        conn.close()
+
+@app.post("/update-username")
+async def update_username_endpoint(request: Request, x_user_id: str = Header(None)):
+    user_id = verify_token(x_user_id)
+    body = await request.json()
+    new_username = body.get('username')
+    
+    if not new_username:
+        raise HTTPException(status_code=400, detail="Username required")
+    
+    conn = get_db()
+    cur = conn.cursor()
+    
+    try:
+        cur.execute(
+            "UPDATE users SET username = %s WHERE id = %s",
+            (new_username, user_id)
+        )
+        conn.commit()
+        return {"success": True}
+    finally:
+        cur.close()
+        conn.close()
+
+@app.get("/user-subscriptions")
+async def get_user_subscriptions(x_user_id: str = Header(None)):
+    user_id = verify_token(x_user_id)
+    conn = get_db()
+    cur = conn.cursor()
+    
+    try:
+        cur.execute(
+            "SELECT subscribed_to_id FROM subscriptions WHERE subscriber_id = %s",
+            (user_id,)
+        )
+        subscribed_ids = [row['subscribed_to_id'] for row in cur.fetchall()]
+        
+        return {"subscribedUserIds": subscribed_ids}
+    finally:
+        cur.close()
+        conn.close()
+
+@app.post("/subscribe/{target_user_id}")
+async def subscribe_to_user(target_user_id: int, x_user_id: str = Header(None)):
+    user_id = verify_token(x_user_id)
+    conn = get_db()
+    cur = conn.cursor()
+    
+    try:
+        cur.execute(
+            "INSERT INTO subscriptions (subscriber_id, subscribed_to_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+            (user_id, target_user_id)
+        )
+        conn.commit()
+        
+        return {"success": True}
+    finally:
+        cur.close()
+        conn.close()
+
+@app.delete("/subscribe/{target_user_id}")
+async def unsubscribe_from_user(target_user_id: int, x_user_id: str = Header(None)):
+    user_id = verify_token(x_user_id)
+    conn = get_db()
+    cur = conn.cursor()
+    
+    try:
+        cur.execute(
+            "DELETE FROM subscriptions WHERE subscriber_id = %s AND subscribed_to_id = %s",
+            (user_id, target_user_id)
+        )
+        conn.commit()
+        
+        return {"success": True}
+    finally:
+        cur.close()
+        conn.close()
+
 @app.get("/admin/users")
 async def admin_users(x_user_id: str = Header(None)):
     user_id = verify_token(x_user_id)
@@ -535,12 +694,55 @@ async def get_profile_photos(x_user_id: str = Header(None)):
     
     try:
         cur.execute(
-            "SELECT photo_url FROM users WHERE id = %s",
+            "SELECT id, photo_url FROM profile_photos WHERE user_id = %s ORDER BY created_at DESC",
             (user_id,)
         )
-        user = cur.fetchone()
+        photos = cur.fetchall()
         
-        return {"photos": [user['photo_url']] if user and user['photo_url'] else []}
+        return {"photos": [{"id": p['id'], "url": p['photo_url']} for p in photos]}
+    finally:
+        cur.close()
+        conn.close()
+
+@app.post("/profile-photos")
+async def add_profile_photo(request: Request, x_user_id: str = Header(None)):
+    user_id = verify_token(x_user_id)
+    body = await request.json()
+    photo_url = body.get('photo_url')
+    
+    if not photo_url:
+        raise HTTPException(status_code=400, detail="photo_url required")
+    
+    conn = get_db()
+    cur = conn.cursor()
+    
+    try:
+        cur.execute(
+            "INSERT INTO profile_photos (user_id, photo_url) VALUES (%s, %s) RETURNING id",
+            (user_id, photo_url)
+        )
+        photo_id = cur.fetchone()['id']
+        conn.commit()
+        
+        return {"success": True, "photoId": photo_id}
+    finally:
+        cur.close()
+        conn.close()
+
+@app.delete("/profile-photos/{photo_id}")
+async def delete_profile_photo(photo_id: int, x_user_id: str = Header(None)):
+    user_id = verify_token(x_user_id)
+    conn = get_db()
+    cur = conn.cursor()
+    
+    try:
+        cur.execute(
+            "DELETE FROM profile_photos WHERE id = %s AND user_id = %s",
+            (photo_id, user_id)
+        )
+        conn.commit()
+        
+        return {"success": True}
     finally:
         cur.close()
         conn.close()
