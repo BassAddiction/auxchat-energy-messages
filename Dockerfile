@@ -1,17 +1,24 @@
-# Simple Python backend container
+# Python backend for AuxChat
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# Copy requirements and install Python packages
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy requirements first (better Docker caching)
+COPY requirements.txt ./
+
+# Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY main.py .
+COPY main.py ./
 
 # Expose port
 EXPOSE 8000
 
-# Run uvicorn
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD python -c "import requests; requests.get('http://localhost:8000/health')" || exit 1
+
+# Run application
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
