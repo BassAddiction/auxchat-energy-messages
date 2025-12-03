@@ -23,9 +23,16 @@ app.add_middleware(
 )
 
 def get_db():
-    db_url = os.environ.get('DATABASE_URL') or os.environ.get('DB_CONNECTION_STRING')
+    if 'DATABASE_URL' in os.environ:
+        return psycopg2.connect(os.environ['DATABASE_URL'], cursor_factory=RealDictCursor)
+    
     return psycopg2.connect(
-        db_url,
+        host=os.environ['DB_HOST'],
+        port=os.environ['DB_PORT'],
+        database=os.environ['DB_NAME'],
+        user=os.environ['DB_USER'],
+        password=os.environ['DB_PASSWORD'],
+        sslmode='require',
         cursor_factory=RealDictCursor
     )
 
