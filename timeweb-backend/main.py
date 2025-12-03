@@ -23,8 +23,9 @@ app.add_middleware(
 )
 
 def get_db():
+    db_url = os.environ.get('DATABASE_URL') or os.environ.get('DB_CONNECTION_STRING')
     return psycopg2.connect(
-        os.environ['DATABASE_URL'],
+        db_url,
         cursor_factory=RealDictCursor
     )
 
