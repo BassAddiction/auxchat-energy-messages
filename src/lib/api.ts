@@ -1,6 +1,6 @@
 // API Configuration - Single source of truth for all API calls
 // Production API: https://api.auxchat.ru
-const API_BASE = import.meta.env.PROD ? 'https://api.auxchat.ru' : 'http://localhost:8000';
+const API_BASE = import.meta.env.MODE === 'production' ? 'https://api.auxchat.ru' : 'http://localhost:8000';
 
 export const api = {
   // Helper to add auth header
