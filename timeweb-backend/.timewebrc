@@ -2,7 +2,7 @@
   "version": 1,
   "build": {
     "command": "",
-    "dependencies": ""
+    "dependencies": "requirements.txt"
   },
   "run": {
     "command": "uvicorn main:app --host 0.0.0.0 --port 8000"
