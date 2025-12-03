@@ -799,16 +799,10 @@ async def get_private_messages(x_user_id: str = Header(None)):
     
     return {"messages": []}
 
-# Serve React frontend
-if os.path.exists("dist"):
-    app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")
-    
-    @app.get("/{full_path:path}")
-    async def serve_spa(full_path: str):
-        file_path = os.path.join("dist", full_path)
-        if os.path.exists(file_path) and os.path.isfile(file_path):
-            return FileResponse(file_path)
-        return FileResponse("dist/index.html")
+# Health check endpoint
+@app.get("/health")
+async def health_check():
+    return {"status": "ok", "service": "auxchat-api"}
 
 if __name__ == "__main__":
     import uvicorn
