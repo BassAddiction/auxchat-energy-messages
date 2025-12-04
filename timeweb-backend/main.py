@@ -90,6 +90,10 @@ class CreatePaymentRequest(BaseModel):
     description: str
 
 # Routes
+@app.options("/{full_path:path}")
+async def options_handler(full_path: str):
+    return {}
+
 @app.get("/health")
 async def health():
     return {"status": "ok", "message": "AuxChat API"}
