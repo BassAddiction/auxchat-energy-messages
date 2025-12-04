@@ -14,11 +14,12 @@ if allowed_origins != '*':
     allowed_origins = allowed_origins.split(',')
 
 CORS(app, 
-     origins=allowed_origins,
+     resources={r"/*": {"origins": "*"}},
      methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-     allow_headers=["Content-Type", "X-User-Id"],
+     allow_headers=["Content-Type", "X-User-Id", "Authorization"],
      supports_credentials=False,
      expose_headers=["Content-Type"],
+     send_wildcard=True,
      max_age=3600)
 
 @app.after_request
