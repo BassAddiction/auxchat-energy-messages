@@ -1,11 +1,13 @@
 // API Configuration - Single source of truth for all API calls
 // Production API: Timeweb backend на api.auxchat.ru
-// UPDATED: 2025-12-04 23:59:00 - Force rebuild
-const API_BASE = import.meta.env.MODE === 'production' 
+// UPDATED: 2025-12-05 00:05:00 - Fixed API detection
+// Detect production by hostname, not by build mode
+const isProduction = typeof window !== 'undefined' && window.location.hostname === 'auxchat.ru';
+const API_BASE = isProduction
   ? 'https://api.auxchat.ru' 
   : 'http://localhost:8000';
 
-console.log('[API CONFIG] API_BASE:', API_BASE, '| MODE:', import.meta.env.MODE);
+console.log('[API CONFIG] Hostname:', typeof window !== 'undefined' ? window.location.hostname : 'SSR', '| API_BASE:', API_BASE);
 
 export const api = {
   // Helper to add auth header
