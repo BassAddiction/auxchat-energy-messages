@@ -1,10 +1,6 @@
 {
   "version": 1,
-  "build": {
-    "command": "pip install -r requirements.txt",
-    "dependencies": "requirements.txt"
-  },
-  "run": {
-    "command": "gunicorn --bind 0.0.0.0:8080 --workers 2 main:app"
-  }
+  "framework": "python",
+  "buildCommand": "pip install --no-cache-dir -r requirements.txt",
+  "startCommand": "gunicorn --bind 0.0.0.0:8080 --workers 2 --timeout 120 main:app"
 }
