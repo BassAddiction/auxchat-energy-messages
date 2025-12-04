@@ -78,11 +78,38 @@ def health():
         }
     })
 
-@app.route('/messages', methods=['GET', 'OPTIONS'])
-def get_messages():
+@app.route('/messages', methods=['GET', 'POST', 'OPTIONS'])
+def messages():
     if request.method == 'OPTIONS':
         return '', 200
     
+    if request.method == 'POST':
+        user_id = request.headers.get('X-User-Id')
+        if not user_id:
+            return jsonify({"error": "Authentication required"}), 401
+        
+        data = request.get_json()
+        content = data.get('content', '')
+        voice_url = data.get('voice_url')
+        voice_duration = data.get('voice_duration')
+        
+        conn = get_db()
+        cur = conn.cursor()
+        
+        cur.execute("""
+            INSERT INTO messages (user_id, text, voice_url, voice_duration, created_at)
+            VALUES (%s, %s, %s, %s, NOW())
+            RETURNING id
+        """, (int(user_id), content, voice_url, voice_duration))
+        
+        message_id = cur.fetchone()['id']
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        return jsonify({"success": True, "message_id": message_id})
+    
+    # GET method
     limit = int(request.args.get('limit', 20))
     offset = int(request.args.get('offset', 0))
     
@@ -259,8 +286,8 @@ def get_conversations():
     # Return empty conversations for now
     return jsonify({"conversations": []})
 
-@app.route('/messages/<int:conversation_id>', methods=['GET', 'OPTIONS'])
-def get_conversation_messages(conversation_id):
+@app.route('/messages/<int:conversation_id>', methods=['GET', 'POST', 'OPTIONS'])
+def conversation_messages(conversation_id):
     if request.method == 'OPTIONS':
         return '', 200
     
@@ -271,7 +298,27 @@ def get_conversation_messages(conversation_id):
     conn = get_db()
     cur = conn.cursor()
     
-    # Get private messages between two users
+    if request.method == 'POST':
+        # Send private message
+        data = request.get_json()
+        text = data.get('text', '')
+        voice_url = data.get('voice_url')
+        voice_duration = data.get('voice_duration')
+        
+        cur.execute("""
+            INSERT INTO private_messages (sender_id, receiver_id, text, voice_url, voice_duration, created_at)
+            VALUES (%s, %s, %s, %s, %s, NOW())
+            RETURNING id
+        """, (int(user_id), conversation_id, text, voice_url, voice_duration))
+        
+        message_id = cur.fetchone()['id']
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        return jsonify({"success": True, "message_id": message_id})
+    
+    # GET: Get private messages between two users
     cur.execute("""
         SELECT 
             pm.id, pm.sender_id as "senderId", pm.receiver_id as "receiverId",
