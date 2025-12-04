@@ -1,7 +1,7 @@
 // API Configuration - Single source of truth for all API calls
-// Production API: Backend functions on poehali.dev
+// Production API: Timeweb backend на api.auxchat.ru
 const API_BASE = import.meta.env.MODE === 'production' 
-  ? 'https://functions.poehali.dev' 
+  ? 'https://api.auxchat.ru' 
   : 'http://localhost:8000';
 
 export const api = {
