@@ -20,8 +20,11 @@ app.add_middleware(
 )
 
 def get_db():
+    print("[DEBUG] get_db() called")
+    
     # Try DATABASE_URL first
     dsn = os.environ.get('DATABASE_URL')
+    print(f"[DEBUG] DATABASE_URL: {dsn[:50] if dsn else 'NOT SET'}")
     
     # If DATABASE_URL not set, build from parts
     if not dsn:
@@ -31,12 +34,23 @@ def get_db():
         db_user = os.environ.get('DB_USER')
         db_pass = os.environ.get('DB_PASSWORD')
         
+        print(f"[DEBUG] DB config: host={db_host}, port={db_port}, name={db_name}, user={db_user}, pass={'***' if db_pass else 'NOT SET'}")
+        
         if not all([db_host, db_name, db_user, db_pass]):
+            print("[ERROR] Missing DB config!")
             raise HTTPException(status_code=500, detail="Database config not found")
         
         dsn = f"postgresql://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}"
+        print(f"[DEBUG] Built DSN: postgresql://{db_user}:***@{db_host}:{db_port}/{db_name}")
     
-    return psycopg2.connect(dsn, cursor_factory=RealDictCursor)
+    try:
+        print("[DEBUG] Connecting to DB...")
+        conn = psycopg2.connect(dsn, cursor_factory=RealDictCursor)
+        print("[DEBUG] Connection successful!")
+        return conn
+    except Exception as e:
+        print(f"[ERROR] DB connection failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Database connection error: {str(e)}")
 
 def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
