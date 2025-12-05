@@ -26,5 +26,5 @@ COPY --from=frontend-build /app/dist /app/static
 
 EXPOSE 8080
 
-# Start with simple Flask dev server first to test
-CMD ["python", "-m", "flask", "run", "--host=0.0.0.0", "--port=8080"]
+# Use gunicorn with logging
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "1", "--timeout", "120", "--log-level", "debug", "--access-logfile", "-", "--error-logfile", "-", "main:app"]
