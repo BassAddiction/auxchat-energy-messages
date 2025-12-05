@@ -39,6 +39,12 @@ RUN echo 'server {\n\
         try_files $uri $uri/ /index.html;\n\
     }\n\
     \n\
+    location /health {\n\
+        proxy_pass http://127.0.0.1:5000/health;\n\
+        proxy_set_header Host $host;\n\
+        proxy_set_header X-Real-IP $remote_addr;\n\
+    }\n\
+    \n\
     location /api/ {\n\
         rewrite ^/api/(.*) /$1 break;\n\
         proxy_pass http://127.0.0.1:5000;\n\
