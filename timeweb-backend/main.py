@@ -544,6 +544,11 @@ def subscribe(target_user_id):
 # Register API blueprint BEFORE frontend routes
 app.register_blueprint(api)
 
+# Logging middleware - see what requests come in
+@app.before_request
+def log_request():
+    print(f"[REQUEST] {request.method} {request.path} | Headers: {dict(request.headers)}")
+
 # Frontend routes - serve React app
 @app.route('/')
 def serve_index():
@@ -551,16 +556,12 @@ def serve_index():
 
 @app.route('/<path:path>')
 def serve_frontend(path):
-    # Don't serve frontend for /api/* routes
-    if path.startswith('api/'):
-        return jsonify({"error": "Not found"}), 404
-    
     # Serve static files if they exist
     file_path = os.path.join(app.static_folder, path)
     if os.path.exists(file_path) and os.path.isfile(file_path):
         return send_from_directory(app.static_folder, path)
     
-    # Otherwise serve index.html for SPA routing
+    # Otherwise serve index.html for SPA routing (but NOT for /api/*)
     return send_from_directory(app.static_folder, 'index.html')
 
 if __name__ == '__main__':
