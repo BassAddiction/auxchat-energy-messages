@@ -13,32 +13,14 @@ allowed_origins = os.environ.get('FLASK_CORS_ORIGINS', '*')
 if allowed_origins != '*':
     allowed_origins = allowed_origins.split(',')
 
-CORS(app, 
-     resources={r"/*": {"origins": "*"}},
-     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-     allow_headers=["Content-Type", "X-User-Id", "Authorization"],
-     supports_credentials=False,
-     expose_headers=["Content-Type"],
-     send_wildcard=True,
-     max_age=3600)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 @app.after_request
 def after_request(response):
     response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type,X-User-Id'
-    response.headers['Access-Control-Allow-Methods'] = 'GET,POST,PUT,DELETE,OPTIONS'
-    response.headers['Access-Control-Max-Age'] = '3600'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, X-User-Id'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
     return response
-
-@app.before_request
-def handle_preflight():
-    if request.method == 'OPTIONS':
-        response = app.make_default_options_response()
-        response.headers['Access-Control-Allow-Origin'] = '*'
-        response.headers['Access-Control-Allow-Headers'] = 'Content-Type,X-User-Id'
-        response.headers['Access-Control-Allow-Methods'] = 'GET,POST,PUT,DELETE,OPTIONS'
-        response.headers['Access-Control-Max-Age'] = '3600'
-        return response
 
 def get_db():
     db_host = os.environ.get('DB_HOST')
