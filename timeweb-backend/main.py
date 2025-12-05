@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, Blueprint
 from flask_cors import CORS
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -8,6 +8,9 @@ from datetime import datetime
 
 app = Flask(__name__, static_folder='static', static_url_path='')
 CORS(app)
+
+# Create API blueprint with /api prefix
+api = Blueprint('api', __name__, url_prefix='/api')
 
 def get_db():
     db_host = os.environ.get('DB_HOST')
@@ -25,7 +28,7 @@ def get_db():
 def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
 
-@app.route('/health', methods=['GET', 'OPTIONS'])
+@api.route('/health', methods=['GET', 'OPTIONS'])
 def health():
     if request.method == 'OPTIONS':
         return '', 200
@@ -48,7 +51,7 @@ def health():
         }
     })
 
-@app.route('/messages', methods=['GET', 'POST', 'OPTIONS'])
+@api.route('/messages', methods=['GET', 'POST', 'OPTIONS'])
 def messages():
     if request.method == 'OPTIONS':
         return '', 200
@@ -153,7 +156,7 @@ def messages():
     
     return jsonify({"messages": messages})
 
-@app.route('/login', methods=['POST', 'OPTIONS'])
+@api.route('/login', methods=['POST', 'OPTIONS'])
 def login():
     if request.method == 'OPTIONS':
         return '', 200
@@ -182,7 +185,7 @@ def login():
         "energy": user['energy']
     })
 
-@app.route('/user', methods=['GET', 'OPTIONS'])
+@api.route('/user', methods=['GET', 'OPTIONS'])
 def get_user():
     if request.method == 'OPTIONS':
         return '', 200
@@ -220,7 +223,7 @@ def get_user():
         "avatar": f"https://api.dicebear.com/7.x/avataaars/svg?seed={user['username']}"
     })
 
-@app.route('/update-activity', methods=['POST', 'OPTIONS'])
+@api.route('/update-activity', methods=['POST', 'OPTIONS'])
 def update_activity():
     if request.method == 'OPTIONS':
         return '', 200
@@ -244,7 +247,7 @@ def update_activity():
     
     return jsonify({"success": True})
 
-@app.route('/conversations', methods=['GET', 'OPTIONS'])
+@api.route('/conversations', methods=['GET', 'OPTIONS'])
 def get_conversations():
     if request.method == 'OPTIONS':
         return '', 200
@@ -256,7 +259,7 @@ def get_conversations():
     # Return empty conversations for now
     return jsonify({"conversations": []})
 
-@app.route('/messages/<int:conversation_id>', methods=['GET', 'POST', 'OPTIONS'])
+@api.route('/messages/<int:conversation_id>', methods=['GET', 'POST', 'OPTIONS'])
 def conversation_messages(conversation_id):
     if request.method == 'OPTIONS':
         return '', 200
@@ -329,7 +332,7 @@ def conversation_messages(conversation_id):
     
     return jsonify({"messages": messages})
 
-@app.route('/profile-photos', methods=['GET', 'OPTIONS', 'POST', 'DELETE'])
+@api.route('/profile-photos', methods=['GET', 'OPTIONS', 'POST', 'DELETE'])
 def profile_photos():
     if request.method == 'OPTIONS':
         return '', 200
@@ -373,8 +376,8 @@ def profile_photos():
     
     return jsonify({"error": "Method not allowed"}), 405
 
-@app.route('/blacklist', methods=['GET', 'POST', 'OPTIONS'])
-@app.route('/blacklist/<int:target_user_id>', methods=['GET', 'DELETE', 'OPTIONS'])
+@api.route('/blacklist', methods=['GET', 'POST', 'OPTIONS'])
+@api.route('/blacklist/<int:target_user_id>', methods=['GET', 'DELETE', 'OPTIONS'])
 def blacklist(target_user_id=None):
     if request.method == 'OPTIONS':
         return '', 200
@@ -442,7 +445,7 @@ def blacklist(target_user_id=None):
     
     return jsonify({"error": "Method not allowed"}), 405
 
-@app.route('/unread-count', methods=['GET', 'OPTIONS'])
+@api.route('/unread-count', methods=['GET', 'OPTIONS'])
 def get_unread_count():
     if request.method == 'OPTIONS':
         return '', 200
@@ -485,6 +488,8 @@ def serve_frontend(path):
     
     # Otherwise serve index.html for SPA routing
     return send_from_directory(app.static_folder, 'index.html')
+
+app.register_blueprint(api)
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 8000))
