@@ -469,10 +469,21 @@ def get_unread_count():
 
 # Frontend routes - serve React app
 @app.route('/')
+def serve_index():
+    return send_from_directory(app.static_folder, 'index.html')
+
 @app.route('/<path:path>')
-def serve_frontend(path=''):
-    if path and os.path.exists(os.path.join(app.static_folder, path)):
+def serve_frontend(path):
+    # Don't serve frontend for /api/* routes
+    if path.startswith('api/'):
+        return jsonify({"error": "Not found"}), 404
+    
+    # Serve static files if they exist
+    file_path = os.path.join(app.static_folder, path)
+    if os.path.exists(file_path) and os.path.isfile(file_path):
         return send_from_directory(app.static_folder, path)
+    
+    # Otherwise serve index.html for SPA routing
     return send_from_directory(app.static_folder, 'index.html')
 
 if __name__ == '__main__':
