@@ -557,24 +557,19 @@ def subscribe(target_user_id):
 def log_request():
     print(f"[REQUEST] {request.method} {request.path} | Headers: {dict(request.headers)}")
 
-# Frontend routes - serve React app
-@app.route('/')
-def serve_index():
-    # If request accepts JSON (healthcheck), return JSON status
-    if 'application/json' in request.headers.get('Accept', ''):
-        return jsonify({"status": "ok", "service": "auxchat"})
-    
-    # Otherwise serve React app
-    return send_from_directory(app.static_folder, 'index.html')
-
+# Frontend routes - serve React app (LAST - lowest priority)
+@app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve_frontend(path):
-    # Serve static files if they exist
-    file_path = os.path.join(app.static_folder, path)
-    if os.path.exists(file_path) and os.path.isfile(file_path):
-        return send_from_directory(app.static_folder, path)
+    # API routes handled above, so they won't reach here
     
-    # Otherwise serve index.html for SPA routing (but NOT for /api/*)
+    # Serve static files if they exist
+    if path:
+        file_path = os.path.join(app.static_folder, path)
+        if os.path.exists(file_path) and os.path.isfile(file_path):
+            return send_from_directory(app.static_folder, path)
+    
+    # Otherwise serve index.html for SPA routing
     return send_from_directory(app.static_folder, 'index.html')
 
 if __name__ == '__main__':
