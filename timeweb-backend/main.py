@@ -470,6 +470,81 @@ def get_unread_count():
     
     return jsonify({"count": count})
 
+@api.route('/subscriptions', methods=['GET', 'OPTIONS'])
+def get_subscriptions():
+    if request.method == 'OPTIONS':
+        return '', 200
+    
+    user_id = request.headers.get('X-User-Id')
+    if not user_id:
+        return jsonify({"error": "Authentication required"}), 401
+    
+    conn = get_db()
+    cur = conn.cursor()
+    
+    cur.execute("""
+        SELECT u.id, u.username, up.photo_url as avatar
+        FROM subscriptions s
+        JOIN users u ON s.target_user_id = u.id
+        LEFT JOIN (
+            SELECT DISTINCT ON (user_id) user_id, photo_url
+            FROM user_photos
+            ORDER BY user_id, display_order ASC, created_at DESC
+        ) up ON u.id = up.user_id
+        WHERE s.user_id = %s
+        ORDER BY s.created_at DESC
+    """, (int(user_id),))
+    
+    users = []
+    for row in cur.fetchall():
+        users.append({
+            'id': row['id'],
+            'username': row['username'],
+            'avatar': row['avatar'] if row['avatar'] else f"https://api.dicebear.com/7.x/avataaars/svg?seed={row['username']}"
+        })
+    
+    cur.close()
+    conn.close()
+    
+    return jsonify({"users": users})
+
+@api.route('/subscribe/<int:target_user_id>', methods=['POST', 'DELETE', 'OPTIONS'])
+def subscribe(target_user_id):
+    if request.method == 'OPTIONS':
+        return '', 200
+    
+    user_id = request.headers.get('X-User-Id')
+    if not user_id:
+        return jsonify({"error": "Authentication required"}), 401
+    
+    conn = get_db()
+    cur = conn.cursor()
+    
+    if request.method == 'POST':
+        cur.execute("""
+            INSERT INTO subscriptions (user_id, target_user_id)
+            VALUES (%s, %s)
+            ON CONFLICT DO NOTHING
+        """, (int(user_id), target_user_id))
+        
+        conn.commit()
+        cur.close()
+        conn.close()
+        return jsonify({"success": True})
+    
+    elif request.method == 'DELETE':
+        cur.execute("""
+            DELETE FROM subscriptions
+            WHERE user_id = %s AND target_user_id = %s
+        """, (int(user_id), target_user_id))
+        
+        conn.commit()
+        cur.close()
+        conn.close()
+        return jsonify({"success": True})
+    
+    return jsonify({"error": "Method not allowed"}), 405
+
 # Register API blueprint BEFORE frontend routes
 app.register_blueprint(api)
 
