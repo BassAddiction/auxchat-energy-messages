@@ -5,9 +5,18 @@ from psycopg2.extras import RealDictCursor
 import os
 import hashlib
 from datetime import datetime
+import traceback
+import sys
 
 app = Flask(__name__, static_folder='static', static_url_path='')
 CORS(app)
+
+# Error handler to see what's failing
+@app.errorhandler(Exception)
+def handle_error(e):
+    print(f"[ERROR] {type(e).__name__}: {str(e)}", file=sys.stderr)
+    traceback.print_exc()
+    return jsonify({"error": str(e)}), 500
 
 # Create API blueprint with /api prefix
 api = Blueprint('api', __name__, url_prefix='/api')
