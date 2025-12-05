@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory, Blueprint
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -18,8 +18,7 @@ def handle_error(e):
     traceback.print_exc()
     return jsonify({"error": str(e)}), 500
 
-# Create API blueprint with /api prefix
-api = Blueprint('api', __name__, url_prefix='/api')
+
 
 def get_db():
     db_host = os.environ.get('DB_HOST')
@@ -37,7 +36,7 @@ def get_db():
 def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
 
-@api.route('/health', methods=['GET', 'OPTIONS'])
+@app.route('/api/health', methods=['GET', 'OPTIONS'])
 def health():
     if request.method == 'OPTIONS':
         return '', 200
@@ -60,7 +59,7 @@ def health():
         }
     })
 
-@api.route('/messages', methods=['GET', 'POST', 'OPTIONS'])
+@app.route('/api/messages', methods=['GET', 'POST', 'OPTIONS'])
 def messages():
     if request.method == 'OPTIONS':
         return '', 200
@@ -165,7 +164,7 @@ def messages():
     
     return jsonify({"messages": messages})
 
-@api.route('/login', methods=['POST', 'OPTIONS'])
+@app.route('/api/login', methods=['POST', 'OPTIONS'])
 def login():
     if request.method == 'OPTIONS':
         return '', 200
@@ -194,7 +193,7 @@ def login():
         "energy": user['energy']
     })
 
-@api.route('/user', methods=['GET', 'OPTIONS'])
+@app.route('/api/user', methods=['GET', 'OPTIONS'])
 def get_user():
     if request.method == 'OPTIONS':
         return '', 200
@@ -232,7 +231,7 @@ def get_user():
         "avatar": f"https://api.dicebear.com/7.x/avataaars/svg?seed={user['username']}"
     })
 
-@api.route('/update-activity', methods=['POST', 'OPTIONS'])
+@app.route('/api/update-activity', methods=['POST', 'OPTIONS'])
 def update_activity():
     if request.method == 'OPTIONS':
         return '', 200
@@ -256,7 +255,7 @@ def update_activity():
     
     return jsonify({"success": True})
 
-@api.route('/conversations', methods=['GET', 'OPTIONS'])
+@app.route('/api/conversations', methods=['GET', 'OPTIONS'])
 def get_conversations():
     if request.method == 'OPTIONS':
         return '', 200
@@ -268,7 +267,7 @@ def get_conversations():
     # Return empty conversations for now
     return jsonify({"conversations": []})
 
-@api.route('/messages/<int:conversation_id>', methods=['GET', 'POST', 'OPTIONS'])
+@app.route('/api/messages/<int:conversation_id>', methods=['GET', 'POST', 'OPTIONS'])
 def conversation_messages(conversation_id):
     if request.method == 'OPTIONS':
         return '', 200
@@ -341,7 +340,7 @@ def conversation_messages(conversation_id):
     
     return jsonify({"messages": messages})
 
-@api.route('/profile-photos', methods=['GET', 'OPTIONS', 'POST', 'DELETE'])
+@app.route('/api/profile-photos', methods=['GET', 'OPTIONS', 'POST', 'DELETE'])
 def profile_photos():
     if request.method == 'OPTIONS':
         return '', 200
@@ -385,8 +384,8 @@ def profile_photos():
     
     return jsonify({"error": "Method not allowed"}), 405
 
-@api.route('/blacklist', methods=['GET', 'POST', 'OPTIONS'])
-@api.route('/blacklist/<int:target_user_id>', methods=['GET', 'DELETE', 'OPTIONS'])
+@app.route('/api/blacklist', methods=['GET', 'POST', 'OPTIONS'])
+@app.route('/api/blacklist/<int:target_user_id>', methods=['GET', 'DELETE', 'OPTIONS'])
 def blacklist(target_user_id=None):
     if request.method == 'OPTIONS':
         return '', 200
@@ -454,7 +453,7 @@ def blacklist(target_user_id=None):
     
     return jsonify({"error": "Method not allowed"}), 405
 
-@api.route('/unread-count', methods=['GET', 'OPTIONS'])
+@app.route('/api/unread-count', methods=['GET', 'OPTIONS'])
 def get_unread_count():
     if request.method == 'OPTIONS':
         return '', 200
@@ -479,7 +478,7 @@ def get_unread_count():
     
     return jsonify({"count": count})
 
-@api.route('/subscriptions', methods=['GET', 'OPTIONS'])
+@app.route('/api/subscriptions', methods=['GET', 'OPTIONS'])
 def get_subscriptions():
     if request.method == 'OPTIONS':
         return '', 200
@@ -513,7 +512,7 @@ def get_subscriptions():
     
     return jsonify({"subscribedUserIds": user_ids})
 
-@api.route('/subscribe/<int:target_user_id>', methods=['POST', 'DELETE', 'OPTIONS'])
+@app.route('/api/subscribe/<int:target_user_id>', methods=['POST', 'DELETE', 'OPTIONS'])
 def subscribe(target_user_id):
     if request.method == 'OPTIONS':
         return '', 200
@@ -551,7 +550,7 @@ def subscribe(target_user_id):
     return jsonify({"error": "Method not allowed"}), 405
 
 # Register API blueprint BEFORE frontend routes
-app.register_blueprint(api)
+
 
 # Logging middleware - see what requests come in
 @app.before_request
