@@ -470,6 +470,9 @@ def get_unread_count():
     
     return jsonify({"count": count})
 
+# Register API blueprint BEFORE frontend routes
+app.register_blueprint(api)
+
 # Frontend routes - serve React app
 @app.route('/')
 def serve_index():
@@ -488,8 +491,6 @@ def serve_frontend(path):
     
     # Otherwise serve index.html for SPA routing
     return send_from_directory(app.static_folder, 'index.html')
-
-app.register_blueprint(api)
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 8000))
