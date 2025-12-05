@@ -1,6 +1,6 @@
 // API Configuration - Single source of truth for all API calls
-// Use environment variable or fallback to Timeweb backend
-const API_BASE = import.meta.env.VITE_API_URL || 'https://api.auxchat.ru';
+// Use environment variable or fallback to same-domain API (no CORS needed)
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 console.log('[API CONFIG] Using API_BASE:', API_BASE, '| Source:', import.meta.env.VITE_API_URL ? 'env' : 'default');
 
