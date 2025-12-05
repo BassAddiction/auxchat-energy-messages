@@ -56,17 +56,26 @@ RUN echo 'server {\n\
 # Supervisor config (run both nginx and gunicorn)
 RUN echo '[supervisord]\n\
 nodaemon=true\n\
+loglevel=info\n\
 \n\
 [program:gunicorn]\n\
-command=gunicorn --bind 127.0.0.1:5000 --workers 2 main:app\n\
+command=gunicorn --bind 127.0.0.1:5000 --workers 2 --timeout 120 --log-level debug main:app\n\
 directory=/app\n\
 autostart=true\n\
 autorestart=true\n\
+stdout_logfile=/dev/stdout\n\
+stdout_logfile_maxbytes=0\n\
+stderr_logfile=/dev/stderr\n\
+stderr_logfile_maxbytes=0\n\
 \n\
 [program:nginx]\n\
 command=nginx -g "daemon off;"\n\
 autostart=true\n\
-autorestart=true' > /etc/supervisor/conf.d/supervisord.conf
+autorestart=true\n\
+stdout_logfile=/dev/stdout\n\
+stdout_logfile_maxbytes=0\n\
+stderr_logfile=/dev/stderr\n\
+stderr_logfile_maxbytes=0' > /etc/supervisor/conf.d/supervisord.conf
 
 EXPOSE 8080
 
