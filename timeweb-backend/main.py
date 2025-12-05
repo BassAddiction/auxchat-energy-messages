@@ -561,7 +561,9 @@ def log_request():
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve_frontend(path):
-    # API routes handled above, so they won't reach here
+    # NEVER serve frontend for /api/* routes - return 404 instead
+    if path.startswith('api/'):
+        return jsonify({"error": "API route not found"}), 404
     
     # Serve static files if they exist
     if path:
