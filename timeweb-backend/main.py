@@ -47,6 +47,9 @@ def health():
     db_user = os.environ.get('DB_USER', 'NOT_SET')
     db_pass = os.environ.get('DB_PASSWORD', 'NOT_SET')
     
+    # Show ALL env vars for debugging
+    all_env = {k: v[:20] if len(v) > 20 else v for k, v in os.environ.items()}
+    
     return jsonify({
         "status": "ok",
         "message": "AuxChat API Flask",
@@ -56,7 +59,8 @@ def health():
             "name": db_name,
             "user": db_user,
             "pass_length": len(db_pass) if db_pass != 'NOT_SET' else 0
-        }
+        },
+        "all_env_vars": all_env
     })
 
 @app.route('/api/messages', methods=['GET', 'POST', 'OPTIONS'])
