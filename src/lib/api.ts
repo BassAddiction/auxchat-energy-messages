@@ -73,7 +73,9 @@ export const api = {
       method: 'POST',
       headers: this.headers(userId),
     });
-    return res.json();
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
+    return text ? JSON.parse(text) : {};
   },
 
   async updateUsername(userId: string, newUsername: string) {
