@@ -560,6 +560,11 @@ def log_request():
 # Frontend routes - serve React app
 @app.route('/')
 def serve_index():
+    # If request accepts JSON (healthcheck), return JSON status
+    if 'application/json' in request.headers.get('Accept', ''):
+        return jsonify({"status": "ok", "service": "auxchat"})
+    
+    # Otherwise serve React app
     return send_from_directory(app.static_folder, 'index.html')
 
 @app.route('/<path:path>')
