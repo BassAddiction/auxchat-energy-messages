@@ -1,26 +1,23 @@
 # PowerShell скрипт для деплоя функций на Yandex Cloud
 
-$FOLDER_ID = "b1gkp83nigr9dp5c9ucb"
-$SA_ID = "ajeotruq9j7qeup7jn6g"
+$FOLDER_ID = "b1gjs392ibop1gc5stqn"
+$DATABASE_URL = "postgresql://gen_user:K=w7hxumpubT-F@f54d84cf7c4086988278b301.twc1.net:5432/default_db?sslmode=require"
 
-# Запросить секреты
-Write-Host "=== Введи секреты проекта ===" -ForegroundColor Yellow
-$DATABASE_URL = Read-Host "DATABASE_URL"
-$TIMEWEB_S3_ACCESS_KEY = Read-Host "TIMEWEB_S3_ACCESS_KEY"
-$TIMEWEB_S3_SECRET_KEY = Read-Host "TIMEWEB_S3_SECRET_KEY"
-$TIMEWEB_S3_BUCKET_NAME = Read-Host "TIMEWEB_S3_BUCKET_NAME"
-$TIMEWEB_S3_ENDPOINT = Read-Host "TIMEWEB_S3_ENDPOINT (Enter для https://s3.twcstorage.ru)"
-if ([string]::IsNullOrEmpty($TIMEWEB_S3_ENDPOINT)) { $TIMEWEB_S3_ENDPOINT = "https://s3.twcstorage.ru" }
-$TIMEWEB_S3_REGION = Read-Host "TIMEWEB_S3_REGION (Enter для ru-1)"
-if ([string]::IsNullOrEmpty($TIMEWEB_S3_REGION)) { $TIMEWEB_S3_REGION = "ru-1" }
-$SMSRU_API_KEY = Read-Host "SMSRU_API_KEY"
-$YOOKASSA_SHOP_ID = Read-Host "YOOKASSA_SHOP_ID"
-$YOOKASSA_SECRET_KEY = Read-Host "YOOKASSA_SECRET_KEY"
-$ADMIN_SECRET = Read-Host "ADMIN_SECRET"
+# Минимальные env vars для работы (остальные пока заглушки)
+$TIMEWEB_S3_ACCESS_KEY = "placeholder"
+$TIMEWEB_S3_SECRET_KEY = "placeholder"
+$TIMEWEB_S3_BUCKET_NAME = "placeholder"
+$TIMEWEB_S3_ENDPOINT = "https://s3.twcstorage.ru"
+$TIMEWEB_S3_REGION = "ru-1"
+$SMSRU_API_KEY = "placeholder"
+$YOOKASSA_SHOP_ID = "placeholder"
+$YOOKASSA_SECRET_KEY = "placeholder"
+$ADMIN_SECRET = "placeholder"
+$JWT_SECRET = "placeholder_jwt_secret_change_later"
 
-# Генерация JWT секрета
-$JWT_SECRET = [Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
-Write-Host "JWT_SECRET сгенерирован автоматически" -ForegroundColor Green
+Write-Host "=== Быстрый деплой с DATABASE_URL ===" -ForegroundColor Green
+Write-Host "Folder ID: $FOLDER_ID" -ForegroundColor Gray
+Write-Host "Database: Timeweb PostgreSQL" -ForegroundColor Gray
 
 $urls = @{}
 $deployed = 0
@@ -52,23 +49,18 @@ Get-ChildItem -Path "backend" -Directory | ForEach-Object {
         return
     }
     
-    # Создать функцию
+    # Создать функцию (игнорируем ошибку если уже существует)
     yc serverless function create --name $funcName --folder-id $FOLDER_ID 2>$null
     
-    # Создать ZIP
-    $zipPath = "$env:TEMP\$funcName.zip"
-    Compress-Archive -Path "$funcPath\*" -DestinationPath $zipPath -Force
-    
-    # Деплой
+    # Деплой БЕЗ ZIP (direct source-path)
     $result = yc serverless function version create `
         --function-name $funcName `
         --runtime $runtime `
         --entrypoint $entrypoint `
         --memory 256m `
         --execution-timeout 30s `
-        --source-path $zipPath `
+        --source-path $funcPath `
         --folder-id $FOLDER_ID `
-        --service-account-id $SA_ID `
         --environment DATABASE_URL=$DATABASE_URL `
         --environment TIMEWEB_S3_ACCESS_KEY=$TIMEWEB_S3_ACCESS_KEY `
         --environment TIMEWEB_S3_SECRET_KEY=$TIMEWEB_S3_SECRET_KEY `
@@ -99,8 +91,6 @@ Get-ChildItem -Path "backend" -Directory | ForEach-Object {
         Write-Host "[$funcName] Ошибка деплоя" -ForegroundColor Red
         $failed++
     }
-    
-    Remove-Item $zipPath -Force
 }
 
 # Сохранить func2url.json
