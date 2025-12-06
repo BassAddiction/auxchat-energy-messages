@@ -13,6 +13,9 @@ RUN bun install --frozen-lockfile
 # Копируем весь исходный код
 COPY . .
 
+# DEBUG: Проверим что в func2url.ts ПЕРЕД сборкой
+RUN echo "=== CHECKING func2url.ts BEFORE BUILD ===" && head -10 src/lib/func2url.ts
+
 # ЖЁСТКАЯ очистка всех кешей
 RUN rm -rf node_modules/.vite .vite dist node_modules/.cache
 
@@ -21,6 +24,9 @@ RUN bun install --frozen-lockfile --force
 
 # Собираем production build с чистого листа
 RUN bun run build
+
+# DEBUG: Проверим содержимое собранного JS (должны быть yandexcloud.net URLs)
+RUN echo "=== CHECKING BUILT JS FILES ===" && grep -r "yandexcloud.net" dist/ || echo "WARNING: NO YANDEXCLOUD URLS FOUND"
 
 # DEBUG: Проверим что собралось
 RUN ls -la /app/dist
