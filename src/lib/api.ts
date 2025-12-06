@@ -1,8 +1,7 @@
-// API Configuration - Single source of truth for all API calls
-// Use environment variable or fallback to same-domain API (no CORS needed)
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+// API Configuration - Direct URLs to Yandex Cloud Functions
+import { FUNCTIONS } from './func2url';
 
-console.log('[API CONFIG] Using API_BASE:', API_BASE, '| Source:', import.meta.env.VITE_API_URL ? 'env' : 'default');
+console.log('[API CONFIG] Using direct Yandex Cloud function URLs');
 
 export const api = {
   // Helper to add auth header
@@ -16,7 +15,7 @@ export const api = {
 
   // Auth endpoints
   async login(phone: string, password: string) {
-    const res = await fetch(`${API_BASE}/login`, {
+    const res = await fetch(FUNCTIONS.login, {
       method: 'POST',
       headers: this.headers(),
       body: JSON.stringify({ username: phone, password }),
@@ -25,7 +24,7 @@ export const api = {
   },
 
   async register(username: string, phone: string, password: string, code: string) {
-    const res = await fetch(`${API_BASE}/register`, {
+    const res = await fetch(FUNCTIONS.register, {
       method: 'POST',
       headers: this.headers(),
       body: JSON.stringify({ username, phone, password, code }),
@@ -34,7 +33,7 @@ export const api = {
   },
 
   async sendSMS(phone: string) {
-    const res = await fetch(`${API_BASE}/send-sms`, {
+    const res = await fetch(FUNCTIONS['send-sms'], {
       method: 'POST',
       headers: this.headers(),
       body: JSON.stringify({ phone }),
@@ -43,7 +42,7 @@ export const api = {
   },
 
   async verifySMS(phone: string, code: string) {
-    const res = await fetch(`${API_BASE}/verify-sms`, {
+    const res = await fetch(FUNCTIONS['verify-sms'], {
       method: 'POST',
       headers: this.headers(),
       body: JSON.stringify({ phone, code }),
@@ -52,7 +51,7 @@ export const api = {
   },
 
   async resetPassword(phone: string, code: string, newPassword: string) {
-    const res = await fetch(`${API_BASE}/reset-password`, {
+    const res = await fetch(FUNCTIONS['reset-password'], {
       method: 'POST',
       headers: this.headers(),
       body: JSON.stringify({ phone, code, new_password: newPassword }),
@@ -62,14 +61,14 @@ export const api = {
 
   // User endpoints
   async getUser(userId?: string) {
-    const res = await fetch(`${API_BASE}/user`, {
+    const res = await fetch(FUNCTIONS['get-user'], {
       headers: this.headers(userId),
     });
     return res.json();
   },
 
   async updateActivity(userId: string) {
-    const res = await fetch(`${API_BASE}/update-activity`, {
+    const res = await fetch(FUNCTIONS['update-activity'], {
       method: 'POST',
       headers: this.headers(userId),
     });
@@ -78,75 +77,91 @@ export const api = {
     return text ? JSON.parse(text) : {};
   },
 
+  // updateUsername not implemented in backend yet
   async updateUsername(userId: string, newUsername: string) {
-    const res = await fetch(`${API_BASE}/update-username`, {
-      method: 'POST',
-      headers: this.headers(userId),
-      body: JSON.stringify({ username: newUsername }),
-    });
-    return res.json();
+    throw new Error('Update username not implemented');
   },
 
   // Messages endpoints
   async getMessages(limit = 20, offset = 0) {
-    const res = await fetch(`${API_BASE}/messages?limit=${limit}&offset=${offset}`);
+    const res = await fetch(`${FUNCTIONS['get-messages']}?limit=${limit}&offset=${offset}`);
     return res.json();
   },
 
-  async sendMessage(userId: string, content: string, voiceUrl?: string, voiceDuration?: number) {
-    const res = await fetch(`${API_BASE}/messages`, {
-      method: 'POST',
-      headers: this.headers(userId),
-      body: JSON.stringify({ 
-        conversation_id: 1, // Global chat
-        content,
-        voice_url: voiceUrl,
-        voice_duration: voiceDuration,
-      }),
-    });
-    return res.json();
+  async sendMessage(userId: string, receiverId: number, content?: string, voiceUrl?: string, voiceDuration?: number) {
+    // receiverId === 0 means global chat, otherwise private message
+    if (receiverId === 0) {
+      // Global chat
+      const res = await fetch(FUNCTIONS['send-message'], {
+        method: 'POST',
+        headers: this.headers(userId),
+        body: JSON.stringify({ 
+          user_id: parseInt(userId),
+          text: content || '',
+        }),
+      });
+      return res.json();
+    } else {
+      // Private message
+      const res = await fetch(FUNCTIONS['private-messages'], {
+        method: 'POST',
+        headers: this.headers(userId),
+        body: JSON.stringify({ 
+          receiverId,
+          text: content || '',
+          voiceUrl,
+          voiceDuration,
+        }),
+      });
+      return res.json();
+    }
   },
 
   // Conversations
   async getConversations(userId: string) {
-    const res = await fetch(`${API_BASE}/conversations`, {
+    const res = await fetch(FUNCTIONS['get-conversations'], {
       headers: this.headers(userId),
     });
     return res.json();
   },
 
   async getConversationMessages(conversationId: number, userId: string) {
-    const res = await fetch(`${API_BASE}/messages/${conversationId}`, {
+    // For private messages, conversationId is the other user's ID
+    const res = await fetch(`${FUNCTIONS['private-messages']}?otherUserId=${conversationId}`, {
       headers: this.headers(userId),
     });
     return res.json();
   },
 
   async getUnreadCount(userId: string) {
-    const res = await fetch(`${API_BASE}/unread-count`, {
+    // Use get-conversations which includes unread counts
+    const res = await fetch(FUNCTIONS['get-conversations'], {
       headers: this.headers(userId),
     });
-    return res.json();
+    const data = await res.json();
+    const total = data.conversations?.reduce((sum: number, conv: any) => sum + (conv.unreadCount || 0), 0) || 0;
+    return { unreadCount: total };
   },
 
   // Subscriptions
   async getSubscriptions(userId: string) {
-    const res = await fetch(`${API_BASE}/subscriptions`, {
+    const res = await fetch(FUNCTIONS['get-subscriptions'], {
       headers: this.headers(userId),
     });
     return res.json();
   },
 
   async subscribe(userId: string, targetUserId: number) {
-    const res = await fetch(`${API_BASE}/subscribe/${targetUserId}`, {
+    const res = await fetch(FUNCTIONS.subscribe, {
       method: 'POST',
       headers: this.headers(userId),
+      body: JSON.stringify({ targetUserId }),
     });
     return res.json();
   },
 
   async unsubscribe(userId: string, targetUserId: number) {
-    const res = await fetch(`${API_BASE}/subscribe/${targetUserId}`, {
+    const res = await fetch(`${FUNCTIONS.subscribe}?targetUserId=${targetUserId}`, {
       method: 'DELETE',
       headers: this.headers(userId),
     });
@@ -155,14 +170,14 @@ export const api = {
 
   // Photos
   async getProfilePhotos(userId: string) {
-    const res = await fetch(`${API_BASE}/profile-photos`, {
+    const res = await fetch(FUNCTIONS['profile-photos'], {
       headers: this.headers(userId),
     });
     return res.json();
   },
 
   async addPhoto(userId: string, photoUrl: string) {
-    const res = await fetch(`${API_BASE}/profile-photos`, {
+    const res = await fetch(FUNCTIONS['profile-photos'], {
       method: 'POST',
       headers: this.headers(userId),
       body: JSON.stringify({ photo_url: photoUrl }),
@@ -171,7 +186,7 @@ export const api = {
   },
 
   async deletePhoto(userId: string, photoId: number) {
-    const res = await fetch(`${API_BASE}/profile-photos/${photoId}`, {
+    const res = await fetch(`${FUNCTIONS['profile-photos']}?photoId=${photoId}`, {
       method: 'DELETE',
       headers: this.headers(userId),
     });
@@ -180,28 +195,28 @@ export const api = {
 
   async getUploadUrl(contentType: string, extension: string) {
     const res = await fetch(
-      `${API_BASE}/upload-url?contentType=${encodeURIComponent(contentType)}&extension=${extension}`
+      `${FUNCTIONS['generate-upload-url']}?contentType=${encodeURIComponent(contentType)}&extension=${extension}`
     );
     return res.json();
   },
 
   // Blacklist
   async getBlacklist(userId: string) {
-    const res = await fetch(`${API_BASE}/blacklist`, {
+    const res = await fetch(FUNCTIONS.blacklist, {
       headers: this.headers(userId),
     });
     return res.json();
   },
 
   async checkBlockStatus(userId: string, targetUserId: number) {
-    const res = await fetch(`${API_BASE}/blacklist/${targetUserId}`, {
+    const res = await fetch(`${FUNCTIONS.blacklist}?targetUserId=${targetUserId}`, {
       headers: this.headers(userId),
     });
     return res.json();
   },
 
   async blockUser(userId: string, targetUserId: number) {
-    const res = await fetch(`${API_BASE}/blacklist`, {
+    const res = await fetch(FUNCTIONS.blacklist, {
       method: 'POST',
       headers: this.headers(userId),
       body: JSON.stringify({ user_id: targetUserId }),
@@ -210,7 +225,7 @@ export const api = {
   },
 
   async unblockUser(userId: string, targetUserId: number) {
-    const res = await fetch(`${API_BASE}/blacklist/${targetUserId}`, {
+    const res = await fetch(`${FUNCTIONS.blacklist}?targetUserId=${targetUserId}`, {
       method: 'DELETE',
       headers: this.headers(userId),
     });
@@ -219,14 +234,14 @@ export const api = {
 
   // Admin
   async getAdminUsers(userId: string) {
-    const res = await fetch(`${API_BASE}/admin/users`, {
+    const res = await fetch(FUNCTIONS['admin-users'], {
       headers: this.headers(userId),
     });
     return res.json();
   },
 
   async adminAction(userId: string, targetUserId: number, action: string, amount?: number) {
-    const res = await fetch(`${API_BASE}/admin/users`, {
+    const res = await fetch(FUNCTIONS['admin-users'], {
       method: 'POST',
       headers: this.headers(userId),
       body: JSON.stringify({ user_id: targetUserId, action, amount }),
@@ -236,7 +251,7 @@ export const api = {
 
   // Payment
   async createPayment(userId: string, amount: number, description: string) {
-    const res = await fetch(`${API_BASE}/payment/create`, {
+    const res = await fetch(FUNCTIONS['create-payment'], {
       method: 'POST',
       headers: this.headers(userId),
       body: JSON.stringify({ amount, description }),
