@@ -41,20 +41,12 @@ RUN echo 'server { \
     root /usr/share/nginx/html; \
     index index.html; \
     \
-    # Кеширование статических файлов \
-    location /assets/ { \
-        expires 1y; \
-        add_header Cache-Control "public, immutable"; \
-    } \
-    \
-    # SPA fallback - все роуты на index.html \
+    # ПОЛНОСТЬЮ отключаем кеш для всех файлов \
     location / { \
+        add_header Cache-Control "no-cache, no-store, must-revalidate, max-age=0"; \
+        add_header Pragma "no-cache"; \
+        add_header Expires "0"; \
         try_files $uri $uri/ /index.html; \
-    } \
-    \
-    # Отключаем кеш для index.html \
-    location = /index.html { \
-        add_header Cache-Control "no-cache, no-store, must-revalidate"; \
     } \
 }' > /etc/nginx/conf.d/default.conf
 
