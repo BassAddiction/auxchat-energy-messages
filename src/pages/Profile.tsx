@@ -416,34 +416,31 @@ export default function Profile() {
 
             {isOwnProfile && photos.length < 6 && (
               <div className="mb-3 md:mb-4">
-                <label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                    disabled={uploadingFile}
-                  />
-                  <Button 
-                    asChild
-                    disabled={uploadingFile}
-                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90 h-9 md:h-10 text-sm"
-                  >
-                    <span className="cursor-pointer flex items-center justify-center">
-                      {uploadingFile ? (
-                        <>
-                          <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
-                          <span className="text-xs md:text-sm">Загрузка...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Icon name="Upload" size={16} className="mr-2" />
-                          <span className="text-xs md:text-sm">Загрузить фото</span>
-                        </>
-                      )}
-                    </span>
-                  </Button>
-                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                  disabled={uploadingFile}
+                  id="photo-upload"
+                />
+                <Button 
+                  disabled={uploadingFile}
+                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90 h-9 md:h-10 text-sm"
+                  onClick={() => document.getElementById('photo-upload')?.click()}
+                >
+                  {uploadingFile ? (
+                    <>
+                      <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
+                      <span className="text-xs md:text-sm">Загрузка...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Icon name="Upload" size={16} className="mr-2" />
+                      <span className="text-xs md:text-sm">Загрузить фото</span>
+                    </>
+                  )}
+                </Button>
               </div>
             )}
 
