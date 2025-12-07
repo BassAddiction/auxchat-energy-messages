@@ -12,6 +12,7 @@ export const API = {
   
   // Messages
   messages: func2url['get-messages'],
+  sendMessage: func2url['send-message'],
   conversationMessages: (id: number) => `${func2url['private-messages']}?conversation_id=${id}`,
   conversations: func2url['get-conversations'],
   unreadCount: func2url['get-messages'] + '?unread=true',
