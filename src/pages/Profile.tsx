@@ -54,6 +54,8 @@ export default function Profile() {
       navigate('/');
       return;
     }
+    // Принудительно сбрасываем застрявшее состояние загрузки
+    setUploadingFile(false);
     updateActivity();
     loadProfile();
     loadPhotos();
