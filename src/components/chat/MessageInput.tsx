@@ -7,11 +7,13 @@ import { api } from '@/lib/api';
 
 interface MessageInputProps {
   currentUserId: string | null;
+  receiverId: number;
   onMessageSent: () => void;
 }
 
 export default function MessageInput({
   currentUserId,
+  receiverId,
   onMessageSent,
 }: MessageInputProps) {
   const [newMessage, setNewMessage] = useState('');
@@ -35,7 +37,7 @@ export default function MessageInput({
 
     try {
       const content = newMessage.trim() || undefined;
-      await api.sendMessage(currentUserId!, 0, content, voiceUrl, voiceDuration);
+      await api.sendMessage(currentUserId!, receiverId, content, voiceUrl, voiceDuration);
       setNewMessage('');
       onMessageSent();
     } catch (error: any) {
