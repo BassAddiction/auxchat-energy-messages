@@ -6,7 +6,7 @@ from typing import Dict, Any
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
-    Business: Login user with phone and password
+    Business: Login user with phone and password via CI/CD test
     Args: event with httpMethod, body (phone, password)
           context with request_id
     Returns: HTTP response with user data and session
