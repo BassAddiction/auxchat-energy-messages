@@ -16,9 +16,6 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// Ensure interceptor is loaded
-console.log('[App.tsx] Fetch interceptor loaded:', INTERCEPTOR_ACTIVE);
-
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
