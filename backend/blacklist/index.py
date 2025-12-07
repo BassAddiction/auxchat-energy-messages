@@ -22,7 +22,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'Access-Control-Allow-Headers': 'Content-Type, X-User-Id',
                 'Access-Control-Max-Age': '86400'
             },
-            'body': ''
+            'body': '',
+            'isBase64Encoded': False
         }
     
     headers = event.get('headers', {})
@@ -32,7 +33,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 401,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Unauthorized'})
+            'body': json.dumps({'error': 'Unauthorized'}),
+            'isBase64Encoded': False
         }
     
     dsn = os.environ.get('DATABASE_URL')
@@ -42,13 +44,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         if method == 'GET':
             # Получить список заблокированных пользователей
             with conn.cursor() as cur:
-                cur.execute('''
+                safe_user_id = str(user_id).replace("'", "''")
+                cur.execute(f'''
                     SELECT b.blocked_user_id, u.username
                     FROM blacklist b
                     JOIN users u ON b.blocked_user_id = u.id
-                    WHERE b.user_id = %s
+                    WHERE b.user_id = '{safe_user_id}'
                     ORDER BY b.created_at DESC
-                ''', (user_id,))
+                ''')
                 
                 blocked_users = [
                     {'userId': row[0], 'username': row[1]}
@@ -58,7 +61,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             return {
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'blockedUsers': blocked_users})
+                'body': json.dumps({'blockedUsers': blocked_users}),
+                'isBase64Encoded': False
             }
         
         elif method == 'POST':
@@ -70,28 +74,33 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 return {
                     'statusCode': 400,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'error': 'blockedUserId required'})
+                    'body': json.dumps({'error': 'blockedUserId required'}),
+                    'isBase64Encoded': False
                 }
             
             if str(user_id) == str(blocked_user_id):
                 return {
                     'statusCode': 400,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'error': 'Cannot block yourself'})
+                    'body': json.dumps({'error': 'Cannot block yourself'}),
+                    'isBase64Encoded': False
                 }
             
             with conn.cursor() as cur:
-                cur.execute('''
+                safe_user_id = str(user_id).replace("'", "''")
+                safe_blocked_id = str(blocked_user_id).replace("'", "''")
+                cur.execute(f'''
                     INSERT INTO blacklist (user_id, blocked_user_id)
-                    VALUES (%s, %s)
+                    VALUES ('{safe_user_id}', '{safe_blocked_id}')
                     ON CONFLICT (user_id, blocked_user_id) DO NOTHING
-                ''', (user_id, blocked_user_id))
+                ''')
                 conn.commit()
             
             return {
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'success': True, 'message': 'User blocked'})
+                'body': json.dumps({'success': True, 'message': 'User blocked'}),
+                'isBase64Encoded': False
             }
         
         elif method == 'DELETE':
@@ -103,27 +112,32 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 return {
                     'statusCode': 400,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'error': 'blockedUserId required'})
+                    'body': json.dumps({'error': 'blockedUserId required'}),
+                    'isBase64Encoded': False
                 }
             
             with conn.cursor() as cur:
-                cur.execute('''
+                safe_user_id = str(user_id).replace("'", "''")
+                safe_blocked_id = str(blocked_user_id).replace("'", "''")
+                cur.execute(f'''
                     DELETE FROM blacklist
-                    WHERE user_id = %s AND blocked_user_id = %s
-                ''', (user_id, blocked_user_id))
+                    WHERE user_id = '{safe_user_id}' AND blocked_user_id = '{safe_blocked_id}'
+                ''')
                 conn.commit()
             
             return {
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'success': True, 'message': 'User unblocked'})
+                'body': json.dumps({'success': True, 'message': 'User unblocked'}),
+                'isBase64Encoded': False
             }
         
         else:
             return {
                 'statusCode': 405,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'error': 'Method not allowed'})
+                'body': json.dumps({'error': 'Method not allowed'}),
+                'isBase64Encoded': False
             }
     
     finally:

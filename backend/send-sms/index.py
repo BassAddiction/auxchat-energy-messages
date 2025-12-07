@@ -25,14 +25,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'Access-Control-Allow-Headers': 'Content-Type',
                 'Access-Control-Max-Age': '86400'
             },
-            'body': ''
+            'body': '',
+            'isBase64Encoded': False
         }
     
     if method != 'POST':
         return {
             'statusCode': 405,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Method not allowed'})
+            'body': json.dumps({'error': 'Method not allowed'}),
+            'isBase64Encoded': False
         }
     
     api_key = os.environ.get('SMSRU_API_KEY')
@@ -40,7 +42,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 500,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'SMS API not configured'})
+            'body': json.dumps({'error': 'SMS API not configured'}),
+            'isBase64Encoded': False
         }
     
     body_data = json.loads(event.get('body', '{}'))
@@ -50,7 +53,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 400,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Phone number required'})
+            'body': json.dumps({'error': 'Phone number required'}),
+            'isBase64Encoded': False
         }
     
     # Тестовый режим для разработки
@@ -65,13 +69,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     cur = conn.cursor()
     
     # Удаляем старые коды для этого телефона
-    cur.execute("DELETE FROM sms_codes WHERE phone = %s", (phone,))
+    safe_phone = phone.replace("'", "''")
+    cur.execute(f"DELETE FROM sms_codes WHERE phone = '{safe_phone}'")
     
     # Создаем новый код (действителен 10 минут)
     expires_at = datetime.now() + timedelta(minutes=10)
+    safe_code = code.replace("'", "''")
+    safe_expires = str(expires_at).replace("'", "''")
     cur.execute(
-        "INSERT INTO sms_codes (phone, code, expires_at) VALUES (%s, %s, %s)",
-        (phone, code, expires_at)
+        f"INSERT INTO sms_codes (phone, code, expires_at) VALUES ('{safe_phone}', '{safe_code}', '{safe_expires}')"
     )
     conn.commit()
     
@@ -100,13 +106,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             return {
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'success': True, 'message': 'SMS sent'})
+                'body': json.dumps({'success': True, 'message': 'SMS sent'}),
+                'isBase64Encoded': False
             }
         else:
             return {
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'success': True, 'message': 'SMS sent'})
+                'body': json.dumps({'success': True, 'message': 'SMS sent'}),
+                'isBase64Encoded': False
             }
     except Exception as e:
         print(f"SMS sending error: {e}")
@@ -116,5 +124,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 200,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'success': True, 'message': 'SMS sent'})
+            'body': json.dumps({'success': True, 'message': 'SMS sent'}),
+            'isBase64Encoded': False
         }

@@ -21,14 +21,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'Access-Control-Allow-Headers': 'Content-Type',
                 'Access-Control-Max-Age': '86400'
             },
-            'body': ''
+            'body': '',
+            'isBase64Encoded': False
         }
     
     if method != 'POST':
         return {
             'statusCode': 405,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Method not allowed'})
+            'body': json.dumps({'error': 'Method not allowed'}),
+            'isBase64Encoded': False
         }
     
     body_data = json.loads(event.get('body', '{}'))
@@ -38,7 +40,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 200,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'status': 'ignored'})
+            'body': json.dumps({'status': 'ignored'}),
+            'isBase64Encoded': False
         }
     
     payment_object = body_data.get('object', {})
@@ -51,16 +54,18 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 400,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Invalid metadata'})
+            'body': json.dumps({'error': 'Invalid metadata'}),
+            'isBase64Encoded': False
         }
     
     dsn = os.environ.get('DATABASE_URL')
     conn = psycopg2.connect(dsn)
     cur = conn.cursor()
     
+    safe_energy_amount = str(int(energy_amount)).replace("'", "''")
+    safe_user_id = str(int(user_id)).replace("'", "''")
     cur.execute(
-        "UPDATE users SET energy = energy + %s WHERE id = %s",
-        (int(energy_amount), int(user_id))
+        f"UPDATE users SET energy = energy + {safe_energy_amount} WHERE id = '{safe_user_id}'"
     )
     
     conn.commit()

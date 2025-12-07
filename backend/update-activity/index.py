@@ -50,9 +50,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     conn = psycopg2.connect(dsn)
     cur = conn.cursor()
     
+    safe_user_id = str(user_id).replace("'", "''")
     cur.execute(
-        "UPDATE users SET last_activity = CURRENT_TIMESTAMP WHERE id = %s",
-        (user_id,)
+        f"UPDATE users SET last_activity = CURRENT_TIMESTAMP WHERE id = '{safe_user_id}'"
     )
     
     conn.commit()

@@ -22,14 +22,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'Access-Control-Allow-Headers': 'Content-Type',
                 'Access-Control-Max-Age': '86400'
             },
-            'body': ''
+            'body': '',
+            'isBase64Encoded': False
         }
     
     if method != 'POST':
         return {
             'statusCode': 405,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Method not allowed'})
+            'body': json.dumps({'error': 'Method not allowed'}),
+            'isBase64Encoded': False
         }
     
     body_data = json.loads(event.get('body', '{}'))
@@ -40,7 +42,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 400,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Phone and code required'})
+            'body': json.dumps({'error': 'Phone and code required'}),
+            'isBase64Encoded': False
         }
     
     dsn = os.environ.get('DATABASE_URL')
@@ -48,9 +51,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     cur = conn.cursor()
     
     # Ищем код в БД
+    safe_phone = phone.replace("'", "''")
     cur.execute(
-        "SELECT id, code, expires_at, verified FROM sms_codes WHERE phone = %s ORDER BY created_at DESC LIMIT 1",
-        (phone,)
+        f"SELECT id, code, expires_at, verified FROM sms_codes WHERE phone = '{safe_phone}' ORDER BY created_at DESC LIMIT 1"
     )
     result = cur.fetchone()
     
@@ -60,7 +63,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 400,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Code not found'})
+            'body': json.dumps({'error': 'Code not found'}),
+            'isBase64Encoded': False
         }
     
     code_id, db_code, expires_at, verified = result
@@ -72,7 +76,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 400,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Code already used'})
+            'body': json.dumps({'error': 'Code already used'}),
+            'isBase64Encoded': False
         }
     
     if datetime.now() > expires_at:
@@ -81,7 +86,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 400,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Code expired'})
+            'body': json.dumps({'error': 'Code expired'}),
+            'isBase64Encoded': False
         }
     
     if code != db_code:
@@ -90,14 +96,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 400,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Invalid code'})
+            'body': json.dumps({'error': 'Invalid code'}),
+            'isBase64Encoded': False
         }
     
     # Помечаем код как использованный
-    cur.execute("UPDATE sms_codes SET verified = TRUE WHERE id = %s", (code_id,))
+    safe_code_id = str(code_id).replace("'", "''")
+    cur.execute(f"UPDATE sms_codes SET verified = TRUE WHERE id = '{safe_code_id}'")
     
     # Проверяем, есть ли пользователь с таким телефоном
-    cur.execute("SELECT id FROM users WHERE phone = %s", (phone,))
+    cur.execute(f"SELECT id FROM users WHERE phone = '{safe_phone}'")
     user_row = cur.fetchone()
     
     user_id = None
@@ -111,5 +119,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     return {
         'statusCode': 200,
         'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-        'body': json.dumps({'success': True, 'phone': phone, 'user_id': user_id, 'is_new': user_id is None})
+        'body': json.dumps({'success': True, 'phone': phone, 'user_id': user_id, 'is_new': user_id is None}),
+        'isBase64Encoded': False
     }

@@ -21,14 +21,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'Access-Control-Allow-Headers': 'Content-Type',
                 'Access-Control-Max-Age': '86400'
             },
-            'body': ''
+            'body': '',
+            'isBase64Encoded': False
         }
     
     if method != 'POST':
         return {
             'statusCode': 405,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Method not allowed'})
+            'body': json.dumps({'error': 'Method not allowed'}),
+            'isBase64Encoded': False
         }
     
     body_data = json.loads(event.get('body', '{}'))
@@ -40,14 +42,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 400,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Phone and username required'})
+            'body': json.dumps({'error': 'Phone and username required'}),
+            'isBase64Encoded': False
         }
     
     dsn = os.environ.get('DATABASE_URL')
     conn = psycopg2.connect(dsn)
     cur = conn.cursor()
     
-    cur.execute("SELECT id FROM users WHERE phone = %s", (phone,))
+    safe_phone = phone.replace("'", "''")
+    cur.execute(f"SELECT id FROM users WHERE phone = '{safe_phone}'")
     existing = cur.fetchone()
     
     if existing:
@@ -56,12 +60,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 400,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'User already exists'})
+            'body': json.dumps({'error': 'User already exists'}),
+            'isBase64Encoded': False
         }
     
+    safe_username = username.replace("'", "''")
+    safe_avatar = avatar.replace("'", "''")
     cur.execute(
-        "INSERT INTO users (phone, username, avatar_url) VALUES (%s, %s, %s) RETURNING id",
-        (phone, username, avatar)
+        f"INSERT INTO users (phone, username, avatar_url) VALUES ('{safe_phone}', '{safe_username}', '{safe_avatar}') RETURNING id"
     )
     user_id = cur.fetchone()[0]
     
@@ -79,5 +85,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'avatar': avatar,
             'energy': 100,
             'is_admin': False
-        })
+        }),
+        'isBase64Encoded': False
     }

@@ -21,14 +21,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'Access-Control-Allow-Headers': 'Content-Type, X-User-Id',
                 'Access-Control-Max-Age': '86400'
             },
-            'body': ''
+            'body': '',
+            'isBase64Encoded': False
         }
     
     if method != 'POST':
         return {
             'statusCode': 405,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Method not allowed'})
+            'body': json.dumps({'error': 'Method not allowed'}),
+            'isBase64Encoded': False
         }
     
     body_data = json.loads(event.get('body', '{}'))
@@ -39,16 +41,18 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 400,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'user_id and positive amount are required'})
+            'body': json.dumps({'error': 'user_id and positive amount are required'}),
+            'isBase64Encoded': False
         }
     
     dsn = os.environ.get('DATABASE_URL')
     conn = psycopg2.connect(dsn)
     cur = conn.cursor()
     
+    safe_amount = str(int(amount)).replace("'", "''")
+    safe_user_id = str(user_id).replace("'", "''")
     cur.execute(
-        "UPDATE users SET energy = energy + %s WHERE id = %s RETURNING energy",
-        (amount, user_id)
+        f"UPDATE users SET energy = energy + {safe_amount} WHERE id = '{safe_user_id}' RETURNING energy"
     )
     result = cur.fetchone()
     

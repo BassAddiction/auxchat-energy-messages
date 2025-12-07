@@ -188,9 +188,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             message_id = cur.fetchone()[0]
             
             # Обновляем last_activity отправителя
+            safe_user_id_update = str(user_id).replace("'", "''")
             cur.execute(
-                "UPDATE users SET last_activity = CURRENT_TIMESTAMP WHERE id = %s",
-                (user_id,)
+                f"UPDATE users SET last_activity = CURRENT_TIMESTAMP WHERE id = '{safe_user_id_update}'"
             )
             
             conn.commit()

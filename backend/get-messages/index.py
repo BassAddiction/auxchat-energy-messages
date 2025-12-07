@@ -37,10 +37,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     limit = int(params.get('limit', 20))
     offset = int(params.get('offset', 0))
     
-    dsn = os.environ.get('DATABASE_URL') + '?sslmode=disable'
+    dsn = os.environ.get('DATABASE_URL')
     conn = psycopg2.connect(dsn)
     cur = conn.cursor()
     
+    safe_limit = str(limit).replace("'", "''")
+    safe_offset = str(offset).replace("'", "''")
     cur.execute(f"""
         SELECT 
             m.id, m.text, m.created_at,
@@ -48,7 +50,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         FROM messages m
         JOIN users u ON m.user_id = u.id
         ORDER BY m.created_at DESC
-        LIMIT {limit} OFFSET {offset}
+        LIMIT {safe_limit} OFFSET {safe_offset}
     """)
     
     rows = cur.fetchall()
@@ -66,10 +68,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     message_ids = [row[0] for row in rows]
     user_ids = list(set([row[3] for row in rows]))
     
+    safe_message_ids = ','.join(str(int(mid)) for mid in message_ids)
     cur.execute(f"""
         SELECT message_id, emoji, COUNT(*) as count
         FROM message_reactions
-        WHERE message_id IN ({','.join(map(str, message_ids))})
+        WHERE message_id IN ({safe_message_ids})
         GROUP BY message_id, emoji
     """)
     
@@ -80,10 +83,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             reactions_map[msg_id] = []
         reactions_map[msg_id].append({'emoji': r[1], 'count': r[2]})
     
+    safe_user_ids = ','.join(str(int(uid)) for uid in user_ids)
     cur.execute(f"""
         SELECT DISTINCT ON (user_id) user_id, photo_url
         FROM user_photos
-        WHERE user_id IN ({','.join(map(str, user_ids))})
+        WHERE user_id IN ({safe_user_ids})
         ORDER BY user_id, display_order ASC, created_at DESC
     """)
     

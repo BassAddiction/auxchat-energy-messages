@@ -21,7 +21,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'Access-Control-Allow-Headers': 'Content-Type, X-User-Id',
                 'Access-Control-Max-Age': '86400'
             },
-            'body': ''
+            'body': '',
+            'isBase64Encoded': False
         }
     
     headers = event.get('headers', {})
@@ -31,7 +32,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 401,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Unauthorized'})
+            'body': json.dumps({'error': 'Unauthorized'}),
+            'isBase64Encoded': False
         }
     
     user_id = int(user_id_str)
@@ -42,17 +44,19 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     cur = conn.cursor()
     
     try:
-        cur.execute('''
+        safe_user_id = str(user_id).replace("'", "''")
+        cur.execute(f'''
             SELECT subscribed_to_id FROM subscriptions
-            WHERE subscriber_id = %s
-        ''', (user_id,))
+            WHERE subscriber_id = '{safe_user_id}'
+        ''')
         
         subscribed_ids = [row[0] for row in cur.fetchall()]
         
         return {
             'statusCode': 200,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'subscribedUserIds': subscribed_ids})
+            'body': json.dumps({'subscribedUserIds': subscribed_ids}),
+            'isBase64Encoded': False
         }
     
     finally:

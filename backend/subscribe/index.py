@@ -21,7 +21,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'Access-Control-Allow-Headers': 'Content-Type, X-User-Id',
                 'Access-Control-Max-Age': '86400'
             },
-            'body': ''
+            'body': '',
+            'isBase64Encoded': False
         }
     
     headers = event.get('headers', {})
@@ -31,7 +32,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 401,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Unauthorized'})
+            'body': json.dumps({'error': 'Unauthorized'}),
+            'isBase64Encoded': False
         }
     
     user_id = int(user_id_str)
@@ -52,20 +54,24 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 return {
                     'statusCode': 400,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'error': 'targetUserId required'})
+                    'body': json.dumps({'error': 'targetUserId required'}),
+                    'isBase64Encoded': False
                 }
             
-            cur.execute('''
+            safe_user_id = str(user_id).replace("'", "''")
+            safe_target_id = str(int(target_user_id)).replace("'", "''")
+            cur.execute(f'''
                 SELECT COUNT(*) FROM subscriptions
-                WHERE subscriber_id = %s AND subscribed_to_id = %s
-            ''', (user_id, int(target_user_id)))
+                WHERE subscriber_id = '{safe_user_id}' AND subscribed_to_id = '{safe_target_id}'
+            ''')
             
             is_subscribed = cur.fetchone()[0] > 0
             
             return {
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'isSubscribed': is_subscribed})
+                'body': json.dumps({'isSubscribed': is_subscribed}),
+                'isBase64Encoded': False
             }
         
         elif method == 'POST':
@@ -77,26 +83,31 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 return {
                     'statusCode': 400,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'error': 'targetUserId required'})
+                    'body': json.dumps({'error': 'targetUserId required'}),
+                    'isBase64Encoded': False
                 }
             
             if user_id == int(target_user_id):
                 return {
                     'statusCode': 400,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'error': 'Cannot subscribe to yourself'})
+                    'body': json.dumps({'error': 'Cannot subscribe to yourself'}),
+                    'isBase64Encoded': False
                 }
             
-            cur.execute('''
+            safe_user_id = str(user_id).replace("'", "''")
+            safe_target_id = str(int(target_user_id)).replace("'", "''")
+            cur.execute(f'''
                 INSERT INTO subscriptions (subscriber_id, subscribed_to_id)
-                VALUES (%s, %s)
+                VALUES ('{safe_user_id}', '{safe_target_id}')
                 ON CONFLICT (subscriber_id, subscribed_to_id) DO NOTHING
-            ''', (user_id, int(target_user_id)))
+            ''')
             
             return {
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'success': True, 'message': 'Subscribed'})
+                'body': json.dumps({'success': True, 'message': 'Subscribed'}),
+                'isBase64Encoded': False
             }
         
         elif method == 'DELETE':
@@ -108,25 +119,30 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 return {
                     'statusCode': 400,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'error': 'targetUserId required'})
+                    'body': json.dumps({'error': 'targetUserId required'}),
+                    'isBase64Encoded': False
                 }
             
-            cur.execute('''
+            safe_user_id = str(user_id).replace("'", "''")
+            safe_target_id = str(int(target_user_id)).replace("'", "''")
+            cur.execute(f'''
                 DELETE FROM subscriptions
-                WHERE subscriber_id = %s AND subscribed_to_id = %s
-            ''', (user_id, int(target_user_id)))
+                WHERE subscriber_id = '{safe_user_id}' AND subscribed_to_id = '{safe_target_id}'
+            ''')
             
             return {
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'success': True, 'message': 'Unsubscribed'})
+                'body': json.dumps({'success': True, 'message': 'Unsubscribed'}),
+                'isBase64Encoded': False
             }
         
         else:
             return {
                 'statusCode': 405,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'error': 'Method not allowed'})
+                'body': json.dumps({'error': 'Method not allowed'}),
+                'isBase64Encoded': False
             }
     
     finally:

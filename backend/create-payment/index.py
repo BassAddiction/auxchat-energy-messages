@@ -31,7 +31,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 405,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Method not allowed'})
+            'body': json.dumps({'error': 'Method not allowed'}),
+            'isBase64Encoded': False
         }
     
     body_data = json.loads(event.get('body', '{}'))
@@ -42,7 +43,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 400,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'user_id required and amount must be 50 or 100'})
+            'body': json.dumps({'error': 'user_id required and amount must be 50 or 100'}),
+            'isBase64Encoded': False
         }
     
     shop_id = os.environ.get('YOOKASSA_SHOP_ID')
@@ -52,7 +54,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 500,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'YooKassa credentials not configured'})
+            'body': json.dumps({'error': 'YooKassa credentials not configured'}),
+            'isBase64Encoded': False
         }
     
     price_map = {50: 50, 100: 90}

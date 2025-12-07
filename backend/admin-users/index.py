@@ -21,7 +21,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Id',
                 'Access-Control-Max-Age': '86400'
             },
-            'body': ''
+            'body': '',
+            'isBase64Encoded': False
         }
     
     dsn = os.environ.get('DATABASE_URL')
@@ -54,7 +55,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 200,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'users': users})
+            'body': json.dumps({'users': users}),
+            'isBase64Encoded': False
         }
     
     if method != 'POST':
@@ -63,7 +65,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 405,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Method not allowed'})
+            'body': json.dumps({'error': 'Method not allowed'}),
+            'isBase64Encoded': False
         }
     
     body_data = json.loads(event.get('body', '{}'))
@@ -79,29 +82,33 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 403,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Invalid admin secret'})
+            'body': json.dumps({'error': 'Invalid admin secret'}),
+            'isBase64Encoded': False
         }
+    
+    safe_target_id = str(target_user_id).replace("'", "''")
     
     if action == 'add_energy':
         amount = body_data.get('amount', 0)
-        cur.execute("UPDATE users SET energy = energy + %s WHERE id = %s", (amount, target_user_id))
+        safe_amount = str(int(amount)).replace("'", "''")
+        cur.execute(f"UPDATE users SET energy = energy + {safe_amount} WHERE id = '{safe_target_id}'")
         conn.commit()
         result = {'message': f"Added {amount} energy", 'success': True}
         
     elif action == 'ban':
-        cur.execute("UPDATE users SET is_banned = TRUE WHERE id = %s", (target_user_id,))
+        cur.execute(f"UPDATE users SET is_banned = TRUE WHERE id = '{safe_target_id}'")
         conn.commit()
         result = {'message': 'User banned', 'success': True}
         
     elif action == 'unban':
-        cur.execute("UPDATE users SET is_banned = FALSE WHERE id = %s", (target_user_id,))
+        cur.execute(f"UPDATE users SET is_banned = FALSE WHERE id = '{safe_target_id}'")
         conn.commit()
         result = {'message': 'User unbanned', 'success': True}
         
     elif action == 'delete':
-        cur.execute("DELETE FROM messages WHERE user_id = %s", (target_user_id,))
-        cur.execute("DELETE FROM message_reactions WHERE user_id = %s", (target_user_id,))
-        cur.execute("DELETE FROM users WHERE id = %s", (target_user_id,))
+        cur.execute(f"DELETE FROM messages WHERE user_id = '{safe_target_id}'")
+        cur.execute(f"DELETE FROM message_reactions WHERE user_id = '{safe_target_id}'")
+        cur.execute(f"DELETE FROM users WHERE id = '{safe_target_id}'")
         conn.commit()
         result = {'message': 'User deleted', 'success': True}
         
@@ -111,7 +118,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 400,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Invalid action'})
+            'body': json.dumps({'error': 'Invalid action'}),
+            'isBase64Encoded': False
         }
     
     cur.close()
@@ -120,5 +128,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     return {
         'statusCode': 200,
         'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-        'body': json.dumps(result)
+        'body': json.dumps(result),
+        'isBase64Encoded': False
     }

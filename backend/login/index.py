@@ -22,14 +22,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'Access-Control-Allow-Headers': 'Content-Type, X-User-Id',
                 'Access-Control-Max-Age': '86400'
             },
-            'body': ''
+            'body': '',
+            'isBase64Encoded': False
         }
     
     if method != 'POST':
         return {
             'statusCode': 405,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Method not allowed'})
+            'body': json.dumps({'error': 'Method not allowed'}),
+            'isBase64Encoded': False
         }
     
     body_data = json.loads(event.get('body', '{}'))
@@ -40,16 +42,17 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 400,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Phone and password required'})
+            'body': json.dumps({'error': 'Phone and password required'}),
+            'isBase64Encoded': False
         }
     
     dsn = os.environ.get('DATABASE_URL')
     conn = psycopg2.connect(dsn)
     cur = conn.cursor()
     
+    safe_phone = phone.replace("'", "''")
     cur.execute(
-        "SELECT id, username, avatar_url, password_hash, is_banned, is_admin, energy FROM users WHERE phone = %s",
-        (phone,)
+        f"SELECT id, username, avatar_url, password_hash, is_banned, is_admin, energy FROM users WHERE phone = '{safe_phone}'"
     )
     result = cur.fetchone()
     
@@ -59,7 +62,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 401,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Invalid phone or password'})
+            'body': json.dumps({'error': 'Invalid phone or password'}),
+            'isBase64Encoded': False
         }
     
     user_id, username, avatar, password_hash, is_banned, is_admin, energy = result
@@ -70,7 +74,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 401,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Password not set. Please use SMS recovery.'})
+            'body': json.dumps({'error': 'Password not set. Please use SMS recovery.'}),
+            'isBase64Encoded': False
         }
     
     input_hash = hashlib.sha256(password.encode()).hexdigest()
@@ -81,7 +86,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 401,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Invalid phone or password'})
+            'body': json.dumps({'error': 'Invalid phone or password'}),
+            'isBase64Encoded': False
         }
     
     if is_banned:
@@ -90,7 +96,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 403,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'User is banned'})
+            'body': json.dumps({'error': 'User is banned'}),
+            'isBase64Encoded': False
         }
     
     cur.close()
@@ -107,5 +114,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'energy': energy,
             'is_admin': is_admin,
             'is_banned': is_banned
-        })
+        }),
+        'isBase64Encoded': False
     }

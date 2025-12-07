@@ -22,14 +22,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'Access-Control-Allow-Headers': 'Content-Type, X-User-Id',
                 'Access-Control-Max-Age': '86400'
             },
-            'body': ''
+            'body': '',
+            'isBase64Encoded': False
         }
     
     if method != 'POST':
         return {
             'statusCode': 405,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Method not allowed'})
+            'body': json.dumps({'error': 'Method not allowed'}),
+            'isBase64Encoded': False
         }
     
     body_data = json.loads(event.get('body', '{}'))
@@ -42,21 +44,24 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 400,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Phone, username and password required'})
+            'body': json.dumps({'error': 'Phone, username and password required'}),
+            'isBase64Encoded': False
         }
     
     if len(password) < 6:
         return {
             'statusCode': 400,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Password must be at least 6 characters'})
+            'body': json.dumps({'error': 'Password must be at least 6 characters'}),
+            'isBase64Encoded': False
         }
     
     dsn = os.environ.get('DATABASE_URL')
     conn = psycopg2.connect(dsn)
     cur = conn.cursor()
     
-    cur.execute("SELECT id FROM users WHERE phone = %s", (phone,))
+    safe_phone = phone.replace("'", "''")
+    cur.execute(f"SELECT id FROM users WHERE phone = '{safe_phone}'")
     existing = cur.fetchone()
     
     if existing:
@@ -65,14 +70,17 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 400,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'User already exists'})
+            'body': json.dumps({'error': 'User already exists'}),
+            'isBase64Encoded': False
         }
     
     password_hash = hashlib.sha256(password.encode()).hexdigest()
     
+    safe_username = username.replace("'", "''")
+    safe_avatar = avatar.replace("'", "''")
+    safe_password_hash = password_hash.replace("'", "''")
     cur.execute(
-        "INSERT INTO users (phone, username, avatar_url, password_hash) VALUES (%s, %s, %s, %s) RETURNING id",
-        (phone, username, avatar, password_hash)
+        f"INSERT INTO users (phone, username, avatar_url, password_hash) VALUES ('{safe_phone}', '{safe_username}', '{safe_avatar}', '{safe_password_hash}') RETURNING id"
     )
     user_id = cur.fetchone()[0]
     
@@ -90,5 +98,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'avatar': avatar,
             'energy': 100,
             'is_admin': False
-        })
+        }),
+        'isBase64Encoded': False
     }

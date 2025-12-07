@@ -22,14 +22,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'Access-Control-Allow-Headers': 'Content-Type, X-User-Id',
                 'Access-Control-Max-Age': '86400'
             },
-            'body': ''
+            'body': '',
+            'isBase64Encoded': False
         }
     
     if method != 'GET':
         return {
             'statusCode': 405,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Method not allowed'})
+            'body': json.dumps({'error': 'Method not allowed'}),
+            'isBase64Encoded': False
         }
     
     headers = event.get('headers', {})
@@ -39,7 +41,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 401,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'X-User-Id header required'})
+            'body': json.dumps({'error': 'X-User-Id header required'}),
+            'isBase64Encoded': False
         }
     
     user_id = int(user_id_str)
@@ -48,22 +51,23 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     conn = psycopg2.connect(dsn)
     cur = conn.cursor()
     
-    cur.execute("""
+    safe_user_id = str(user_id).replace("'", "''")
+    cur.execute(f"""
         WITH last_messages AS (
             SELECT 
-                CASE WHEN sender_id = %s THEN receiver_id ELSE sender_id END as other_user_id,
+                CASE WHEN sender_id = '{safe_user_id}' THEN receiver_id ELSE sender_id END as other_user_id,
                 text as last_message,
                 created_at,
                 ROW_NUMBER() OVER (PARTITION BY 
-                    CASE WHEN sender_id = %s THEN receiver_id ELSE sender_id END 
+                    CASE WHEN sender_id = '{safe_user_id}' THEN receiver_id ELSE sender_id END 
                     ORDER BY created_at DESC) as rn
             FROM private_messages
-            WHERE sender_id = %s OR receiver_id = %s
+            WHERE sender_id = '{safe_user_id}' OR receiver_id = '{safe_user_id}'
         ),
         unread_counts AS (
             SELECT receiver_id, sender_id, COUNT(*) as unread_count
             FROM private_messages
-            WHERE receiver_id = %s AND is_read = FALSE
+            WHERE receiver_id = '{safe_user_id}' AND is_read = FALSE
             GROUP BY receiver_id, sender_id
         )
         SELECT 
@@ -75,7 +79,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         LEFT JOIN unread_counts uc ON uc.sender_id = u.id
         WHERE lm.rn = 1
         ORDER BY lm.created_at DESC
-    """, (user_id, user_id, user_id, user_id, user_id))
+    """)
     
     rows = cur.fetchall()
     
@@ -103,5 +107,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     return {
         'statusCode': 200,
         'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-        'body': json.dumps({'conversations': conversations})
+        'body': json.dumps({'conversations': conversations}),
+        'isBase64Encoded': False
     }
