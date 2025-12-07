@@ -21,14 +21,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'Access-Control-Allow-Headers': 'Content-Type, X-User-Id',
                 'Access-Control-Max-Age': '86400'
             },
-            'body': ''
+            'body': '',
+            'isBase64Encoded': False
         }
     
     if method != 'GET':
         return {
             'statusCode': 405,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Method not allowed'})
+            'body': json.dumps({'error': 'Method not allowed'}),
+            'isBase64Encoded': False
         }
     
     # Получаем user_id из query параметров или из заголовка X-User-Id
@@ -40,16 +42,18 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 400,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'User ID required'})
+            'body': json.dumps({'error': 'User ID required'}),
+            'isBase64Encoded': False
         }
     
     dsn = os.environ.get('DATABASE_URL')
     conn = psycopg2.connect(dsn)
     cur = conn.cursor()
     
+    # Use simple query protocol - escape single quotes
+    safe_user_id = str(user_id).replace("'", "''")
     cur.execute(
-        "SELECT id, phone, username, avatar_url, energy, is_banned, bio, last_activity FROM users WHERE id = %s",
-        (user_id,)
+        f"SELECT id, phone, username, avatar_url, energy, is_banned, bio, last_activity FROM users WHERE id = '{safe_user_id}'"
     )
     row = cur.fetchone()
     
@@ -60,7 +64,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 404,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'User not found'})
+            'body': json.dumps({'error': 'User not found'}),
+            'isBase64Encoded': False
         }
     
     # Проверяем активность (онлайн если был активен менее 5 минут назад)
@@ -84,5 +89,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'is_banned': row[5] if row[5] is not None else False,
             'bio': row[6] if row[6] else '',
             'status': 'online' if is_online else 'offline'
-        })
+        }),
+        'isBase64Encoded': False
     }
