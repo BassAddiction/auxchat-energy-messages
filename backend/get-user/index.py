@@ -47,10 +47,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     
     dsn = os.environ.get('TIMEWEB_DB_URL')
+    print(f'[DEBUG GET-USER] DSN value: {dsn[:60] if dsn else "None/Empty"}')
     if dsn and '?' in dsn:
         dsn += '&sslmode=require'
     elif dsn:
         dsn += '?sslmode=require'
+    print(f'[DEBUG GET-USER] Final DSN: {dsn[:60] if dsn else "None/Empty"}')
     conn = psycopg2.connect(dsn)
     cur = conn.cursor()
     
