@@ -2,7 +2,7 @@
 
 export const FUNCTIONS = {
   "add-energy": "https://functions.yandexcloud.net/d4e10cfpm08ikk1k5mp4",
-  "generate-upload-url": "https://functions.poehali.dev/559ff756-6b7f-42fc-8a61-2dac6de68639",
+  "generate-upload-url": "https://functions.yandexcloud.net/d4e1drhlub4imqleg10q",
   "create-payment": "https://functions.yandexcloud.net/d4e1gbggnqgt6lrsh9n7",
   "payment-webhook": "https://functions.yandexcloud.net/d4e235nr619fsgkt1qvi",
   "get-messages": "https://functions.yandexcloud.net/d4e25ugin6o29hr4ots8",
