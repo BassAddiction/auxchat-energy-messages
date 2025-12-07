@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
+import { FUNCTIONS } from '@/lib/func2url';
 
 interface UserProfile {
   id: number;
@@ -66,12 +67,12 @@ export default function Profile() {
   const loadProfile = async () => {
     try {
       const response = await fetch(
-        `https://functions.poehali.dev/518f730f-1a8e-45ad-b0ed-e9a66c5a3784?user_id=${userId}`
+        `${FUNCTIONS['get-user']}?user_id=${userId}`
       );
       const data = await response.json();
       
       const photosResponse = await fetch(
-        `https://functions.poehali.dev/6ab5e5ca-f93c-438c-bc46-7eb7a75e2734?userId=${userId}`,
+        `${FUNCTIONS['profile-photos']}?userId=${userId}`,
         {
           headers: { 'X-User-Id': currentUserId || '0' }
         }
@@ -92,7 +93,7 @@ export default function Profile() {
   const loadPhotos = async () => {
     try {
       const response = await fetch(
-        `https://functions.poehali.dev/6ab5e5ca-f93c-438c-bc46-7eb7a75e2734?userId=${userId}`,
+        `${FUNCTIONS['profile-photos']}?userId=${userId}`,
         {
           headers: {
             'X-User-Id': currentUserId || '0'
@@ -259,12 +260,26 @@ export default function Profile() {
 
     setUploadingFile(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
+      const reader = new FileReader();
+      
+      const imageBase64 = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => {
+          const base64 = (reader.result as string).split(',')[1];
+          resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
 
-      const uploadResponse = await fetch('https://poehali.dev/api/upload-to-s3', {
+      const uploadResponse = await fetch(FUNCTIONS['generate-upload-url'], {
         method: 'POST',
-        body: formData
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          audioData: imageBase64,
+          contentType: file.type
+        })
       });
 
       if (!uploadResponse.ok) {
@@ -273,19 +288,16 @@ export default function Profile() {
         return;
       }
 
-      const { url } = await uploadResponse.json();
+      const { fileUrl } = await uploadResponse.json();
 
-      const addPhotoResponse = await fetch(
-        'https://functions.poehali.dev/6ab5e5ca-f93c-438c-bc46-7eb7a75e2734',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-User-Id': currentUserId || '0'
-          },
-          body: JSON.stringify({ photoUrl: url })
-        }
-      );
+      const addPhotoResponse = await fetch(FUNCTIONS['profile-photos'], {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-User-Id': currentUserId || '0'
+        },
+        body: JSON.stringify({ photoUrl: fileUrl })
+      });
 
       if (addPhotoResponse.ok) {
         toast.success('Фото добавлено');

@@ -109,7 +109,7 @@ def handle_get(event: Dict[str, Any]) -> Dict[str, Any]:
         }
 
 def handle_upload(event: Dict[str, Any]) -> Dict[str, Any]:
-    """Upload audio directly through backend to avoid CORS"""
+    """Upload file (audio/image) directly through backend to avoid CORS"""
     import base64
     
     try:
@@ -127,25 +127,30 @@ def handle_upload(event: Dict[str, Any]) -> Dict[str, Any]:
                 'isBase64Encoded': False
             }
         
-        # Parse JSON body with base64 audio
+        # Parse JSON body with base64 data
         body_str = event.get('body', '{}')
         body_data = json.loads(body_str)
-        audio_base64 = body_data.get('audioData', '')
+        file_base64 = body_data.get('audioData', '')
+        content_type = body_data.get('contentType', 'audio/webm')
         
-        if not audio_base64:
+        if not file_base64:
             return {
                 'statusCode': 400,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'error': 'No audio data provided'}),
+                'body': json.dumps({'error': 'No file data provided'}),
                 'isBase64Encoded': False
             }
         
         # Decode base64
-        audio_data = base64.b64decode(audio_base64)
+        file_data = base64.b64decode(file_base64)
         
-        # Generate filename
+        # Generate filename based on content type
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
-        filename = f'voice-messages/voice_{timestamp}.webm'
+        if content_type.startswith('image/'):
+            extension = content_type.split('/')[1]
+            filename = f'profile-photos/photo_{timestamp}.{extension}'
+        else:
+            filename = f'voice-messages/voice_{timestamp}.webm'
         
         # Upload to S3
         s3_client = boto3.client(
@@ -176,8 +181,8 @@ def handle_upload(event: Dict[str, Any]) -> Dict[str, Any]:
         s3_client.put_object(
             Bucket=s3_bucket,
             Key=filename,
-            Body=audio_data,
-            ContentType='audio/webm',
+            Body=file_data,
+            ContentType=content_type,
             ACL='public-read',
             CacheControl='public, max-age=31536000'
         )

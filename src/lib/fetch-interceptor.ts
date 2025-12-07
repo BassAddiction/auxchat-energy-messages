@@ -13,7 +13,7 @@ const LEGACY_TO_NEW: Record<string, string> = {
   'c4359550-f604-4126-8e72-5087a670b7cb': FUNCTIONS['verify-sms'],
   '1d4d268e-0d0a-454a-a1cc-ecd19c83471a': FUNCTIONS.register,
   'f1d38f0f-3d7d-459b-a52f-9ae703ac77d3': FUNCTIONS['reset-password'],
-  '8d34c54f-b2de-42c1-ac0c-f6b51db36af7': FUNCTIONS['generate-upload-url'],
+  '559ff756-6b7f-42fc-8a61-2dac6de68639': FUNCTIONS['generate-upload-url'],
   '8d34c54f-b2de-42c1-ac0c-9f6ecf5e16f6': FUNCTIONS['send-message'],
   '392f3078-9f28-4640-ab86': FUNCTIONS['add-reaction'],
   'ac3ea823-b6ec-4987-9602': FUNCTIONS.subscribe,
