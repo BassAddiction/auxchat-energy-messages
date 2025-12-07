@@ -238,7 +238,9 @@ const Index = () => {
     try {
       const data = await api.login(phone, password);
       
-      if (response.ok) {
+      if (data.error) {
+        alert(data.error || "Ошибка входа");
+      } else {
         setUser({
           username: data.username,
           avatar: data.avatar,
@@ -250,8 +252,6 @@ const Index = () => {
         setIsAuthOpen(false);
         setPhone("");
         setPassword("");
-      } else {
-        alert(data.error || "Ошибка входа");
       }
     } catch (error) {
       console.error("Login error:", error);
