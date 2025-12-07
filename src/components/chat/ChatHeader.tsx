@@ -55,7 +55,15 @@ export default function ChatHeader({
       >
         <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold flex-shrink-0">
           {profile?.avatar ? (
-            <img src={profile.avatar} alt={profile.username} className="w-full h-full rounded-full object-cover" />
+            <img 
+              src={profile.avatar} 
+              alt={profile.username} 
+              className="w-full h-full rounded-full object-cover"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.parentElement!.textContent = profile.username[0]?.toUpperCase() || '?';
+              }}
+            />
           ) : (
             profile?.username[0]?.toUpperCase()
           )}

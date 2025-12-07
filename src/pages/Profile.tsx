@@ -509,6 +509,9 @@ export default function Profile() {
               src={photos[currentPhotoIndex].url}
               alt="Full size photo"
               className="max-w-full max-h-full object-contain rounded-lg"
+              onError={(e) => {
+                e.currentTarget.src = `https://api.dicebear.com/7.x/shapes/svg?seed=${photos[currentPhotoIndex].id}`;
+              }}
             />
           </div>
 

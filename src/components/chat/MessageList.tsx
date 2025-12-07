@@ -59,7 +59,15 @@ export default function MessageList({
             {!isOwn && (
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                 {messageProfile?.avatar ? (
-                  <img src={messageProfile.avatar} alt={messageProfile.username} className="w-full h-full rounded-full object-cover" />
+                  <img 
+                    src={messageProfile.avatar} 
+                    alt={messageProfile.username} 
+                    className="w-full h-full rounded-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.parentElement!.textContent = messageProfile.username[0]?.toUpperCase() || '?';
+                    }}
+                  />
                 ) : (
                   messageProfile?.username[0]?.toUpperCase()
                 )}
@@ -98,7 +106,15 @@ export default function MessageList({
             {isOwn && (
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                 {messageProfile?.avatar ? (
-                  <img src={messageProfile.avatar} alt={messageProfile.username} className="w-full h-full rounded-full object-cover" />
+                  <img 
+                    src={messageProfile.avatar} 
+                    alt={messageProfile.username} 
+                    className="w-full h-full rounded-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.parentElement!.textContent = messageProfile.username[0]?.toUpperCase() || '?';
+                    }}
+                  />
                 ) : (
                   messageProfile?.username[0]?.toUpperCase()
                 )}
