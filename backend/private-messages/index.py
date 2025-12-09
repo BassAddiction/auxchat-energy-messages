@@ -47,7 +47,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             dsn += '&sslmode=require'
         elif dsn:
             dsn += '?sslmode=require'
-        print(f'Connecting to DB...')
+        print(f'Connecting to DB with DSN: {dsn[:30]}...')
         
         conn = psycopg2.connect(dsn)
         cur = conn.cursor()
@@ -70,16 +70,44 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             other_user_id = int(other_user_id_str)
             print(f'Other user ID: {other_user_id}')
             
-            query = f"""
-                SELECT pm.id, pm.sender_id, pm.receiver_id, pm.text, pm.is_read, pm.created_at,
-                       u.username, NULL as avatar_url, pm.voice_url, pm.voice_duration, pm.image_url
-                FROM private_messages pm
-                JOIN users u ON u.id = pm.sender_id
-                WHERE (pm.sender_id = {user_id} AND pm.receiver_id = {other_user_id}) 
-                   OR (pm.sender_id = {other_user_id} AND pm.receiver_id = {user_id})
-                ORDER BY pm.created_at ASC
-                LIMIT 100
-            """
+            # Load messages with text, voice and images
+            # Try to check if image_url column exists first
+            cur.execute("SELECT column_name FROM information_schema.columns WHERE table_name = 'private_messages' AND column_name = 'image_url'")
+            has_image_url = len(cur.fetchall()) > 0
+            
+            # If column doesn't exist, create it
+            if not has_image_url:
+                try:
+                    cur.execute("ALTER TABLE private_messages ADD COLUMN image_url TEXT")
+                    conn.commit()
+                    has_image_url = True
+                    print('Created image_url column')
+                except Exception as e:
+                    print(f'Could not create image_url column: {e}')
+            
+            if has_image_url:
+                query = f"""
+                    SELECT pm.id, pm.sender_id, pm.receiver_id, pm.text, pm.is_read, pm.created_at,
+                           u.username, NULL as avatar_url, pm.voice_url, pm.voice_duration, pm.image_url
+                    FROM private_messages pm
+                    JOIN users u ON u.id = pm.sender_id
+                    WHERE (pm.sender_id = {user_id} AND pm.receiver_id = {other_user_id}) 
+                       OR (pm.sender_id = {other_user_id} AND pm.receiver_id = {user_id})
+                    ORDER BY pm.created_at ASC
+                    LIMIT 100
+                """
+            else:
+                # Fallback without image_url if column doesn't exist
+                query = f"""
+                    SELECT pm.id, pm.sender_id, pm.receiver_id, pm.text, pm.is_read, pm.created_at,
+                           u.username, NULL as avatar_url, pm.voice_url, pm.voice_duration, NULL as image_url
+                    FROM private_messages pm
+                    JOIN users u ON u.id = pm.sender_id
+                    WHERE (pm.sender_id = {user_id} AND pm.receiver_id = {other_user_id}) 
+                       OR (pm.sender_id = {other_user_id} AND pm.receiver_id = {user_id})
+                    ORDER BY pm.created_at ASC
+                    LIMIT 100
+                """
             print(f'Executing query...')
             cur.execute(query)
             print(f'Query executed')
