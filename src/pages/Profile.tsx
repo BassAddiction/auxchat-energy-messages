@@ -109,7 +109,7 @@ export default function Profile() {
     }
   };
 
-  const addPhoto = async () => {
+  const addPhotoByUrl = async () => {
     if (!photoUrl.trim()) return;
 
     setIsAddingPhoto(true);
@@ -134,6 +134,56 @@ export default function Profile() {
       toast.error('Ошибка добавления фото');
     } finally {
       setIsAddingPhoto(false);
+    }
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !file.type.startsWith('image/')) {
+      toast.error('Выберите изображение');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Максимум 10 МБ');
+      return;
+    }
+
+    setIsAddingPhoto(true);
+    try {
+      const reader = new FileReader();
+      const base64 = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve((reader.result as string).split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const uploadResponse = await fetch(FUNCTIONS['generate-upload-url'], {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ audioData: base64, contentType: file.type })
+      });
+
+      if (!uploadResponse.ok) throw new Error('Upload failed');
+
+      const { fileUrl } = await uploadResponse.json();
+
+      const addResponse = await fetch(
+        `${FUNCTIONS['profile-photos']}?userId=${currentUserId}&action=add&photoUrl=${encodeURIComponent(fileUrl)}`,
+        { headers: { 'X-User-Id': currentUserId || '0' } }
+      );
+
+      if (addResponse.ok) {
+        toast.success('Фото загружено');
+        loadPhotos();
+      } else {
+        throw new Error('Failed to save');
+      }
+    } catch (error) {
+      toast.error('Ошибка загрузки');
+    } finally {
+      setIsAddingPhoto(false);
+      e.target.value = '';
     }
   };
 
@@ -428,26 +478,44 @@ export default function Profile() {
             </div>
 
             {isOwnProfile && photos.length < 6 && (
-              <div className="mb-3 md:mb-4 flex gap-2">
-                <input
-                  type="text"
-                  value={photoUrl}
-                  onChange={(e) => setPhotoUrl(e.target.value)}
-                  placeholder="Вставьте URL изображения"
-                  className="flex-1 px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  disabled={isAddingPhoto}
-                />
-                <button 
-                  disabled={isAddingPhoto || !photoUrl.trim()}
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90 px-4 py-2 text-sm rounded-md font-medium flex items-center disabled:opacity-50"
-                  onClick={() => addPhoto()}
-                >
+              <div className="mb-3 md:mb-4 space-y-2">
+                <label className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90 px-4 py-2 text-sm rounded-md font-medium flex items-center justify-center cursor-pointer disabled:opacity-50">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoUpload}
+                    disabled={isAddingPhoto}
+                    className="hidden"
+                  />
                   {isAddingPhoto ? (
-                    <Icon name="Loader2" size={16} className="animate-spin" />
+                    <>
+                      <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
+                      <span>Загрузка...</span>
+                    </>
                   ) : (
-                    <Icon name="Plus" size={16} />
+                    <>
+                      <Icon name="Upload" size={16} className="mr-2" />
+                      <span>Загрузить фото</span>
+                    </>
                   )}
-                </button>
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={photoUrl}
+                    onChange={(e) => setPhotoUrl(e.target.value)}
+                    placeholder="Или вставьте URL"
+                    className="flex-1 px-3 py-2 bg-background border border-border rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    disabled={isAddingPhoto}
+                  />
+                  <button 
+                    disabled={isAddingPhoto || !photoUrl.trim()}
+                    className="bg-purple-500 text-white hover:opacity-90 px-3 py-2 text-xs rounded-md font-medium disabled:opacity-50"
+                    onClick={addPhotoByUrl}
+                  >
+                    <Icon name="Plus" size={14} />
+                  </button>
+                </div>
               </div>
             )}
 
