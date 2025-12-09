@@ -91,9 +91,13 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             for row in rows:
                 created_at = row[5]
                 if hasattr(created_at, 'isoformat'):
+                    # Добавляем UTC timezone к времени
+                    if created_at.tzinfo is None:
+                        from datetime import timezone
+                        created_at = created_at.replace(tzinfo=timezone.utc)
                     created_at_str = created_at.isoformat()
                 else:
-                    created_at_str = str(created_at)
+                    created_at_str = str(created_at) + 'Z'
                 
                 messages.append({
                     'id': row[0],
