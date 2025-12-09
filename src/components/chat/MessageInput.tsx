@@ -160,55 +160,61 @@ export default function MessageInput({
   };
 
   return (
-    <div className="bg-card/80 backdrop-blur border-t border-purple-500/20 p-2 md:p-4">
+    <div className="bg-background border-t p-3 md:p-4">
       {isRecording ? (
         <div className="flex items-center gap-2">
-          <div className="flex-1 flex items-center gap-3 bg-red-500/20 rounded-lg px-4 py-3">
-            <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-            <span className="font-mono text-sm">{formatTime(recordingTime)}</span>
-            <span className="text-xs text-muted-foreground">Запись голосового сообщения...</span>
+          <div className="flex-1 flex items-center gap-3 bg-red-500/10 rounded-full px-4 py-2.5">
+            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+            <span className="font-mono text-sm font-medium">{formatTime(recordingTime)}</span>
+            <div className="flex-1" />
+            <button
+              onClick={cancelRecording}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <Icon name="X" size={20} />
+            </button>
           </div>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={cancelRecording}
-            className="h-10 w-10 p-0"
-          >
-            <Icon name="X" size={20} />
-          </Button>
-          <Button
-            size="sm"
+          <button
             onClick={stopRecording}
-            className="h-10 px-4 bg-gradient-to-r from-purple-500 to-pink-500"
+            className="w-11 h-11 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white flex items-center justify-center hover:opacity-90 transition-opacity"
           >
-            <Icon name="Send" size={18} />
-          </Button>
+            <Icon name="Send" size={20} />
+          </button>
         </div>
       ) : (
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="ghost"
+        <div className="flex items-center gap-2">
+          <button
             onClick={startRecording}
-            className="h-10 w-10 p-0"
+            className="w-10 h-10 rounded-full hover:bg-accent flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
           >
-            <Icon name="Mic" size={20} />
-          </Button>
-          <Input
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Сообщение..."
-            className="flex-1 bg-background/50"
-          />
-          <Button
-            onClick={() => sendMessage()}
-            disabled={!newMessage.trim()}
-            size="sm"
-            className="h-10 px-4 bg-gradient-to-r from-purple-500 to-pink-500"
-          >
-            <Icon name="Send" size={18} />
-          </Button>
+            <Icon name="Mic" size={22} />
+          </button>
+          
+          <div className="flex-1 relative">
+            <Input
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Сообщение"
+              className="w-full rounded-full bg-secondary/50 border-0 px-4 pr-12 h-11 focus-visible:ring-1 focus-visible:ring-purple-500"
+            />
+            {newMessage.trim() && (
+              <button
+                onClick={() => sendMessage()}
+                className="absolute right-1 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white flex items-center justify-center hover:opacity-90 transition-opacity"
+              >
+                <Icon name="Send" size={18} />
+              </button>
+            )}
+          </div>
+          
+          {!newMessage.trim() && (
+            <button
+              className="w-10 h-10 rounded-full hover:bg-accent flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Icon name="Paperclip" size={22} />
+            </button>
+          )}
         </div>
       )}
     </div>
