@@ -165,15 +165,22 @@ def handle_upload(event: Dict[str, Any]) -> Dict[str, Any]:
         
         print(f'[DEBUG] Generated filename: {filename}')
         
-        # Upload to S3
+        # Upload to S3 with optimized config
         print('[DEBUG] Creating S3 client')
+        from botocore.config import Config as BotoConfig
         s3_client = boto3.client(
             's3',
             endpoint_url=s3_endpoint,
             aws_access_key_id=s3_access_key,
             aws_secret_access_key=s3_secret_key,
             region_name=s3_region,
-            config=Config(signature_version='s3v4', connect_timeout=5, read_timeout=10)
+            config=BotoConfig(
+                signature_version='s3v4',
+                connect_timeout=10,
+                read_timeout=60,
+                retries={'max_attempts': 2, 'mode': 'standard'},
+                max_pool_connections=10
+            )
         )
         
         print('[DEBUG] Uploading to S3...')
