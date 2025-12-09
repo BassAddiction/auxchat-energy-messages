@@ -23,6 +23,7 @@ export default function MessageInput({
   const audioChunksRef = useRef<Blob[]>([]);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const audioStreamRef = useRef<MediaStream | null>(null);
+  const recordingTimeRef = useRef<number>(0);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -136,7 +137,7 @@ export default function MessageInput({
       };
 
       mediaRecorder.onstop = async () => {
-        const duration = recordingTime;
+        const duration = recordingTimeRef.current;
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         
         if (audioStreamRef.current) {
@@ -149,15 +150,18 @@ export default function MessageInput({
         }
         
         setRecordingTime(0);
+        recordingTimeRef.current = 0;
         audioChunksRef.current = [];
       };
 
       mediaRecorder.start();
       setIsRecording(true);
       setRecordingTime(0);
+      recordingTimeRef.current = 0;
       
       recordingIntervalRef.current = setInterval(() => {
-        setRecordingTime(prev => prev + 1);
+        recordingTimeRef.current += 1;
+        setRecordingTime(recordingTimeRef.current);
       }, 1000);
 
     } catch (error) {
@@ -191,6 +195,7 @@ export default function MessageInput({
         audioStreamRef.current = null;
       }
       setRecordingTime(0);
+      recordingTimeRef.current = 0;
     }
   };
 
