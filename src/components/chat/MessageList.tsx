@@ -63,7 +63,7 @@ export default function MessageList({
                 message.text && <p className="text-sm whitespace-pre-wrap break-words">{message.text}</p>
               )}
               
-              <div className={`flex items-center justify-end gap-1 mt-1 text-[10px] ${isOwn ? 'text-purple-100' : 'text-muted-foreground'}`}>
+              <div className={`flex items-center justify-end gap-1 mt-1 text-[10px] ${isOwn ? 'text-gray-500' : 'text-muted-foreground'}`}>
                 <span>
                   {new Date(message.createdAt).toLocaleTimeString([], { 
                     hour: '2-digit', 
@@ -74,11 +74,11 @@ export default function MessageList({
                   <div className="flex">
                     {message.isRead ? (
                       <>
-                        <Icon name="Check" size={12} className="text-blue-300 -mr-1.5" />
-                        <Icon name="Check" size={12} className="text-blue-300" />
+                        <Icon name="Check" size={12} className="text-blue-400 -mr-1.5" />
+                        <Icon name="Check" size={12} className="text-blue-400" />
                       </>
                     ) : (
-                      <Icon name="Check" size={12} className="text-purple-200" />
+                      <Icon name="Check" size={12} className="text-gray-400" />
                     )}
                   </div>
                 )}
