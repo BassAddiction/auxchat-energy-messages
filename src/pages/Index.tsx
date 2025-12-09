@@ -1326,7 +1326,7 @@ const Index = () => {
                     onClick={() => openSubscriptionModal(msg.userId, msg.username)}
                   >
                     <Icon name="Plus" size={12} className="mr-0.5 md:mr-1" />
-                    Подписаться
+                    Отслеживать
                   </Button>
                 )}
               </div>
@@ -1424,7 +1424,7 @@ const Index = () => {
       <Dialog open={subscriptionModalOpen} onOpenChange={setSubscriptionModalOpen}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>Подписка на {selectedUsername}</DialogTitle>
+            <DialogTitle>Отслеживание {selectedUsername}</DialogTitle>
           </DialogHeader>
           {checkingSubscription ? (
             <div className="flex items-center justify-center py-8">
@@ -1434,8 +1434,8 @@ const Index = () => {
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
                 {isSubscribed 
-                  ? `Вы подписаны на ${selectedUsername}. Все сообщения этого пользователя будут выделены в общем чате.`
-                  : `Подпишитесь на ${selectedUsername}, чтобы следить за всеми сообщениями в общем чате.`
+                  ? `Вы отслеживаете ${selectedUsername}. Все сообщения этого пользователя будут выделены в общем чате.`
+                  : `Отслеживайте ${selectedUsername}, чтобы видеть все сообщения в общем чате.`
                 }
               </p>
               {isSubscribed ? (
@@ -1445,7 +1445,7 @@ const Index = () => {
                   onClick={handleUnsubscribe}
                 >
                   <Icon name="UserMinus" size={16} className="mr-2" />
-                  Отписаться
+                  Не отслеживать
                 </Button>
               ) : (
                 <Button
@@ -1453,7 +1453,7 @@ const Index = () => {
                   onClick={handleSubscribe}
                 >
                   <Icon name="UserPlus" size={16} className="mr-2" />
-                  Подписаться
+                  Отслеживать
                 </Button>
               )}
             </div>
