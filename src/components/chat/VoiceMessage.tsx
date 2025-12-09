@@ -57,7 +57,7 @@ export default function VoiceMessage({ voiceUrl, duration, isOwn }: VoiceMessage
 
   return (
     <div className="flex items-center gap-2 min-w-[200px]">
-      <audio ref={audioRef} src={voiceUrl} preload="metadata" />
+      <audio ref={audioRef} src={voiceUrl} preload="metadata" crossOrigin="anonymous" />
       
       <button
         onClick={togglePlay}

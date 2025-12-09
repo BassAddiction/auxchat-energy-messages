@@ -5,10 +5,18 @@
 @layer base {
   html {
     -webkit-overflow-scrolling: touch;
+    height: 100%;
   }
 
   body {
     overscroll-behavior-x: none;
+    min-height: 100%;
+    height: 100%;
+  }
+
+  #root {
+    min-height: 100%;
+    height: 100%;
   }
 
   :root {
