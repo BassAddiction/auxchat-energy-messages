@@ -25,14 +25,20 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'isBase64Encoded': False
         }
     
-    headers = event.get('headers', {})
-    user_id_str = headers.get('X-User-Id') or headers.get('x-user-id')
+    # Читаем authUserId из query params вместо заголовка X-User-Id (для обхода CORS)
+    query_params = event.get('queryStringParameters', {}) or {}
+    user_id_str = query_params.get('authUserId')
+    
+    # Фоллбэк на заголовок, если authUserId не передан
+    if not user_id_str:
+        headers = event.get('headers', {})
+        user_id_str = headers.get('X-User-Id') or headers.get('x-user-id')
     
     if not user_id_str:
         return {
             'statusCode': 401,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'X-User-Id header required'}),
+            'body': json.dumps({'error': 'authUserId query param or X-User-Id header required'}),
             'isBase64Encoded': False
         }
     
@@ -47,7 +53,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     cur = conn.cursor()
     
     if method == 'GET':
-        query_params = event.get('queryStringParameters', {}) or {}
+        # query_params уже получены выше для authUserId
         action = query_params.get('action')
         target_user_id = query_params.get('userId', user_id)
         

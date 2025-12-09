@@ -178,10 +178,9 @@ export default function Profile() {
       const { fileUrl } = await uploadResponse.json();
       console.log('🟡 5. Got fileUrl:', fileUrl);
 
-      console.log('🟡 6. Saving to database via GET...', FUNCTIONS['profile-photos']);
+      console.log('🟡 6. Saving to database via GET (NO HEADERS)...', FUNCTIONS['profile-photos']);
       const addResponse = await fetch(
-        `${FUNCTIONS['profile-photos']}?userId=${currentUserId}&action=add&photoUrl=${encodeURIComponent(fileUrl)}`,
-        { headers: { 'X-User-Id': currentUserId || '0' } }
+        `${FUNCTIONS['profile-photos']}?userId=${currentUserId}&action=add&photoUrl=${encodeURIComponent(fileUrl)}&authUserId=${currentUserId}`
       );
 
       console.log('🟡 7. Save response:', addResponse.status, addResponse.ok);
@@ -189,8 +188,9 @@ export default function Profile() {
         toast.success('Фото загружено');
         loadPhotos();
       } else {
-        const errorData = await addResponse.json();
-        console.error('Save error:', errorData);
+        const errorText = await addResponse.text();
+        console.error('Save error:', errorText);
+        toast.error('Не удалось сохранить фото');
         throw new Error('Failed to save');
       }
     } catch (error) {
