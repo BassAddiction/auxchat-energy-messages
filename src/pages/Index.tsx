@@ -72,6 +72,7 @@ const Index = () => {
   const [photoUrl, setPhotoUrl] = useState("");
   const [isAddingPhoto, setIsAddingPhoto] = useState(false);
   const [uploadingFile, setUploadingFile] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string>('');
   const [viewerOpen, setViewerOpen] = useState(false);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const photoFileInputRef = useRef<HTMLInputElement>(null);
@@ -443,11 +444,14 @@ const Index = () => {
     }
 
     setUploadingFile(true);
+    setUploadProgress('Подготовка файла...');
+    
     try {
       const reader = new FileReader();
       reader.onloadend = async () => {
         const base64 = reader.result as string;
         
+        setUploadProgress('Загрузка на сервер...');
         const uploadResponse = await fetch('https://functions.poehali.dev/559ff756-6b7f-42fc-8a61-2dac6de68639', {
           method: 'POST',
           headers: {
@@ -463,11 +467,13 @@ const Index = () => {
         if (!uploadResponse.ok) {
           alert('Ошибка загрузки фото');
           setUploadingFile(false);
+          setUploadProgress('');
           return;
         }
 
         const { fileUrl } = await uploadResponse.json();
 
+        setUploadProgress('Сохранение в галерею...');
         const addPhotoResponse = await fetch(
           'https://functions.poehali.dev/6ab5e5ca-f93c-438c-bc46-7eb7a75e2734',
           {
@@ -481,11 +487,16 @@ const Index = () => {
         );
 
         if (addPhotoResponse.ok) {
-          alert('Фото добавлено');
-          loadProfilePhotos();
+          setUploadProgress('Готово!');
+          setTimeout(() => {
+            alert('Фото добавлено');
+            loadProfilePhotos();
+            setUploadProgress('');
+          }, 500);
         } else {
           const error = await addPhotoResponse.json();
           alert(error.error || 'Ошибка добавления фото');
+          setUploadProgress('');
         }
         setUploadingFile(false);
       };
@@ -493,6 +504,7 @@ const Index = () => {
     } catch (error) {
       alert('Ошибка загрузки фото');
       setUploadingFile(false);
+      setUploadProgress('');
     }
   };
 
@@ -929,7 +941,7 @@ const Index = () => {
                       <h3 className="font-semibold mb-3">Фотографии ({profilePhotos.length}/6)</h3>
                       
                       {profilePhotos.length < 6 && (
-                        <div className="mb-4">
+                        <div className="mb-4 space-y-2">
                           <label>
                             <input
                               type="file"
@@ -958,6 +970,14 @@ const Index = () => {
                               </span>
                             </Button>
                           </label>
+                          {uploadProgress && (
+                            <div className="space-y-1">
+                              <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                                <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 animate-pulse" style={{width: '100%'}}></div>
+                              </div>
+                              <p className="text-xs text-center text-muted-foreground">{uploadProgress}</p>
+                            </div>
+                          )}
                         </div>
                       )}
 
