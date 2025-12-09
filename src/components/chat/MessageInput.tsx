@@ -65,44 +65,42 @@ export default function MessageInput({
     }
     
     try {
-      const arrayBuffer = await audioBlob.arrayBuffer();
-      const uint8Array = new Uint8Array(arrayBuffer);
-      
-      let binary = '';
-      const chunkSize = 8192;
-      for (let i = 0; i < uint8Array.length; i += chunkSize) {
-        const chunk = uint8Array.subarray(i, Math.min(i + chunkSize, uint8Array.length));
-        binary += String.fromCharCode.apply(null, Array.from(chunk));
-      }
-      const base64 = btoa(binary);
-      
       console.log('[VOICE] Starting upload, blob size:', audioBlob.size, 'duration:', duration);
-      console.log('[VOICE] Base64 length:', base64.length);
       
-      const uploadResponse = await fetch('https://functions.poehali.dev/559ff756-6b7f-42fc-8a61-2dac6de68639', {
-        method: 'POST',
+      // Получаем presigned URL от бэкенда
+      const urlResponse = await fetch('https://functions.poehali.dev/559ff756-6b7f-42fc-8a61-2dac6de68639?contentType=audio/webm&extension=webm', {
+        method: 'GET',
         headers: {
-          'Content-Type': 'application/json',
           'X-User-Id': currentUserId
-        },
-        body: JSON.stringify({ 
-          audioData: base64,
-          contentType: 'audio/webm'
-        })
+        }
       });
 
-      console.log('[VOICE] Upload response status:', uploadResponse.status);
+      if (!urlResponse.ok) {
+        toast.error('Не удалось получить URL для загрузки');
+        return;
+      }
+
+      const { uploadUrl, fileUrl } = await urlResponse.json();
+      console.log('[VOICE] Got presigned URL, uploading directly to S3...');
+      
+      // Загружаем напрямую в S3
+      const uploadResponse = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'audio/webm'
+        },
+        body: audioBlob
+      });
+
+      console.log('[VOICE] S3 upload response status:', uploadResponse.status);
 
       if (!uploadResponse.ok) {
-        const errorText = await uploadResponse.text();
-        console.error('[VOICE] Upload failed:', uploadResponse.status, errorText);
+        console.error('[VOICE] S3 upload failed:', uploadResponse.status);
         toast.error(`Ошибка загрузки: ${uploadResponse.status}`);
         return;
       }
 
-      const responseData = await uploadResponse.json();
-      console.log('[VOICE] Upload success:', responseData);
-      const { fileUrl } = responseData;
+      console.log('[VOICE] Upload success, file URL:', fileUrl);
       await sendMessage(fileUrl, duration);
     } catch (error) {
       console.error('[VOICE] Error uploading voice:', error);
