@@ -478,44 +478,29 @@ export default function Profile() {
             </div>
 
             {isOwnProfile && photos.length < 6 && (
-              <div className="mb-3 md:mb-4 space-y-2">
-                <label className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90 px-4 py-2 text-sm rounded-md font-medium flex items-center justify-center cursor-pointer disabled:opacity-50">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handlePhotoUpload}
-                    disabled={isAddingPhoto}
-                    className="hidden"
-                  />
-                  {isAddingPhoto ? (
-                    <>
-                      <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
-                      <span>Загрузка...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Icon name="Upload" size={16} className="mr-2" />
-                      <span>Загрузить фото</span>
-                    </>
-                  )}
+              <div className="mb-4">
+                <label className="block w-full mb-2">
+                  <div className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90 px-4 py-3 rounded-md font-medium flex items-center justify-center cursor-pointer">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoUpload}
+                      disabled={isAddingPhoto}
+                      className="hidden"
+                    />
+                    {isAddingPhoto ? (
+                      <>
+                        <Icon name="Loader2" size={18} className="mr-2 animate-spin" />
+                        <span>Загрузка...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Icon name="Upload" size={18} className="mr-2" />
+                        <span>Загрузить с устройства</span>
+                      </>
+                    )}
+                  </div>
                 </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={photoUrl}
-                    onChange={(e) => setPhotoUrl(e.target.value)}
-                    placeholder="Или вставьте URL"
-                    className="flex-1 px-3 py-2 bg-background border border-border rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    disabled={isAddingPhoto}
-                  />
-                  <button 
-                    disabled={isAddingPhoto || !photoUrl.trim()}
-                    className="bg-purple-500 text-white hover:opacity-90 px-3 py-2 text-xs rounded-md font-medium disabled:opacity-50"
-                    onClick={addPhotoByUrl}
-                  >
-                    <Icon name="Plus" size={14} />
-                  </button>
-                </div>
               </div>
             )}
 
