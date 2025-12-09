@@ -101,7 +101,7 @@ export default function Subscriptions() {
         </Button>
         <div className="flex items-center gap-2">
           <Icon name="Users" className="text-red-500" size={24} />
-          <h1 className="text-xl font-bold text-red-500">Мои подписки</h1>
+          <h1 className="text-xl font-bold text-red-500">Отслеживаю</h1>
         </div>
       </header>
 
@@ -149,9 +149,9 @@ export default function Subscriptions() {
                       size="sm"
                       onClick={() => navigate(`/user-messages/${user.id}`)}
                       className="h-9 w-9 p-0"
-                      title="История"
+                      title="Все сообщения"
                     >
-                      <Icon name="History" size={18} />
+                      <Icon name="MessageSquare" size={18} />
                     </Button>
                     <Button
                       variant="outline"
