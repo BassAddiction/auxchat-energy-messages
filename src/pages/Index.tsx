@@ -941,7 +941,7 @@ const Index = () => {
                             <Button 
                               asChild
                               disabled={uploadingFile}
-                              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90"
+                              className="w-full bg-black text-white hover:bg-black/90"
                             >
                               <span className="cursor-pointer flex items-center justify-center">
                                 {uploadingFile ? (
