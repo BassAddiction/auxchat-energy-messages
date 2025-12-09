@@ -196,7 +196,11 @@ def handle_upload(event: Dict[str, Any]) -> Dict[str, Any]:
         
         return {
             'statusCode': 200,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Expose-Headers': '*'
+            },
             'body': json.dumps({'fileUrl': file_url}),
             'isBase64Encoded': False
         }

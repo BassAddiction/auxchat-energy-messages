@@ -203,12 +203,10 @@ export default function MessageInput({
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    e.preventDefault();
     startRecording();
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    e.preventDefault();
     if (isRecording) {
       stopRecording();
     }
@@ -216,6 +214,7 @@ export default function MessageInput({
 
   const preventContextMenu = (e: React.TouchEvent | React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
   };
 
   return (

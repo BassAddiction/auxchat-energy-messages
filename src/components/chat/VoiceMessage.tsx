@@ -55,9 +55,14 @@ export default function VoiceMessage({ voiceUrl, duration, isOwn }: VoiceMessage
   const waveHeights = Array.from({ length: 40 }, () => Math.random() * 0.8 + 0.2);
   const progress = duration > 0 ? currentTime / duration : 0;
 
+  // Используем прокси для обхода CORS
+  const proxyUrl = voiceUrl.includes('s3.twcstorage.ru') 
+    ? voiceUrl.replace('https://', 'https://corsproxy.io/?')
+    : voiceUrl;
+
   return (
     <div className="flex items-center gap-2 min-w-[200px]">
-      <audio ref={audioRef} src={voiceUrl} preload="metadata" crossOrigin="anonymous" />
+      <audio ref={audioRef} src={proxyUrl} preload="metadata" crossOrigin="anonymous" />
       
       <button
         onClick={togglePlay}
