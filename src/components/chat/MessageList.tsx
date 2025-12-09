@@ -65,12 +65,23 @@ export default function MessageList({
               
               <div className={`flex items-center justify-end gap-1 mt-1 text-[10px] ${isOwn ? 'text-purple-100' : 'text-muted-foreground'}`}>
                 <span>
-                  {new Date(message.createdAt).toLocaleTimeString('ru-RU', { 
+                  {new Date(message.createdAt).toLocaleTimeString([], { 
                     hour: '2-digit', 
                     minute: '2-digit' 
                   })}
                 </span>
-                {isOwn && <Icon name="Check" size={12} className={message.isRead ? 'text-blue-200' : 'text-purple-200'} />}
+                {isOwn && (
+                  <div className="flex">
+                    {message.isRead ? (
+                      <>
+                        <Icon name="Check" size={12} className="text-blue-300 -mr-1.5" />
+                        <Icon name="Check" size={12} className="text-blue-300" />
+                      </>
+                    ) : (
+                      <Icon name="Check" size={12} className="text-purple-200" />
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>

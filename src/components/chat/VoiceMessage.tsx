@@ -93,8 +93,8 @@ export default function VoiceMessage({ voiceUrl, duration, isOwn }: VoiceMessage
           })}
         </div>
         
-        <div className={`flex items-center gap-2 text-xs ${isOwn ? 'text-purple-100' : 'text-muted-foreground'}`}>
-          <span>{formatTime(currentTime)}</span>
+        <div className={`flex items-center gap-1.5 text-xs font-mono ${isOwn ? 'text-purple-100' : 'text-muted-foreground'}`}>
+          <span>{formatTime(isPlaying ? currentTime : 0)}</span>
           <span className="opacity-50">•</span>
           <span className="opacity-70">{formatTime(duration)}</span>
         </div>
