@@ -497,8 +497,8 @@ export default function Profile() {
                 <label className="block w-full mb-2">
                   <div 
                     style={{ 
-                      backgroundColor: '#FFD700',
-                      color: '#000',
+                      backgroundColor: '#001f3f',
+                      color: '#ffffff',
                       padding: '12px 16px',
                       borderRadius: '6px',
                       fontWeight: '500',
