@@ -75,6 +75,9 @@ export default function MessageInput({
       }
       const base64 = btoa(binary);
       
+      console.log('[VOICE] Starting upload, blob size:', audioBlob.size, 'duration:', duration);
+      console.log('[VOICE] Base64 length:', base64.length);
+      
       const uploadResponse = await fetch('https://functions.poehali.dev/559ff756-6b7f-42fc-8a61-2dac6de68639', {
         method: 'POST',
         headers: {
@@ -87,16 +90,22 @@ export default function MessageInput({
         })
       });
 
+      console.log('[VOICE] Upload response status:', uploadResponse.status);
+
       if (!uploadResponse.ok) {
-        toast.error('Ошибка загрузки голосового сообщения');
+        const errorText = await uploadResponse.text();
+        console.error('[VOICE] Upload failed:', uploadResponse.status, errorText);
+        toast.error(`Ошибка загрузки: ${uploadResponse.status}`);
         return;
       }
 
-      const { fileUrl } = await uploadResponse.json();
+      const responseData = await uploadResponse.json();
+      console.log('[VOICE] Upload success:', responseData);
+      const { fileUrl } = responseData;
       await sendMessage(fileUrl, duration);
     } catch (error) {
-      console.error('Error uploading voice:', error);
-      toast.error('Ошибка загрузки голосового сообщения');
+      console.error('[VOICE] Error uploading voice:', error);
+      toast.error(`Ошибка: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
     }
   };
 
