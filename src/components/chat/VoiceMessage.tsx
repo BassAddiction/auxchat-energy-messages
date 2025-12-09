@@ -51,12 +51,10 @@ export default function VoiceMessage({ voiceUrl, duration, isOwn }: VoiceMessage
     };
   }, []);
 
-  // Генерируем случайные высоты для волны (имитация)
-  const waveHeights = Array.from({ length: 40 }, () => Math.random() * 0.8 + 0.2);
-  const progress = duration > 0 ? currentTime / duration : 0;
+  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
-    <div className="flex items-center gap-2 min-w-[200px]">
+    <div className="flex items-center gap-3 min-w-[200px]">
       <audio ref={audioRef} src={voiceUrl} preload="metadata" />
       
       <button
@@ -74,28 +72,18 @@ export default function VoiceMessage({ voiceUrl, duration, isOwn }: VoiceMessage
         )}
       </button>
 
-      <div className="flex-1 flex flex-col gap-1">
-        <div className="flex items-center gap-0.5 h-8">
-          {waveHeights.map((height, i) => {
-            const barProgress = i / waveHeights.length;
-            const isActive = barProgress <= progress;
-            return (
-              <div
-                key={i}
-                className={`flex-1 rounded-full transition-all ${
-                  isActive
-                    ? isOwn ? 'bg-white' : 'bg-blue-400'
-                    : isOwn ? 'bg-purple-300/50' : 'bg-gray-400/50'
-                }`}
-                style={{ height: `${height * 100}%`, minWidth: '2px' }}
-              />
-            );
-          })}
+      <div className="flex-1 flex flex-col gap-2">
+        <div className="relative h-1 bg-gray-200/50 rounded-full overflow-hidden">
+          <div 
+            className={`absolute left-0 top-0 h-full rounded-full transition-all ${
+              isOwn ? 'bg-white' : 'bg-blue-400'
+            }`}
+            style={{ width: `${progress}%` }}
+          />
         </div>
         
-        <div className={`flex items-center gap-1.5 text-xs font-mono ${isOwn ? 'text-purple-100' : 'text-muted-foreground'}`}>
+        <div className={`flex items-center justify-between text-xs font-mono ${isOwn ? 'text-purple-100' : 'text-muted-foreground'}`}>
           <span>{formatTime(isPlaying ? currentTime : 0)}</span>
-          <span className="opacity-50">•</span>
           <span className="opacity-70">{formatTime(duration)}</span>
         </div>
       </div>
