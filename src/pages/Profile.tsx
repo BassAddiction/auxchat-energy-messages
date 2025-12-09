@@ -495,7 +495,20 @@ export default function Profile() {
             {isOwnProfile && photos.length < 6 && (
               <div className="mb-4">
                 <label className="block w-full mb-2">
-                  <div className="w-full bg-yellow-500 text-black hover:bg-yellow-400 px-4 py-3 rounded-md font-medium flex items-center justify-center cursor-pointer">
+                  <div 
+                    style={{ 
+                      backgroundColor: '#FFD700',
+                      color: '#000',
+                      padding: '12px 16px',
+                      borderRadius: '6px',
+                      fontWeight: '500',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      width: '100%'
+                    }}
+                  >
                     <input
                       type="file"
                       accept="image/*"
