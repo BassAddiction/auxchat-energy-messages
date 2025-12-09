@@ -24,6 +24,7 @@ export default function MessageInput({
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const audioStreamRef = useRef<MediaStream | null>(null);
   const recordingTimeRef = useRef<number>(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -31,14 +32,14 @@ export default function MessageInput({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const sendMessage = async (voiceUrl?: string, voiceDuration?: number) => {
-    if (!newMessage.trim() && !voiceUrl) {
+  const sendMessage = async (voiceUrl?: string, voiceDuration?: number, imageUrl?: string) => {
+    if (!newMessage.trim() && !voiceUrl && !imageUrl) {
       return;
     }
 
     try {
       const content = newMessage.trim() || undefined;
-      await api.sendMessage(currentUserId!, receiverId, content, voiceUrl, voiceDuration);
+      await api.sendMessage(currentUserId!, receiverId, content, voiceUrl, voiceDuration, imageUrl);
       setNewMessage('');
       onMessageSent();
     } catch (error: any) {
@@ -217,6 +218,62 @@ export default function MessageInput({
     e.stopPropagation();
   };
 
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Можно загружать только изображения');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Файл слишком большой. Максимум 10 МБ');
+      return;
+    }
+
+    try {
+      const extension = file.name.split('.').pop() || 'jpg';
+      const contentType = file.type;
+
+      const urlResponse = await fetch(`https://functions.poehali.dev/559ff756-6b7f-42fc-8a61-2dac6de68639?contentType=${contentType}&extension=${extension}`, {
+        method: 'GET',
+        headers: {
+          'X-User-Id': currentUserId!
+        }
+      });
+
+      if (!urlResponse.ok) {
+        toast.error('Не удалось получить URL для загрузки');
+        return;
+      }
+
+      const { uploadUrl, fileUrl } = await urlResponse.json();
+
+      const uploadResponse = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': contentType
+        },
+        body: file
+      });
+
+      if (!uploadResponse.ok) {
+        toast.error('Ошибка загрузки изображения');
+        return;
+      }
+
+      await sendMessage(undefined, undefined, fileUrl);
+      
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Не удалось загрузить изображение');
+    }
+  };
+
   return (
     <div 
       className="bg-white border-t p-2"
@@ -259,7 +316,17 @@ export default function MessageInput({
             />
           </div>
 
-          <button className="w-10 h-10 rounded-full flex items-center justify-center text-muted-foreground hover:bg-accent/50 transition-colors">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+          <button 
+            onClick={() => fileInputRef.current?.click()}
+            className="w-10 h-10 rounded-full flex items-center justify-center text-muted-foreground hover:bg-accent/50 transition-colors"
+          >
             <Icon name="Paperclip" size={22} />
           </button>
           

@@ -72,7 +72,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             query = f"""
                 SELECT pm.id, pm.sender_id, pm.receiver_id, pm.text, pm.is_read, pm.created_at,
-                       u.username, NULL as avatar_url, pm.voice_url, pm.voice_duration
+                       u.username, NULL as avatar_url, pm.voice_url, pm.voice_duration, pm.image_url
                 FROM private_messages pm
                 JOIN users u ON u.id = pm.sender_id
                 WHERE (pm.sender_id = {user_id} AND pm.receiver_id = {other_user_id}) 
@@ -108,7 +108,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'createdAt': created_at_str,
                     'sender': {'username': row[6] if row[6] else '', 'avatarUrl': row[7] if row[7] else None},
                     'voiceUrl': row[8] if row[8] else None,
-                    'voiceDuration': row[9] if row[9] else None
+                    'voiceDuration': row[9] if row[9] else None,
+                    'imageUrl': row[10] if row[10] else None
                 })
             
             print(f'Prepared {len(messages)} messages for response')
@@ -137,14 +138,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             text = body_data.get('text', '').strip()
             voice_url = body_data.get('voiceUrl', '').strip()
             voice_duration = body_data.get('voiceDuration')
+            image_url = body_data.get('imageUrl', '').strip()
             
-            if not receiver_id or (not text and not voice_url):
+            if not receiver_id or (not text and not voice_url and not image_url):
                 cur.close()
                 conn.close()
                 return {
                     'statusCode': 400,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'error': 'receiverId and (text or voiceUrl) required'}),
+                    'body': json.dumps({'error': 'receiverId and (text or voiceUrl or imageUrl) required'}),
                     'isBase64Encoded': False
                 }
             
@@ -167,7 +169,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'isBase64Encoded': False
                 }
             
-            if voice_url:
+            if image_url:
+                escaped_image_url = image_url.replace("'", "''")
+                escaped_text = text.replace("'", "''") if text else ''
+                insert_query = f"""
+                    INSERT INTO private_messages 
+                    (sender_id, receiver_id, text, image_url) 
+                    VALUES ({user_id}, {receiver_id}, '{escaped_text}', '{escaped_image_url}') 
+                    RETURNING id
+                """
+            elif voice_url:
                 escaped_voice_url = voice_url.replace("'", "''")
                 if text:
                     escaped_text = text.replace("'", "''")

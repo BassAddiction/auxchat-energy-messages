@@ -88,7 +88,7 @@ export const api = {
     return res.json();
   },
 
-  async sendMessage(userId: string, receiverId: number, content?: string, voiceUrl?: string, voiceDuration?: number) {
+  async sendMessage(userId: string, receiverId: number, content?: string, voiceUrl?: string, voiceDuration?: number, imageUrl?: string) {
     // receiverId === 0 means global chat, otherwise private message
     if (receiverId === 0) {
       // Global chat
@@ -111,6 +111,7 @@ export const api = {
           text: content || '',
           voiceUrl,
           voiceDuration,
+          imageUrl,
         }),
       });
       return res.json();

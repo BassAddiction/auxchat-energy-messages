@@ -15,6 +15,7 @@ interface Message {
   };
   voiceUrl?: string | null;
   voiceDuration?: number | null;
+  imageUrl?: string | null;
 }
 
 interface UserProfile {
@@ -53,7 +54,17 @@ export default function MessageList({
                 ? 'bg-purple-100 text-gray-900 rounded-br-sm' 
                 : 'bg-card rounded-bl-sm'
             }`}>
-              {message.voiceUrl ? (
+              {message.imageUrl ? (
+                <div className="space-y-1">
+                  <img 
+                    src={message.imageUrl} 
+                    alt="Прикрепленное изображение" 
+                    className="rounded-lg max-w-full h-auto cursor-pointer hover:opacity-90 transition-opacity"
+                    onClick={() => window.open(message.imageUrl!, '_blank')}
+                  />
+                  {message.text && <p className="text-sm whitespace-pre-wrap break-words mt-2">{message.text}</p>}
+                </div>
+              ) : message.voiceUrl ? (
                 <VoiceMessage 
                   voiceUrl={message.voiceUrl} 
                   duration={message.voiceDuration || 0}
