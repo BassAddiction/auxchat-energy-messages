@@ -433,27 +433,31 @@ export default function Profile() {
 
             {isOwnProfile && photos.length < 6 && (
               <div className="mb-3 md:mb-4">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                  disabled={uploadingFile}
-                  id="photo-upload"
-                  data-skip-pp-intercept="true"
-                />
                 <button 
                   disabled={uploadingFile}
                   className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90 h-9 md:h-10 text-sm rounded-md font-medium flex items-center justify-center disabled:opacity-50"
-                  onClick={(e) => {
+                  onClick={async (e) => {
                     e.preventDefault();
-                    console.log('Button clicked!');
-                    const input = document.getElementById('photo-upload') as HTMLInputElement;
-                    console.log('Input element:', input);
-                    if (input) {
-                      input.click();
-                      console.log('Input.click() called');
-                    }
+                    e.stopPropagation();
+                    console.log('Button clicked - creating file input dynamically');
+                    
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'image/*';
+                    input.style.display = 'none';
+                    
+                    input.onchange = (event) => {
+                      const target = event.target as HTMLInputElement;
+                      const file = target.files?.[0];
+                      if (file) {
+                        console.log('File selected:', file.name);
+                        handleFileUpload({ target: { files: [file] } } as any);
+                      }
+                      document.body.removeChild(input);
+                    };
+                    
+                    document.body.appendChild(input);
+                    input.click();
                   }}
                 >
                   {uploadingFile ? (
