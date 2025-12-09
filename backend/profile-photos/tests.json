@@ -9,13 +9,13 @@
     {
       "name": "Get user photos",
       "method": "GET",
-      "path": "/",
+      "path": "/?userId=1",
       "headers": {
         "X-User-Id": "1"
       },
       "expectedStatus": 200,
       "expectedBody": {
-        "photos": "array"
+        "photos": []
       },
       "bodyMatcher": "partial"
     }
