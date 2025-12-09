@@ -139,6 +139,8 @@ export default function Profile() {
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    console.log('🟡 1. File selected:', file?.name, file?.type, file?.size);
+    
     if (!file || !file.type.startsWith('image/')) {
       toast.error('Выберите изображение');
       return;
@@ -151,6 +153,7 @@ export default function Profile() {
 
     setIsAddingPhoto(true);
     try {
+      console.log('🟡 2. Reading file as base64...');
       const reader = new FileReader();
       const base64 = await new Promise<string>((resolve, reject) => {
         reader.onload = () => resolve((reader.result as string).split(',')[1]);
@@ -158,28 +161,40 @@ export default function Profile() {
         reader.readAsDataURL(file);
       });
 
+      console.log('🟡 3. Uploading to Timeweb S3...', FUNCTIONS['generate-upload-url']);
       const uploadResponse = await fetch(FUNCTIONS['generate-upload-url'], {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ audioData: base64, contentType: file.type })
       });
 
-      if (!uploadResponse.ok) throw new Error('Upload failed');
+      console.log('🟡 4. Upload response:', uploadResponse.status, uploadResponse.ok);
+      if (!uploadResponse.ok) {
+        const errorText = await uploadResponse.text();
+        console.error('Upload error:', errorText);
+        throw new Error('Upload failed');
+      }
 
       const { fileUrl } = await uploadResponse.json();
+      console.log('🟡 5. Got fileUrl:', fileUrl);
 
+      console.log('🟡 6. Saving to database via GET...', FUNCTIONS['profile-photos']);
       const addResponse = await fetch(
         `${FUNCTIONS['profile-photos']}?userId=${currentUserId}&action=add&photoUrl=${encodeURIComponent(fileUrl)}`,
         { headers: { 'X-User-Id': currentUserId || '0' } }
       );
 
+      console.log('🟡 7. Save response:', addResponse.status, addResponse.ok);
       if (addResponse.ok) {
         toast.success('Фото загружено');
         loadPhotos();
       } else {
+        const errorData = await addResponse.json();
+        console.error('Save error:', errorData);
         throw new Error('Failed to save');
       }
     } catch (error) {
+      console.error('🔴 Upload failed:', error);
       toast.error('Ошибка загрузки');
     } finally {
       setIsAddingPhoto(false);
@@ -480,7 +495,7 @@ export default function Profile() {
             {isOwnProfile && photos.length < 6 && (
               <div className="mb-4">
                 <label className="block w-full mb-2">
-                  <div className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90 px-4 py-3 rounded-md font-medium flex items-center justify-center cursor-pointer">
+                  <div className="w-full bg-yellow-500 text-black hover:bg-yellow-400 px-4 py-3 rounded-md font-medium flex items-center justify-center cursor-pointer">
                     <input
                       type="file"
                       accept="image/*"
