@@ -169,9 +169,7 @@ def handle_upload(event: Dict[str, Any]) -> Dict[str, Any]:
             Bucket=s3_bucket,
             Key=filename,
             Body=file_data,
-            ContentType=content_type,
-            ACL='public-read',
-            CacheControl='public, max-age=31536000'
+            ContentType=content_type
         )
         
         file_url = f'{s3_endpoint}/{s3_bucket}/{filename}'
