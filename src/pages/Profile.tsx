@@ -277,17 +277,17 @@ export default function Profile() {
       });
 
       console.log('2. File read, uploading to S3...');
-      console.log('   URL:', FUNCTIONS['upload-photo']);
+      console.log('   URL:', FUNCTIONS['generate-upload-url']);
       console.log('   Content-Type:', file.type);
       console.log('   Base64 length:', imageBase64.length);
       
-      const uploadResponse = await fetch(FUNCTIONS['upload-photo'], {
+      const uploadResponse = await fetch(FUNCTIONS['generate-upload-url'], {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ 
-          file: imageBase64,
+          audioData: imageBase64,
           contentType: file.type
         })
       });
@@ -306,8 +306,8 @@ export default function Profile() {
         throw new Error('Upload failed');
       }
 
-      const { url } = await uploadResponse.json();
-      console.log('4. Got url:', url);
+      const { fileUrl } = await uploadResponse.json();
+      console.log('4. Got fileUrl:', fileUrl);
 
       console.log('5. Saving to database...');
       const addPhotoResponse = await fetch(FUNCTIONS['profile-photos'], {
@@ -316,7 +316,7 @@ export default function Profile() {
           'Content-Type': 'application/json',
           'X-User-Id': currentUserId || '0'
         },
-        body: JSON.stringify({ photoUrl: url })
+        body: JSON.stringify({ photoUrl: fileUrl })
       });
 
       console.log('6. Save response:', addPhotoResponse.status);
