@@ -434,41 +434,26 @@ export default function Profile() {
             {isOwnProfile && photos.length < 6 && (
               <div className="mb-3 md:mb-4">
                 <button 
-                  disabled={uploadingFile}
+                  disabled={isAddingPhoto}
                   className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90 h-9 md:h-10 text-sm rounded-md font-medium flex items-center justify-center disabled:opacity-50"
-                  onClick={async (e) => {
+                  onClick={(e) => {
                     e.preventDefault();
-                    e.stopPropagation();
-                    console.log('Button clicked - creating file input dynamically');
-                    
-                    const input = document.createElement('input');
-                    input.type = 'file';
-                    input.accept = 'image/*';
-                    input.style.display = 'none';
-                    
-                    input.onchange = (event) => {
-                      const target = event.target as HTMLInputElement;
-                      const file = target.files?.[0];
-                      if (file) {
-                        console.log('File selected:', file.name);
-                        handleFileUpload({ target: { files: [file] } } as any);
-                      }
-                      document.body.removeChild(input);
-                    };
-                    
-                    document.body.appendChild(input);
-                    input.click();
+                    const url = prompt('Вставьте ссылку на изображение:');
+                    if (url && url.trim()) {
+                      setPhotoUrl(url.trim());
+                      addPhoto();
+                    }
                   }}
                 >
-                  {uploadingFile ? (
+                  {isAddingPhoto ? (
                     <>
                       <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
-                      <span className="text-xs md:text-sm">Загрузка...</span>
+                      <span className="text-xs md:text-sm">Добавление...</span>
                     </>
                   ) : (
                     <>
-                      <Icon name="Upload" size={16} className="mr-2" />
-                      <span className="text-xs md:text-sm">Загрузить фото</span>
+                      <Icon name="Plus" size={16} className="mr-2" />
+                      <span className="text-xs md:text-sm">Добавить фото по URL</span>
                     </>
                   )}
                 </button>
