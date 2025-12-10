@@ -110,17 +110,7 @@ const Index = () => {
   });
   const [geoRadiusModalOpen, setGeoRadiusModalOpen] = useState(false);
   
-  // Обновляем сообщения при изменении радиуса
-  useEffect(() => {
-    if (userId) {
-      console.log('[GEO RADIUS] Changed to:', geoRadius, 'km');
-      // Небольшая задержка чтобы дать время обновиться состоянию
-      const timer = setTimeout(() => {
-        loadMessages();
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [geoRadius, userId]);
+
   const [geoPermissionModalOpen, setGeoPermissionModalOpen] = useState(false);
   const [updatingLocation, setUpdatingLocation] = useState(false);
   const [userLocation, setUserLocation] = useState<{lat: number; lon: number; city: string} | null>(null);
