@@ -178,6 +178,14 @@ const Index = () => {
                 msg => msg.id > lastCheckedMessageIdRef.current
               );
               
+              console.log('[SUBSCRIBED CHECK] All new messages:', newMessages.map(m => ({ 
+                id: m.id, 
+                userId: m.userId, 
+                username: m.username,
+                isSubscribed: subscribedUsersRef.current.has(m.userId),
+                isNotMe: m.userId !== userId
+              })));
+              
               const newFromSubscribed = newMessages.filter(
                 msg => subscribedUsersRef.current.has(msg.userId) && msg.userId !== userId
               );
