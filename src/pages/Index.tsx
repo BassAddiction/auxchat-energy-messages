@@ -94,6 +94,10 @@ const Index = () => {
   const lastCheckedMessageIdRef = useRef<number>(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const prevMessagesLengthRef = useRef(0);
+  const [geoRadius, setGeoRadius] = useState<number>(() => {
+    const stored = localStorage.getItem('geo_radius');
+    return stored ? parseInt(stored) : 100;
+  });
 
   const playNotificationSound = () => {
     try {
@@ -141,7 +145,7 @@ const Index = () => {
 
   const loadMessages = async (retryCount = 0) => {
     try {
-      const data = await api.getMessages(20, 0);
+      const data = await api.getMessages(20, 0, geoRadius);
       if (data.messages) {
         const formattedMessages: Message[] = data.messages.map((msg: any) => ({
           id: msg.id,
@@ -1136,6 +1140,51 @@ const Index = () => {
                       ) : (
                         <p className="text-sm text-muted-foreground text-center py-4">Добавьте фото</p>
                       )}
+                    </div>
+
+                    <div className="border-t pt-4">
+                      <h3 className="font-semibold mb-3">Радиус геолокации</h3>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">Показывать сообщения:</span>
+                          <span className="text-sm font-semibold">
+                            {geoRadius === 99999 ? 'Все' : `${geoRadius} км`}
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0"
+                          max="7"
+                          step="1"
+                          value={[
+                            5, 10, 25, 50, 100, 500, 1000, 99999
+                          ].indexOf(geoRadius)}
+                          onChange={(e) => {
+                            const radiusValues = [5, 10, 25, 50, 100, 500, 1000, 99999];
+                            const newRadius = radiusValues[parseInt(e.target.value)];
+                            setGeoRadius(newRadius);
+                            localStorage.setItem('geo_radius', newRadius.toString());
+                            loadMessages();
+                          }}
+                          className="w-full h-2 bg-gradient-to-r from-purple-200 to-pink-200 rounded-lg appearance-none cursor-pointer slider"
+                        />
+                        <div className="flex justify-between text-[10px] text-muted-foreground">
+                          <span>5км</span>
+                          <span>10км</span>
+                          <span>25км</span>
+                          <span>50км</span>
+                          <span>100км</span>
+                          <span>500км</span>
+                          <span>1000км</span>
+                          <span>Все</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {geoRadius === 99999 
+                            ? 'Показывать сообщения от всех пользователей'
+                            : `Показывать сообщения от пользователей в радиусе ${geoRadius} км от вас`
+                          }
+                        </p>
+                      </div>
                     </div>
 
                     <div className="space-y-2">

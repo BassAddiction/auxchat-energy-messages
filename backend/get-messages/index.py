@@ -54,6 +54,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     offset = int(params.get('offset', 0))
     max_distance_km = float(params.get('radius', 100))  # Радиус по умолчанию 100км
     
+    # Если радиус >= 99999, показываем все сообщения
+    show_all = max_distance_km >= 99999
+    
     headers = event.get('headers', {})
     user_id_str = headers.get('X-User-Id') or headers.get('x-user-id')
     
@@ -136,7 +139,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         user_avatar = avatars_map.get(user_id, f'https://api.dicebear.com/7.x/avataaars/svg?seed={username}')
         
         # Фильтруем по расстоянию, если у пользователя установлены координаты
-        if current_user_lat and current_user_lon:
+        # Если show_all=True, пропускаем фильтрацию
+        if not show_all and current_user_lat and current_user_lon:
             distance = calculate_distance(current_user_lat, current_user_lon, msg_lat, msg_lon)
             if distance > max_distance_km:
                 continue  # Пропускаем слишком далёкие сообщения
