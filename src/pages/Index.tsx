@@ -614,6 +614,10 @@ const Index = () => {
           const base64 = reader.result as string;
           console.log('[PHOTO UPLOAD] File read, base64 length:', base64.length);
           
+          // Remove data:image/jpeg;base64, prefix if present
+          const base64Data = base64.includes(',') ? base64.split(',')[1] : base64;
+          console.log('[PHOTO UPLOAD] Clean base64 length:', base64Data.length);
+          
           setUploadProgress('Загрузка на сервер...');
           console.log('[PHOTO UPLOAD] Sending to upload function...');
           const uploadResponse = await fetch('https://functions.poehali.dev/559ff756-6b7f-42fc-8a61-2dac6de68639', {
@@ -623,8 +627,8 @@ const Index = () => {
               'X-User-Id': userId.toString()
             },
             body: JSON.stringify({ 
-              fileData: base64,
-              fileName: file.name
+              file: base64Data,
+              contentType: file.type
             })
           });
 
@@ -640,8 +644,8 @@ const Index = () => {
           }
 
           const uploadData = await uploadResponse.json();
-          console.log('[PHOTO UPLOAD] Upload success, fileUrl:', uploadData.fileUrl);
-          const { fileUrl } = uploadData;
+          console.log('[PHOTO UPLOAD] Upload success, url:', uploadData.url);
+          const fileUrl = uploadData.url;
 
           setUploadProgress('Сохранение в галерею...');
           console.log('[PHOTO UPLOAD] Adding photo to gallery...');
