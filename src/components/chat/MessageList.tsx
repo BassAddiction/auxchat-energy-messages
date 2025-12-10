@@ -30,26 +30,38 @@ interface MessageListProps {
   currentUserId: string | null;
   currentUserProfile: UserProfile | null;
   profile: UserProfile | null;
+  shouldAutoScroll?: boolean;
 }
 
 export default function MessageList({
   messages,
   currentUserId,
+  shouldAutoScroll = true,
 }: MessageListProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const prevMessagesLengthRef = useRef(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const lastMessageIdRef = useRef<number | null>(null);
 
   useEffect(() => {
-    console.log('[MessageList] Received messages:', messages.length, 'items');
-    // Прокрутка только если добавились новые сообщения
-    if (messages.length > prevMessagesLengthRef.current) {
+    console.log('[MessageList] Received messages:', messages.length, 'items', 'shouldAutoScroll:', shouldAutoScroll);
+    
+    // Прокрутка только если:
+    // 1. Разрешён автоскролл (shouldAutoScroll = true)
+    // 2. Добавилось новое сообщение в конец (изменился ID последнего сообщения)
+    const lastMessage = messages[messages.length - 1];
+    const lastMessageId = lastMessage?.id || null;
+    
+    if (shouldAutoScroll && lastMessageId !== lastMessageIdRef.current && lastMessageId !== null) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
+    
+    lastMessageIdRef.current = lastMessageId;
     prevMessagesLengthRef.current = messages.length;
-  }, [messages]);
+  }, [messages, shouldAutoScroll]);
 
   return (
-    <div className="flex-1 overflow-y-auto p-2 md:p-4 space-y-2 bg-background">
+    <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-2 md:p-4 space-y-2 bg-background">
       {messages.map((message) => {
         const isOwn = String(message.senderId) === String(currentUserId);
         

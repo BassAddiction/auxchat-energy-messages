@@ -139,7 +139,7 @@ export default function Chat() {
     }
   };
 
-  const loadMessages = async (customLimit?: number) => {
+  const loadMessages = async (customLimit?: number, isLoadingMore = false) => {
     try {
       const limit = customLimit || messageLimit;
       const response = await fetch(
@@ -153,14 +153,15 @@ export default function Chat() {
       const data = await response.json();
       const newMessages = data.messages || [];
       
-      console.log('[CHAT] Loaded messages:', newMessages.length, 'limit:', limit);
+      console.log('[CHAT] Loaded messages:', newMessages.length, 'limit:', limit, 'isLoadingMore:', isLoadingMore);
       
       // Проверяем, есть ли ещё сообщения
       setHasMoreMessages(newMessages.length === limit);
       
       if (lastMessageCountRef.current === 0) {
         lastMessageCountRef.current = newMessages.length;
-      } else if (newMessages.length > lastMessageCountRef.current) {
+      } else if (!isLoadingMore && newMessages.length > lastMessageCountRef.current) {
+        // Уведомления только при автообновлении, не при ручной подгрузке
         const latestMessage = newMessages[newMessages.length - 1];
         if (String(latestMessage.senderId) !== String(currentUserId)) {
           playNotificationSound();
@@ -184,7 +185,7 @@ export default function Chat() {
     setLoadingMore(true);
     const newLimit = messageLimit + 50;
     setMessageLimit(newLimit);
-    loadMessages(newLimit);
+    loadMessages(newLimit, true); // Передаём флаг isLoadingMore
   };
 
   const checkBlockStatus = async () => {
@@ -305,6 +306,7 @@ export default function Chat() {
             currentUserId={currentUserId}
             currentUserProfile={currentUserProfile}
             profile={profile}
+            shouldAutoScroll={!loadingMore}
           />
           
           <MessageInput
