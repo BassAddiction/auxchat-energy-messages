@@ -40,15 +40,22 @@ export default function MessageInput({
 
     console.log('[SEND] Sending message:', { currentUserId, receiverId, content: newMessage, voiceUrl, imageUrl });
 
+    const messageText = newMessage.trim();
+    setNewMessage(''); // Очищаем поле сразу для быстрого UX
+
     try {
-      const content = newMessage.trim() || undefined;
+      const content = messageText || undefined;
       const result = await api.sendMessage(currentUserId!, receiverId, content, voiceUrl, voiceDuration, imageUrl);
       console.log('[SEND] Message sent successfully:', result);
-      setNewMessage('');
-      onMessageSent();
-      console.log('[SEND] Called onMessageSent callback');
+      
+      // Принудительно обновляем список через небольшую задержку
+      setTimeout(() => {
+        onMessageSent();
+        console.log('[SEND] Called onMessageSent callback');
+      }, 100);
     } catch (error: any) {
       console.error('[SEND] Send message failed:', error);
+      setNewMessage(messageText); // Возвращаем текст в поле при ошибке
       if (error.message?.includes('заблокирован')) {
         toast.error('Вы не можете отправлять сообщения этому пользователю', {
           description: 'Один из вас заблокировал другого'

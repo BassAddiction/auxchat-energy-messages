@@ -139,7 +139,7 @@ export default function Chat() {
   const loadMessages = async () => {
     try {
       const response = await fetch(
-        `https://functions.poehali.dev/0222e582-5c06-4780-85fa-c9145e5bba14?otherUserId=${userId}`,
+        `https://functions.poehali.dev/0222e582-5c06-4780-85fa-c9145e5bba14?otherUserId=${userId}&limit=200`,
         {
           headers: {
             'X-User-Id': currentUserId || '0'
