@@ -40,6 +40,7 @@ export default function MessageList({
   const prevMessagesLengthRef = useRef(0);
 
   useEffect(() => {
+    console.log('[MessageList] Received messages:', messages.length, 'items');
     // Прокрутка только если добавились новые сообщения
     if (messages.length > prevMessagesLengthRef.current) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
