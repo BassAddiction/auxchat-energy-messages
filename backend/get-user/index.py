@@ -5,11 +5,12 @@ from typing import Dict, Any
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
-    Business: Get user data by ID
+    Business: Get user data by ID with geolocation and city
     Args: event with httpMethod, queryStringParameters (user_id)
           context with request_id
-    Returns: HTTP response with user data
+    Returns: HTTP response with user data including latitude, longitude, city
     '''
+    print('[GET-USER v2] Handler called')  # Force redeploy
     method: str = event.get('httpMethod', 'GET')
     
     if method == 'OPTIONS':

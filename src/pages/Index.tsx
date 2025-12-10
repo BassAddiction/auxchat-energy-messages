@@ -39,9 +39,10 @@ const Index = () => {
     // Force clear old data and set to user 7
     const appVersion = localStorage.getItem('app_version');
     console.log('[INIT] App version:', appVersion);
-    if (appVersion !== 'v2') {
+    if (appVersion !== 'v3') {
+      console.log('[INIT] Version mismatch, clearing localStorage');
       localStorage.clear();
-      localStorage.setItem('app_version', 'v2');
+      localStorage.setItem('app_version', 'v3');
       localStorage.setItem('auxchat_user_id', '7');
       localStorage.setItem('username', 'AuxChat');
       console.log('[INIT] Set default userId to 7');
@@ -50,12 +51,16 @@ const Index = () => {
     
     const stored = localStorage.getItem('auxchat_user_id');
     console.log('[INIT] Stored userId from localStorage:', stored);
-    if (stored) return parseInt(stored);
+    if (stored && stored !== 'null') {
+      const parsed = parseInt(stored);
+      console.log('[INIT] Parsed userId:', parsed);
+      return parsed;
+    }
     
     // Auto-login as user 7 (AuxChat) if not logged in
+    console.log('[INIT] No valid userId, setting to 7');
     localStorage.setItem('auxchat_user_id', '7');
     localStorage.setItem('username', 'AuxChat');
-    console.log('[INIT] No stored userId, set to 7');
     return 7;
   });
   console.log('[COMPONENT] Rendering with userId:', userId);
@@ -236,8 +241,11 @@ const Index = () => {
   };
 
   const loadUser = async (id: number) => {
+    console.log('[LOAD USER] Starting loadUser for id:', id);
     try {
       const data = await api.getUser(id.toString());
+      console.log('[LOAD USER] Got data:', data);
+      
       if (data.username) {
         const photosData = await api.getProfilePhotos(id.toString());
         const userAvatar = photosData.photos && photosData.photos.length > 0 
@@ -250,6 +258,7 @@ const Index = () => {
           phone: data.phone,
           energy: data.energy,
         });
+        console.log('[LOAD USER] User set successfully');
         
         // Проверяем наличие геолокации
         console.log('[GEO] User data:', { latitude: data.latitude, longitude: data.longitude });
@@ -268,11 +277,12 @@ const Index = () => {
           }, 500);
         }
       } else {
-        localStorage.removeItem('auxchat_user_id');
-        setUserId(null);
+        console.error('[LOAD USER] No username in response, NOT clearing userId');
+        // НЕ удаляем userId при отсутствии username - возможно временная ошибка
       }
     } catch (error) {
-      console.error("Load user error:", error);
+      console.error("[LOAD USER] Error loading user:", error);
+      // НЕ удаляем userId при ошибке - пользователь остается залогиненным
     }
   };
 
