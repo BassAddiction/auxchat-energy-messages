@@ -247,7 +247,9 @@ const Index = () => {
         });
         
         // Проверяем наличие геолокации
+        console.log('[GEO] User data:', { latitude: data.latitude, longitude: data.longitude });
         if (data.latitude && data.longitude) {
+          console.log('[GEO] User has location, setting userLocation');
           setUserLocation({
             lat: data.latitude,
             lon: data.longitude,
@@ -255,7 +257,10 @@ const Index = () => {
           });
         } else {
           // Если геолокации нет, показываем модалку
-          setGeoPermissionModalOpen(true);
+          console.log('[GEO] User has no location, showing permission modal');
+          setTimeout(() => {
+            setGeoPermissionModalOpen(true);
+          }, 500);
         }
       } else {
         localStorage.removeItem('auxchat_user_id');
@@ -518,7 +523,13 @@ const Index = () => {
         }
       );
       const data = await response.json();
-      setProfilePhotos(data.photos || []);
+      const photos = data.photos || [];
+      setProfilePhotos(photos);
+      
+      // Обновляем аватар пользователя первым фото
+      if (user && photos.length > 0) {
+        setUser({ ...user, avatar: photos[0].url });
+      }
     } catch (error) {
       console.error('Error loading photos:', error);
     }
@@ -611,9 +622,13 @@ const Index = () => {
 
         if (addPhotoResponse.ok) {
           setUploadProgress('Готово!');
-          setTimeout(() => {
+          setTimeout(async () => {
             alert('Фото добавлено');
-            loadProfilePhotos();
+            await loadProfilePhotos();
+            // Обновляем аватар пользователя первым фото
+            if (user && profilePhotos.length === 0) {
+              setUser({ ...user, avatar: fileUrl });
+            }
             setUploadProgress('');
           }, 500);
         } else {
@@ -718,9 +733,14 @@ const Index = () => {
   };
 
   const requestGeolocation = async () => {
-    if (!userId) return;
+    console.log('[GEO] requestGeolocation called, userId:', userId);
+    if (!userId) {
+      console.log('[GEO] No userId, returning');
+      return;
+    }
     
     setUpdatingLocation(true);
+    console.log('[GEO] Set updatingLocation to true');
     try {
       if (!navigator.geolocation) {
         alert('Геолокация не поддерживается вашим браузером');
@@ -728,11 +748,22 @@ const Index = () => {
         return;
       }
 
+      console.log('[GEO] Requesting geolocation from browser...');
       const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, { 
-          timeout: 10000,
-          enableHighAccuracy: true 
-        });
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            console.log('[GEO] Got position:', pos.coords.latitude, pos.coords.longitude);
+            resolve(pos);
+          },
+          (err) => {
+            console.error('[GEO] Error getting position:', err);
+            reject(err);
+          },
+          { 
+            timeout: 10000,
+            enableHighAccuracy: true 
+          }
+        );
       });
 
       const latitude = position.coords.latitude;
@@ -1254,10 +1285,12 @@ const Index = () => {
                         variant="outline"
                         size="sm"
                         className="w-full"
-                        onClick={(e) => {
+                        type="button"
+                        onClick={async (e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          requestGeolocation();
+                          console.log('[GEO BUTTON] Clicked in profile');
+                          await requestGeolocation();
                         }}
                         disabled={updatingLocation}
                       >
