@@ -1,4 +1,5 @@
 {
+  "seed-test-users": "https://functions.poehali.dev/e6d1c0fc-6230-48ff-ba7e-b829b07fcb0e",
   "geocode": "https://functions.poehali.dev/90e9cacc-48ca-4b42-b817-3a77b67db25c",
   "update-location": "https://functions.poehali.dev/1e164728-c695-4c1a-9496-29af61259212",
   "upload-photo": "https://functions.poehali.dev/e02155bb-d5d7-4a35-81a4-b089847fecf4",
