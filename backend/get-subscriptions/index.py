@@ -56,6 +56,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         subscribed_ids = [row[0] for row in cur.fetchall()]
         
+        print(f'[GET_SUBSCRIPTIONS] user_id={user_id}, subscribed_ids={subscribed_ids}')
+        
         return {
             'statusCode': 200,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
