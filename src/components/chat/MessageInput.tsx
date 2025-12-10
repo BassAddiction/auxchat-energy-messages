@@ -34,16 +34,21 @@ export default function MessageInput({
 
   const sendMessage = async (voiceUrl?: string, voiceDuration?: number, imageUrl?: string) => {
     if (!newMessage.trim() && !voiceUrl && !imageUrl) {
+      console.log('[SEND] Empty message, skipping');
       return;
     }
 
+    console.log('[SEND] Sending message:', { currentUserId, receiverId, content: newMessage, voiceUrl, imageUrl });
+
     try {
       const content = newMessage.trim() || undefined;
-      await api.sendMessage(currentUserId!, receiverId, content, voiceUrl, voiceDuration, imageUrl);
+      const result = await api.sendMessage(currentUserId!, receiverId, content, voiceUrl, voiceDuration, imageUrl);
+      console.log('[SEND] Message sent successfully:', result);
       setNewMessage('');
       onMessageSent();
+      console.log('[SEND] Called onMessageSent callback');
     } catch (error: any) {
-      console.error('Send message failed:', error);
+      console.error('[SEND] Send message failed:', error);
       if (error.message?.includes('заблокирован')) {
         toast.error('Вы не можете отправлять сообщения этому пользователю', {
           description: 'Один из вас заблокировал другого'
