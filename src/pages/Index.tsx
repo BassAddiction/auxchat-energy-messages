@@ -99,6 +99,9 @@ const Index = () => {
     return stored ? parseInt(stored) : 100;
   });
   const [geoRadiusModalOpen, setGeoRadiusModalOpen] = useState(false);
+  const [geoPermissionModalOpen, setGeoPermissionModalOpen] = useState(false);
+  const [updatingLocation, setUpdatingLocation] = useState(false);
+  const [userLocation, setUserLocation] = useState<{lat: number; lon: number; city: string} | null>(null);
 
   const playNotificationSound = () => {
     try {
@@ -242,6 +245,18 @@ const Index = () => {
           phone: data.phone,
           energy: data.energy,
         });
+        
+        // Проверяем наличие геолокации
+        if (data.latitude && data.longitude) {
+          setUserLocation({
+            lat: data.latitude,
+            lon: data.longitude,
+            city: data.city || ''
+          });
+        } else {
+          // Если геолокации нет, показываем модалку
+          setGeoPermissionModalOpen(true);
+        }
       } else {
         localStorage.removeItem('auxchat_user_id');
         setUserId(null);
@@ -699,6 +714,74 @@ const Index = () => {
         setAvatarFile(reader.result as string);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const requestGeolocation = async () => {
+    if (!userId) return;
+    
+    setUpdatingLocation(true);
+    try {
+      if (!navigator.geolocation) {
+        alert('Геолокация не поддерживается вашим браузером');
+        setUpdatingLocation(false);
+        return;
+      }
+
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, { 
+          timeout: 10000,
+          enableHighAccuracy: true 
+        });
+      });
+
+      const latitude = position.coords.latitude;
+      const longitude = position.coords.longitude;
+      
+      // Определяем город
+      let city = '';
+      try {
+        const geoResponse = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+        );
+        const geoData = await geoResponse.json();
+        city = geoData.address?.city || geoData.address?.town || geoData.address?.village || '';
+      } catch (e) {
+        console.log('Не удалось определить город');
+      }
+
+      // Отправляем на backend
+      const response = await fetch('https://functions.poehali.dev/1e164728-c695-4c1a-9496-29af61259212', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-User-Id': userId.toString()
+        },
+        body: JSON.stringify({ latitude, longitude, city })
+      });
+
+      if (response.ok) {
+        setUserLocation({ lat: latitude, lon: longitude, city });
+        setGeoPermissionModalOpen(false);
+        alert(`Местоположение обновлено${city ? ': ' + city : ''}!`);
+        loadMessages(); // Перезагружаем сообщения с новыми координатами
+      } else {
+        const error = await response.json();
+        alert('Ошибка сохранения: ' + (error.error || 'Неизвестная ошибка'));
+      }
+    } catch (error: any) {
+      if (error.code === 1) {
+        alert('Доступ к геолокации запрещён. Разрешите доступ в настройках браузера.');
+      } else if (error.code === 2) {
+        alert('Не удалось определить местоположение. Проверьте подключение.');
+      } else if (error.code === 3) {
+        alert('Время ожидания истекло. Попробуйте снова.');
+      } else {
+        alert('Ошибка определения местоположения');
+      }
+      console.error('Geolocation error:', error);
+    } finally {
+      setUpdatingLocation(false);
     }
   };
 
@@ -1185,6 +1268,55 @@ const Index = () => {
                             : `Показывать сообщения от пользователей в радиусе ${geoRadius} км от вас`
                           }
                         </p>
+                      </div>
+                    </div>
+
+                    <div className="border-t pt-4">
+                      <h3 className="font-semibold mb-3">Местоположение</h3>
+                      <div className="space-y-2">
+                        {userLocation ? (
+                          <div className="p-3 bg-green-50 rounded-lg">
+                            <div className="flex items-start gap-2">
+                              <Icon name="MapPin" size={16} className="text-green-600 mt-0.5" />
+                              <div className="flex-1 text-sm">
+                                <p className="font-medium text-green-900">Местоположение установлено</p>
+                                {userLocation.city && (
+                                  <p className="text-green-700 text-xs mt-0.5">{userLocation.city}</p>
+                                )}
+                                <p className="text-green-600 text-xs mt-1">
+                                  {userLocation.lat.toFixed(4)}, {userLocation.lon.toFixed(4)}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="p-3 bg-yellow-50 rounded-lg">
+                            <div className="flex items-start gap-2">
+                              <Icon name="AlertCircle" size={16} className="text-yellow-600 mt-0.5" />
+                              <p className="text-sm text-yellow-900">
+                                Геолокация не установлена. Вы видите сообщения от всех пользователей.
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                        <Button
+                          variant="outline"
+                          className="w-full"
+                          onClick={requestGeolocation}
+                          disabled={updatingLocation}
+                        >
+                          {updatingLocation ? (
+                            <>
+                              <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
+                              Определяем...
+                            </>
+                          ) : (
+                            <>
+                              <Icon name="MapPin" size={16} className="mr-2" />
+                              {userLocation ? 'Обновить местоположение' : 'Установить местоположение'}
+                            </>
+                          )}
+                        </Button>
                       </div>
                     </div>
 
@@ -1686,6 +1818,72 @@ const Index = () => {
             >
               Готово
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Geo Permission Modal */}
+      <Dialog open={geoPermissionModalOpen} onOpenChange={setGeoPermissionModalOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Настройка геолокации</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex items-start gap-3 p-4 bg-purple-50 rounded-lg">
+              <Icon name="MapPin" size={24} className="text-purple-600 flex-shrink-0" />
+              <div className="text-sm">
+                <p className="font-medium text-purple-900 mb-1">Разрешите доступ к вашему местоположению</p>
+                <p className="text-purple-700">
+                  Это позволит показывать вам сообщения от пользователей рядом с вами и делать общение более локальным.
+                </p>
+              </div>
+            </div>
+            
+            <div className="space-y-3 text-xs text-muted-foreground">
+              <div className="flex items-start gap-2">
+                <Icon name="Check" size={14} className="text-green-600 flex-shrink-0 mt-0.5" />
+                <p>Вы сможете настроить радиус показа сообщений (от 5 км до всех)</p>
+              </div>
+              <div className="flex items-start gap-2">
+                <Icon name="Check" size={14} className="text-green-600 flex-shrink-0 mt-0.5" />
+                <p>Ваше местоположение используется только для фильтрации сообщений</p>
+              </div>
+              <div className="flex items-start gap-2">
+                <Icon name="Check" size={14} className="text-green-600 flex-shrink-0 mt-0.5" />
+                <p>Вы сможете обновить местоположение в любой момент</p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Button 
+                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90"
+                onClick={requestGeolocation}
+                disabled={updatingLocation}
+              >
+                {updatingLocation ? (
+                  <>
+                    <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
+                    Определяем местоположение...
+                  </>
+                ) : (
+                  <>
+                    <Icon name="MapPin" size={16} className="mr-2" />
+                    Разрешить доступ
+                  </>
+                )}
+              </Button>
+              <Button 
+                variant="outline"
+                className="w-full"
+                onClick={() => setGeoPermissionModalOpen(false)}
+              >
+                Пропустить
+              </Button>
+            </div>
+
+            <p className="text-xs text-center text-muted-foreground">
+              Без геолокации вы будете видеть сообщения от всех пользователей
+            </p>
           </div>
         </DialogContent>
       </Dialog>
