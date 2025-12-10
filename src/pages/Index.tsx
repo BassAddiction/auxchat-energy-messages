@@ -89,6 +89,7 @@ const Index = () => {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [checkingSubscription, setCheckingSubscription] = useState(false);
   const [subscribedUsers, setSubscribedUsers] = useState<Set<number>>(new Set());
+  const subscribedUsersRef = useRef<Set<number>>(new Set());
   const [newSubscribedMessages, setNewSubscribedMessages] = useState(0);
   const lastCheckedMessageIdRef = useRef<number>(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -162,8 +163,8 @@ const Index = () => {
           console.log('[SUBSCRIBED CHECK]', {
             latestMessageId,
             lastChecked: lastCheckedMessageIdRef.current,
-            subscribedUsersSize: subscribedUsers.size,
-            subscribedUserIds: Array.from(subscribedUsers)
+            subscribedUsersSize: subscribedUsersRef.current.size,
+            subscribedUserIds: Array.from(subscribedUsersRef.current)
           });
           
           // Инициализируем при первой загрузке
@@ -172,13 +173,13 @@ const Index = () => {
             console.log('[SUBSCRIBED CHECK] Initialized lastCheckedMessageId:', latestMessageId);
           } else if (latestMessageId > lastCheckedMessageIdRef.current) {
             // Считаем новые сообщения от отслеживаемых (только если есть подписки)
-            if (subscribedUsers.size > 0) {
+            if (subscribedUsersRef.current.size > 0) {
               const newMessages = formattedMessages.filter(
                 msg => msg.id > lastCheckedMessageIdRef.current
               );
               
               const newFromSubscribed = newMessages.filter(
-                msg => subscribedUsers.has(msg.userId) && msg.userId !== userId
+                msg => subscribedUsersRef.current.has(msg.userId) && msg.userId !== userId
               );
               
               console.log('[SUBSCRIBED CHECK] New messages:', newMessages.length, 'From subscribed:', newFromSubscribed.length);
@@ -243,7 +244,9 @@ const Index = () => {
       const data = await api.getSubscriptions(userId.toString());
       const userIds = data.subscribedUserIds || [];
       console.log('[SUBSCRIPTIONS] Loaded subscribed users:', userIds);
-      setSubscribedUsers(new Set(userIds));
+      const userIdsSet = new Set(userIds);
+      subscribedUsersRef.current = userIdsSet;
+      setSubscribedUsers(userIdsSet);
     } catch (error) {
       console.error('Load subscribed users error:', error);
     }
