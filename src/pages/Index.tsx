@@ -89,6 +89,8 @@ const Index = () => {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [checkingSubscription, setCheckingSubscription] = useState(false);
   const [subscribedUsers, setSubscribedUsers] = useState<Set<number>>(new Set());
+  const [newSubscribedMessages, setNewSubscribedMessages] = useState(0);
+  const lastCheckedMessageIdRef = useRef<number>(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const prevMessagesLengthRef = useRef(0);
 
@@ -152,6 +154,26 @@ const Index = () => {
         
         const hasNewMessages = formattedMessages.length > prevMessagesLengthRef.current;
         prevMessagesLengthRef.current = formattedMessages.length;
+        
+        // Проверяем новые сообщения от отслеживаемых пользователей
+        if (formattedMessages.length > 0 && subscribedUsers.size > 0) {
+          const latestMessageId = formattedMessages[formattedMessages.length - 1].id;
+          
+          if (lastCheckedMessageIdRef.current > 0 && latestMessageId > lastCheckedMessageIdRef.current) {
+            // Считаем новые сообщения от отслеживаемых
+            const newFromSubscribed = formattedMessages.filter(
+              msg => msg.id > lastCheckedMessageIdRef.current && 
+                     subscribedUsers.has(msg.userId) && 
+                     msg.userId !== userId
+            ).length;
+            
+            if (newFromSubscribed > 0) {
+              setNewSubscribedMessages(prev => prev + newFromSubscribed);
+            }
+          }
+          
+          lastCheckedMessageIdRef.current = latestMessageId;
+        }
         
         setMessages(formattedMessages);
         
@@ -850,13 +872,16 @@ const Index = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate('/subscriptions')}
+                onClick={() => {
+                  setNewSubscribedMessages(0);
+                  navigate('/subscriptions');
+                }}
                 className="relative h-8 w-8 p-0"
               >
                 <Icon name="Users" size={18} />
-                {subscribedUsers.size > 0 && (
+                {newSubscribedMessages > 0 && (
                   <span className="absolute -top-1 -right-1 bg-purple-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
-                    {subscribedUsers.size}
+                    {newSubscribedMessages > 9 ? '9+' : newSubscribedMessages}
                   </span>
                 )}
               </Button>
