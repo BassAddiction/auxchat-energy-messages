@@ -109,6 +109,14 @@ const Index = () => {
     return stored ? parseInt(stored) : 100;
   });
   const [geoRadiusModalOpen, setGeoRadiusModalOpen] = useState(false);
+  
+  // Обновляем сообщения при изменении радиуса
+  useEffect(() => {
+    if (userId) {
+      console.log('[GEO RADIUS] Changed to:', geoRadius, 'km');
+      loadMessages();
+    }
+  }, [geoRadius]);
   const [geoPermissionModalOpen, setGeoPermissionModalOpen] = useState(false);
   const [updatingLocation, setUpdatingLocation] = useState(false);
   const [userLocation, setUserLocation] = useState<{lat: number; lon: number; city: string} | null>(null);
@@ -1802,7 +1810,6 @@ const Index = () => {
                 const newRadius = radiusValues[parseInt(e.target.value)];
                 setGeoRadius(newRadius);
                 localStorage.setItem('geo_radius', newRadius.toString());
-                loadMessages();
               }}
               className="w-full h-2 bg-gradient-to-r from-purple-200 to-pink-200 rounded-lg appearance-none cursor-pointer slider"
             />
