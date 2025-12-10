@@ -59,7 +59,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     # Use simple query protocol - escape single quotes
     safe_user_id = str(user_id).replace("'", "''")
     cur.execute(
-        f"SELECT id, phone, username, avatar_url, energy, is_banned, bio, last_activity, latitude, longitude FROM users WHERE id = '{safe_user_id}'"
+        f"SELECT id, phone, username, avatar_url, energy, is_banned, bio, last_activity, latitude, longitude, city FROM users WHERE id = '{safe_user_id}'"
     )
     row = cur.fetchone()
     
@@ -96,7 +96,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'bio': row[6] if row[6] else '',
             'status': 'online' if is_online else 'offline',
             'latitude': float(row[8]) if len(row) > 8 and row[8] is not None else None,
-            'longitude': float(row[9]) if len(row) > 9 and row[9] is not None else None
+            'longitude': float(row[9]) if len(row) > 9 and row[9] is not None else None,
+            'city': row[10] if len(row) > 10 and row[10] else ''
         }),
         'isBase64Encoded': False
     }

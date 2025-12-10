@@ -69,11 +69,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     try:
         safe_user_id = str(user_id).replace("'", "''")
+        safe_city = city.replace("'", "''") if city else ''
         
-        # Обновляем координаты пользователя (без city, т.к. колонки может не быть)
+        # Обновляем координаты и город пользователя
         cur.execute(f"""
             UPDATE users 
-            SET latitude = {latitude}, longitude = {longitude}
+            SET latitude = {latitude}, longitude = {longitude}, city = '{safe_city}'
             WHERE id = '{safe_user_id}'
         """)
         

@@ -781,12 +781,15 @@ const Index = () => {
       let city = '';
       try {
         const geoResponse = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+          `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=ru`
         );
         const geoData = await geoResponse.json();
-        city = geoData.address?.city || geoData.address?.town || geoData.address?.village || '';
+        console.log('[GEO] Nominatim response:', geoData);
+        console.log('[GEO] Address data:', geoData.address);
+        city = geoData.address?.city || geoData.address?.town || geoData.address?.village || geoData.address?.state || '';
+        console.log('[GEO] Extracted city:', city);
       } catch (e) {
-        console.log('Не удалось определить город');
+        console.error('[GEO] City lookup error:', e);
       }
 
       // Отправляем на backend
