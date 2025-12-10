@@ -98,6 +98,7 @@ const Index = () => {
     const stored = localStorage.getItem('geo_radius');
     return stored ? parseInt(stored) : 100;
   });
+  const [geoRadiusModalOpen, setGeoRadiusModalOpen] = useState(false);
 
   const playNotificationSound = () => {
     try {
@@ -1433,12 +1434,16 @@ const Index = () => {
         <div className="flex-1 overflow-y-auto p-2 md:p-4 space-y-1 overscroll-contain" style={{ paddingBottom: '120px' }}>
           {/* Geo radius indicator */}
           <div className="sticky top-0 z-10 mb-2">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-500/90 to-pink-500/90 text-white text-xs rounded-full shadow-md backdrop-blur-sm">
+            <button 
+              onClick={() => setGeoRadiusModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-500/90 to-pink-500/90 text-white text-xs rounded-full shadow-md backdrop-blur-sm hover:from-purple-600/90 hover:to-pink-600/90 transition-all hover:shadow-lg active:scale-95"
+            >
               <Icon name="MapPin" size={14} />
               <span className="font-medium">
                 {geoRadius === 99999 ? 'Все пользователи' : `Радиус ${geoRadius} км`}
               </span>
-            </div>
+              <Icon name="Settings" size={12} />
+            </button>
           </div>
           
           {displayLimit < messages.length && (
@@ -1626,6 +1631,62 @@ const Index = () => {
               )}
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Geo Radius Modal */}
+      <Dialog open={geoRadiusModalOpen} onOpenChange={setGeoRadiusModalOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Настройка радиуса</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Показывать сообщения:</span>
+              <span className="text-sm font-semibold">
+                {geoRadius === 99999 ? 'Все' : `${geoRadius} км`}
+              </span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="7"
+              step="1"
+              value={[
+                5, 10, 25, 50, 100, 500, 1000, 99999
+              ].indexOf(geoRadius)}
+              onChange={(e) => {
+                const radiusValues = [5, 10, 25, 50, 100, 500, 1000, 99999];
+                const newRadius = radiusValues[parseInt(e.target.value)];
+                setGeoRadius(newRadius);
+                localStorage.setItem('geo_radius', newRadius.toString());
+                loadMessages();
+              }}
+              className="w-full h-2 bg-gradient-to-r from-purple-200 to-pink-200 rounded-lg appearance-none cursor-pointer slider"
+            />
+            <div className="flex justify-between text-[10px] text-muted-foreground">
+              <span>5км</span>
+              <span>10км</span>
+              <span>25км</span>
+              <span>50км</span>
+              <span>100км</span>
+              <span>500км</span>
+              <span>1000км</span>
+              <span>Все</span>
+            </div>
+            <p className="text-xs text-muted-foreground text-center bg-purple-50 p-3 rounded-lg">
+              {geoRadius === 99999 
+                ? '🌍 Показывать сообщения от всех пользователей'
+                : `📍 Показывать сообщения от пользователей в радиусе ${geoRadius} км от вас`
+              }
+            </p>
+            <Button 
+              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90"
+              onClick={() => setGeoRadiusModalOpen(false)}
+            >
+              Готово
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
