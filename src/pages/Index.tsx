@@ -1835,7 +1835,10 @@ const Index = () => {
             </p>
             <Button 
               className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90"
-              onClick={() => setGeoRadiusModalOpen(false)}
+              onClick={() => {
+                setGeoRadiusModalOpen(false);
+                loadMessages();
+              }}
             >
               Готово
             </Button>
