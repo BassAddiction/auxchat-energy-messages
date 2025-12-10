@@ -59,11 +59,7 @@ export default function VoiceMessage({ voiceUrl, duration, isOwn }: VoiceMessage
       
       <button
         onClick={togglePlay}
-        className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${
-          isOwn 
-            ? 'bg-purple-500 text-white hover:bg-purple-600' 
-            : 'bg-blue-500 text-white hover:bg-blue-600'
-        }`}
+        className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-colors bg-blue-500 text-white hover:bg-blue-600"
       >
         {isPlaying ? (
           <Icon name="Pause" size={18} />
@@ -75,14 +71,12 @@ export default function VoiceMessage({ voiceUrl, duration, isOwn }: VoiceMessage
       <div className="flex-1 flex flex-col gap-2">
         <div className="relative h-1 bg-gray-200/50 rounded-full overflow-hidden">
           <div 
-            className={`absolute left-0 top-0 h-full rounded-full transition-all ${
-              isOwn ? 'bg-purple-500' : 'bg-blue-400'
-            }`}
+            className="absolute left-0 top-0 h-full rounded-full transition-all bg-blue-400"
             style={{ width: `${progress}%` }}
           />
         </div>
         
-        <div className={`flex items-center justify-between text-xs font-mono ${isOwn ? 'text-gray-700' : 'text-muted-foreground'}`}>
+        <div className="flex items-center justify-between text-xs font-mono text-muted-foreground">
           <span>{formatTime(currentTime)}</span>
           <span className="opacity-70">{formatTime(duration)}</span>
         </div>
