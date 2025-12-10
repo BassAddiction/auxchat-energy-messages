@@ -1362,13 +1362,15 @@ const Index = () => {
                 className="flex-1 pl-4 pr-14 py-3 rounded-3xl border-2 border-gray-200 bg-gray-50 resize-none focus:outline-none focus:border-red-400 focus:bg-white disabled:opacity-50 text-base transition-all"
                 style={{ minHeight: '48px', maxHeight: '120px' }}
               />
-              <Button 
-                onClick={handleSendMessage} 
-                disabled={!user || !messageText.trim()} 
-                className="absolute right-1.5 bottom-1.5 h-9 w-9 p-0 rounded-full bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 disabled:opacity-40 disabled:cursor-not-allowed shadow-md"
-              >
-                <Icon name="Send" size={18} className="ml-0.5" />
-              </Button>
+              {messageText.trim() && (
+                <Button 
+                  onClick={handleSendMessage} 
+                  disabled={!user} 
+                  className="absolute right-1.5 bottom-1.5 h-9 w-9 p-0 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 disabled:opacity-40 disabled:cursor-not-allowed shadow-md transition-all"
+                >
+                  <Icon name="Send" size={18} className="ml-0.5" />
+                </Button>
+              )}
             </div>
             {user && (
               <div className="text-right px-1">
