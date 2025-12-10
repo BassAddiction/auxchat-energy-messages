@@ -1056,11 +1056,11 @@ const Index = () => {
                     <span className="ml-1 md:ml-1.5 text-xs md:text-sm max-w-[60px] md:max-w-none truncate">{user.username}</span>
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Профиль</DialogTitle>
                   </DialogHeader>
-                  <div className="space-y-4">
+                  <div className="space-y-4 pb-4">
                     <div className="flex items-center gap-4">
                       <div className="relative">
                         <Avatar className="h-20 w-20">
@@ -1177,7 +1177,7 @@ const Index = () => {
 
                       {profilePhotos.length > 0 ? (
                         <div className="grid grid-cols-3 gap-2 mb-4">
-                          {profilePhotos.map((photo, index) => (
+                          {profilePhotos.slice(0, 3).map((photo, index) => (
                             <div key={photo.id} className="relative group aspect-square">
                               {index === 0 && (
                                 <div className="absolute top-1 left-1 px-2 py-0.5 bg-blue-500 rounded-full z-10">
@@ -1224,100 +1224,51 @@ const Index = () => {
                       ) : (
                         <p className="text-sm text-muted-foreground text-center py-4">Добавьте фото</p>
                       )}
-                    </div>
-
-                    <div className="border-t pt-4">
-                      <h3 className="font-semibold mb-3">Радиус геолокации</h3>
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">Показывать сообщения:</span>
-                          <span className="text-sm font-semibold">
-                            {geoRadius === 99999 ? 'Все' : `${geoRadius} км`}
-                          </span>
-                        </div>
-                        <input
-                          type="range"
-                          min="0"
-                          max="7"
-                          step="1"
-                          value={[
-                            5, 10, 25, 50, 100, 500, 1000, 99999
-                          ].indexOf(geoRadius)}
-                          onChange={(e) => {
-                            const radiusValues = [5, 10, 25, 50, 100, 500, 1000, 99999];
-                            const newRadius = radiusValues[parseInt(e.target.value)];
-                            setGeoRadius(newRadius);
-                            localStorage.setItem('geo_radius', newRadius.toString());
-                            loadMessages();
-                          }}
-                          className="w-full h-2 bg-gradient-to-r from-purple-200 to-pink-200 rounded-lg appearance-none cursor-pointer slider"
-                        />
-                        <div className="flex justify-between text-[10px] text-muted-foreground">
-                          <span>5км</span>
-                          <span>10км</span>
-                          <span>25км</span>
-                          <span>50км</span>
-                          <span>100км</span>
-                          <span>500км</span>
-                          <span>1000км</span>
-                          <span>Все</span>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          {geoRadius === 99999 
-                            ? 'Показывать сообщения от всех пользователей'
-                            : `Показывать сообщения от пользователей в радиусе ${geoRadius} км от вас`
-                          }
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="border-t pt-4">
-                      <h3 className="font-semibold mb-3">Местоположение</h3>
-                      <div className="space-y-2">
-                        {userLocation ? (
-                          <div className="p-3 bg-green-50 rounded-lg">
-                            <div className="flex items-start gap-2">
-                              <Icon name="MapPin" size={16} className="text-green-600 mt-0.5" />
-                              <div className="flex-1 text-sm">
-                                <p className="font-medium text-green-900">Местоположение установлено</p>
-                                {userLocation.city && (
-                                  <p className="text-green-700 text-xs mt-0.5">{userLocation.city}</p>
-                                )}
-                                <p className="text-green-600 text-xs mt-1">
-                                  {userLocation.lat.toFixed(4)}, {userLocation.lon.toFixed(4)}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="p-3 bg-yellow-50 rounded-lg">
-                            <div className="flex items-start gap-2">
-                              <Icon name="AlertCircle" size={16} className="text-yellow-600 mt-0.5" />
-                              <p className="text-sm text-yellow-900">
-                                Геолокация не установлена. Вы видите сообщения от всех пользователей.
-                              </p>
-                            </div>
-                          </div>
-                        )}
+                      {profilePhotos.length > 3 && (
                         <Button
                           variant="outline"
+                          size="sm"
                           className="w-full"
-                          onClick={requestGeolocation}
-                          disabled={updatingLocation}
+                          onClick={() => openPhotoViewer(0)}
                         >
-                          {updatingLocation ? (
-                            <>
-                              <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
-                              Определяем...
-                            </>
-                          ) : (
-                            <>
-                              <Icon name="MapPin" size={16} className="mr-2" />
-                              {userLocation ? 'Обновить местоположение' : 'Установить местоположение'}
-                            </>
-                          )}
+                          <Icon name="Image" size={14} className="mr-2" />
+                          Показать все фото ({profilePhotos.length})
                         </Button>
-                      </div>
+                      )}
+                    </div>
+
+                    <div className="border-t pt-4">
+                      <h3 className="font-semibold mb-2">Местоположение</h3>
+                      {userLocation ? (
+                        <div className="flex items-center gap-2 text-sm text-green-700 mb-2">
+                          <Icon name="MapPin" size={14} className="text-green-600" />
+                          <span>{userLocation.city || 'Установлено'}</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 text-sm text-yellow-700 mb-2">
+                          <Icon name="AlertCircle" size={14} className="text-yellow-600" />
+                          <span>Не установлено</span>
+                        </div>
+                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={requestGeolocation}
+                        disabled={updatingLocation}
+                      >
+                        {updatingLocation ? (
+                          <>
+                            <Icon name="Loader2" size={14} className="mr-2 animate-spin" />
+                            Определяем...
+                          </>
+                        ) : (
+                          <>
+                            <Icon name="MapPin" size={14} className="mr-2" />
+                            {userLocation ? 'Обновить' : 'Установить'}
+                          </>
+                        )}
+                      </Button>
                     </div>
 
                     <div className="space-y-2">
