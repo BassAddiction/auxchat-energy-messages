@@ -38,22 +38,27 @@ const Index = () => {
   const [userId, setUserId] = useState<number | null>(() => {
     // Force clear old data and set to user 7
     const appVersion = localStorage.getItem('app_version');
+    console.log('[INIT] App version:', appVersion);
     if (appVersion !== 'v2') {
       localStorage.clear();
       localStorage.setItem('app_version', 'v2');
       localStorage.setItem('auxchat_user_id', '7');
       localStorage.setItem('username', 'AuxChat');
+      console.log('[INIT] Set default userId to 7');
       return 7;
     }
     
     const stored = localStorage.getItem('auxchat_user_id');
+    console.log('[INIT] Stored userId from localStorage:', stored);
     if (stored) return parseInt(stored);
     
     // Auto-login as user 7 (AuxChat) if not logged in
     localStorage.setItem('auxchat_user_id', '7');
     localStorage.setItem('username', 'AuxChat');
+    console.log('[INIT] No stored userId, set to 7');
     return 7;
   });
+  console.log('[COMPONENT] Rendering with userId:', userId);
   const [messages, setMessages] = useState<Message[]>([]);
   const [messageText, setMessageText] = useState("");
   const [isAuthOpen, setIsAuthOpen] = useState(false);
