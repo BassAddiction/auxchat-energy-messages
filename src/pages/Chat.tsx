@@ -39,6 +39,9 @@ export default function Chat() {
   const [isBlocked, setIsBlocked] = useState(false);
   const [checkingBlock, setCheckingBlock] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [messageLimit, setMessageLimit] = useState(50);
+  const [hasMoreMessages, setHasMoreMessages] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   const currentUserId = localStorage.getItem('auxchat_user_id');
 
@@ -136,10 +139,11 @@ export default function Chat() {
     }
   };
 
-  const loadMessages = async () => {
+  const loadMessages = async (customLimit?: number) => {
     try {
+      const limit = customLimit || messageLimit;
       const response = await fetch(
-        `https://functions.poehali.dev/0222e582-5c06-4780-85fa-c9145e5bba14?otherUserId=${userId}&limit=200`,
+        `https://functions.poehali.dev/0222e582-5c06-4780-85fa-c9145e5bba14?otherUserId=${userId}&limit=${limit}`,
         {
           headers: {
             'X-User-Id': currentUserId || '0'
@@ -149,7 +153,10 @@ export default function Chat() {
       const data = await response.json();
       const newMessages = data.messages || [];
       
-      console.log('[CHAT] Loaded messages:', newMessages.length, 'previous:', lastMessageCountRef.current);
+      console.log('[CHAT] Loaded messages:', newMessages.length, 'limit:', limit);
+      
+      // Проверяем, есть ли ещё сообщения
+      setHasMoreMessages(newMessages.length === limit);
       
       if (lastMessageCountRef.current === 0) {
         lastMessageCountRef.current = newMessages.length;
@@ -163,14 +170,21 @@ export default function Chat() {
         }
       }
       
-      // Всегда обновляем счётчик и сообщения
       lastMessageCountRef.current = newMessages.length;
       setMessages(newMessages);
     } catch (error) {
       console.error('Error loading messages:', error);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
+  };
+
+  const loadMoreMessages = () => {
+    setLoadingMore(true);
+    const newLimit = messageLimit + 50;
+    setMessageLimit(newLimit);
+    loadMessages(newLimit);
   };
 
   const checkBlockStatus = async () => {
@@ -274,6 +288,18 @@ export default function Chat() {
 
       <main className="flex-1 overflow-hidden flex flex-col min-h-0">
         <div className="flex-1 flex flex-col overflow-hidden min-h-0 bg-card/50 backdrop-blur max-w-4xl mx-auto w-full">
+          {hasMoreMessages && (
+            <div className="p-2 flex justify-center border-b bg-background/80">
+              <button
+                onClick={loadMoreMessages}
+                disabled={loadingMore}
+                className="text-sm text-blue-500 hover:text-blue-600 disabled:opacity-50 px-4 py-1 rounded-full hover:bg-blue-50 transition-colors"
+              >
+                {loadingMore ? 'Загрузка...' : 'Загрузить ещё'}
+              </button>
+            </div>
+          )}
+          
           <MessageList
             messages={messages}
             currentUserId={currentUserId}
