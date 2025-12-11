@@ -4,165 +4,137 @@ info:
   version: 1.0.0
 
 paths:
-  /upload-photo:
+  /add-energy:
+    x-yc-apigateway-any-method:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4e10cfpm08ikk1k5mp4
+
+  /generate-upload-url:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4e1drh1ub4imqleg10q
-        service_account_id: ${SERVICE_ACCOUNT_ID}
-      parameters:
-        - name: X-User-Id
-          in: header
-          required: false
-          schema:
-            type: string
-
-  /update-activity:
-    x-yc-apigateway-any-method:
-      x-yc-apigateway-integration:
-        type: cloud_functions
-        function_id: d4es73t1cfkmee0kd724
-        service_account_id: ${SERVICE_ACCOUNT_ID}
-
-  /blacklist:
-    x-yc-apigateway-any-method:
-      x-yc-apigateway-integration:
-        type: cloud_functions
-        function_id: d4enost4267cmd15cnf1
-        service_account_id: ${SERVICE_ACCOUNT_ID}
-
-  /get-subscriptions:
-    x-yc-apigateway-any-method:
-      x-yc-apigateway-integration:
-        type: cloud_functions
-        function_id: d4eaga56gmoe21os17od
-        service_account_id: ${SERVICE_ACCOUNT_ID}
-
-  /subscribe:
-    x-yc-apigateway-any-method:
-      x-yc-apigateway-integration:
-        type: cloud_functions
-        function_id: d4eruja65h9305n21its
-        service_account_id: ${SERVICE_ACCOUNT_ID}
-
-  /profile-photos:
-    x-yc-apigateway-any-method:
-      x-yc-apigateway-integration:
-        type: cloud_functions
-        function_id: d4emmve89ihd1nnfhcm9
-        service_account_id: ${SERVICE_ACCOUNT_ID}
-
-  /get-conversations:
-    x-yc-apigateway-any-method:
-      x-yc-apigateway-integration:
-        type: cloud_functions
-        function_id: d4ebuvvtbpqd5f09070g
-        service_account_id: ${SERVICE_ACCOUNT_ID}
-
-  /private-messages:
-    x-yc-apigateway-any-method:
-      x-yc-apigateway-integration:
-        type: cloud_functions
-        function_id: d4es8snba4ua5e0s6kgr
-        service_account_id: ${SERVICE_ACCOUNT_ID}
-
-  /payment-webhook:
-    x-yc-apigateway-any-method:
-      x-yc-apigateway-integration:
-        type: cloud_functions
-        function_id: d4e235nr619fsgkt1qvi
-        service_account_id: ${SERVICE_ACCOUNT_ID}
 
   /create-payment:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4e1gbggnqgt6lrsh9n7
-        service_account_id: ${SERVICE_ACCOUNT_ID}
 
-  /add-energy:
+  /payment-webhook:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
-        function_id: d4e10cfpm08ikk1k5mp4
-        service_account_id: ${SERVICE_ACCOUNT_ID}
-
-  /register:
-    x-yc-apigateway-any-method:
-      x-yc-apigateway-integration:
-        type: cloud_functions
-        function_id: d4erd2o6kv7rjhsb9a9h
-        service_account_id: ${SERVICE_ACCOUNT_ID}
-
-  /reset-password:
-    x-yc-apigateway-any-method:
-      x-yc-apigateway-integration:
-        type: cloud_functions
-        function_id: d4ek1ma9n1s3m5150jhb
-        service_account_id: ${SERVICE_ACCOUNT_ID}
-
-  /login:
-    x-yc-apigateway-any-method:
-      x-yc-apigateway-integration:
-        type: cloud_functions
-        function_id: d4eae7r2eq6bt0ucrv35
-        service_account_id: ${SERVICE_ACCOUNT_ID}
-
-  /add-reaction:
-    x-yc-apigateway-any-method:
-      x-yc-apigateway-integration:
-        type: cloud_functions
-        function_id: d4e1u813mmf6jpgb1581
-        service_account_id: ${SERVICE_ACCOUNT_ID}
-
-  /get-user:
-    x-yc-apigateway-any-method:
-      x-yc-apigateway-integration:
-        type: cloud_functions
-        function_id: d4ev53geag7ku6b1dvpj
-        service_account_id: ${SERVICE_ACCOUNT_ID}
-
-  /create-user:
-    x-yc-apigateway-any-method:
-      x-yc-apigateway-integration:
-        type: cloud_functions
-        function_id: d4egbht42po268s1q56a
-        service_account_id: ${SERVICE_ACCOUNT_ID}
-
-  /admin-users:
-    x-yc-apigateway-any-method:
-      x-yc-apigateway-integration:
-        type: cloud_functions
-        function_id: d4ev3dr7fqpjpd9p24ma
-        service_account_id: ${SERVICE_ACCOUNT_ID}
+        function_id: d4e235nr619fsgkt1qvi
 
   /get-messages:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4e25ugin6o29hr4ots8
-        service_account_id: ${SERVICE_ACCOUNT_ID}
 
-  /send-message:
+  /login:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
-        function_id: d4eqjhv1ab66or71e1i4
-        service_account_id: ${SERVICE_ACCOUNT_ID}
+        function_id: d4eae7r2eq6bt0ucrv35
+
+  /get-subscriptions:
+    x-yc-apigateway-any-method:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4ebaqbsgmcc21od17od
+
+  /get-conversations:
+    x-yc-apigateway-any-method:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4ebuvvtbpqd5f09070g
+
+  /create-user:
+    x-yc-apigateway-any-method:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4egbht42po268s1q56a
 
   /verify-sms:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4egj9hb0n3psc0eck02
-        service_account_id: ${SERVICE_ACCOUNT_ID}
+
+  /reset-password:
+    x-yc-apigateway-any-method:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4ek1ma9n1s3m5150jhb
+
+  /add-reaction:
+    x-yc-apigateway-any-method:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4elu8l3mmf6jpgb1581
+
+  /profile-photos:
+    x-yc-apigateway-any-method:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4emg5a53ihd1nncfhcm9
+
+  /blacklist:
+    x-yc-apigateway-any-method:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4enost4267cmd15cnf1
 
   /send-sms:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4eq4i3fov37r2ae1n7n
-        service_account_id: ${SERVICE_ACCOUNT_ID}
+
+  /send-message:
+    x-yc-apigateway-any-method:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4eqjhv1ab66or71e1i4
+
+  /register:
+    x-yc-apigateway-any-method:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4erd2o6kv7rjhsb9a9h
+
+  /subscribe:
+    x-yc-apigateway-any-method:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4eruja65h93o5n21its
+
+  /update-activity:
+    x-yc-apigateway-any-method:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4es73t1cfkmee0kd724
+
+  /private-messages:
+    x-yc-apigateway-any-method:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4es8snba4ua5e0s6kgr
+
+  /admin-users:
+    x-yc-apigateway-any-method:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4ev3dr7fqpjpd9p24ma
+
+  /get-user:
+    x-yc-apigateway-any-method:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4ev53ggag7ku6bldvpj
 
 x-yc-apigateway-cors:
   allowed-origins:
