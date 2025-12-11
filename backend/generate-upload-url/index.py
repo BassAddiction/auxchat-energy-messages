@@ -127,12 +127,12 @@ def handle_upload(event: Dict[str, Any]) -> Dict[str, Any]:
     import base64
     
     try:
-        print('[DEBUG] Starting file upload via Swift API')
-        s3_access_key = os.environ.get('TIMEWEB_SWIFT_ACCESS_KEY')
-        s3_secret_key = os.environ.get('TIMEWEB_SWIFT_SECRET_KEY')
-        s3_bucket = os.environ.get('TIMEWEB_S3_BUCKET_NAME')
-        s3_endpoint = 'https://swift.twcstorage.ru'
-        s3_region = 'ru-1'
+        print('[DEBUG] Starting file upload via S3 API')
+        s3_access_key = os.environ.get('AWS_ACCESS_KEY_ID')
+        s3_secret_key = os.environ.get('AWS_SECRET_ACCESS_KEY')
+        s3_bucket = 'files'
+        s3_endpoint = 'https://bucket.poehali.dev'
+        s3_region = 'ru-central1'
         
         print(f'[DEBUG] S3 config: endpoint={s3_endpoint}, bucket={s3_bucket}, region={s3_region}')
         
