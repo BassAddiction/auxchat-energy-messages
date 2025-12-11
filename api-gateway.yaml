@@ -16,126 +16,147 @@ paths:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4e1drhlub4imqleg10q
+        service_account_id: ajekuudp0ggenbgn2gdt
 
   /create-payment:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4e1gbggnqgt6lrsh9n7
+        service_account_id: ajekuudp0ggenbgn2gdt
 
   /payment-webhook:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4e235nr619fsgkt1qvi
+        service_account_id: ajekuudp0ggenbgn2gdt
 
   /get-messages:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4e25ugin6o29hr4ots8
+        service_account_id: ajekuudp0ggenbgn2gdt
 
   /login:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4eae7r2eq6bt0ucrv35
+        service_account_id: ajekuudp0ggenbgn2gdt
 
   /get-subscriptions:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4eaga56qmoe21os17od
+        service_account_id: ajekuudp0ggenbgn2gdt
 
   /get-conversations:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4ebuvvtbpqd5f09070g
+        service_account_id: ajekuudp0ggenbgn2gdt
 
   /create-user:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4egbht42po268s1q56a
+        service_account_id: ajekuudp0ggenbgn2gdt
 
   /verify-sms:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4egj9hb0n3psc0eck02
+        service_account_id: ajekuudp0ggenbgn2gdt
 
   /reset-password:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4ek1ma9nls3m5150jhb
+        service_account_id: ajekuudp0ggenbgn2gdt
 
   /add-reaction:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4elu8l3mmf6jpgbi581
+        service_account_id: ajekuudp0ggenbgn2gdt
 
   /profile-photos:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4emmve89ihd1nnfhcm9
+        service_account_id: ajekuudp0ggenbgn2gdt
 
   /blacklist:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4enost4267cmdl5cnfl
+        service_account_id: ajekuudp0ggenbgn2gdt
 
   /send-sms:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4eq413fov37r2aeln7n
+        service_account_id: ajekuudp0ggenbgn2gdt
 
   /send-message:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4eqjhv1ab66or71eli4
+        service_account_id: ajekuudp0ggenbgn2gdt
 
   /register:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4erd2o6kv7rjhsb9a9h
+        service_account_id: ajekuudp0ggenbgn2gdt
 
   /subscribe:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4eruja65h9305n2l1ts
+        service_account_id: ajekuudp0ggenbgn2gdt
 
   /update-activity:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4es73t1cfkmee0kd724
+        service_account_id: ajekuudp0ggenbgn2gdt
 
   /private-messages:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4es8snba4ua5e0s6kgr
+        service_account_id: ajekuudp0ggenbgn2gdt
 
   /admin-users:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4ev3dr7fqpjpd9p24ma
+        service_account_id: ajekuudp0ggenbgn2gdt
 
   /get-user:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4ev53ggag7ku6bldvpj
+        service_account_id: ajekuudp0ggenbgn2gdt
 
 x-yc-apigateway-cors:
   allowed-origins:
