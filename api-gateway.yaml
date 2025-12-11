@@ -35,6 +35,14 @@ paths:
             application/json:
               schema:
                 type: object
+    post:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4e1drhlub4imqleg10q
+        service_account_id: ajekuudp0ggenbgn2gdt
+      responses:
+        '200':
+          description: Success
     options:
       x-yc-apigateway-integration:
         type: cloud_functions
@@ -114,11 +122,38 @@ paths:
         function_id: d4elu8l3mmf6jpgbi581
 
   /profile-photos:
-    x-yc-apigateway-any-method:
+    get:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4emmve89ihd1nnfhcm9
         service_account_id: ajekuudp0ggenbgn2gdt
+      responses:
+        '200':
+          description: Success
+    post:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4emmve89ihd1nnfhcm9
+        service_account_id: ajekuudp0ggenbgn2gdt
+      responses:
+        '200':
+          description: Success
+    delete:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4emmve89ihd1nnfhcm9
+        service_account_id: ajekuudp0ggenbgn2gdt
+      responses:
+        '200':
+          description: Success
+    options:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4emmve89ihd1nnfhcm9
+        service_account_id: ajekuudp0ggenbgn2gdt
+      responses:
+        '200':
+          description: CORS preflight
 
   /blacklist:
     x-yc-apigateway-any-method:
