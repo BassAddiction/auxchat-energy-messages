@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Slider } from '@/components/ui/slider';
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 import { FUNCTIONS } from '@/lib/func2url';
@@ -37,9 +39,22 @@ export default function Profile() {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [isBlocked, setIsBlocked] = useState(false);
   const [checkingBlock, setCheckingBlock] = useState(false);
+  const [energyModalOpen, setEnergyModalOpen] = useState(false);
+  const [energyAmount, setEnergyAmount] = useState(500);
 
   const currentUserId = localStorage.getItem('auxchat_user_id');
   const isOwnProfile = String(currentUserId) === String(userId);
+
+  // Расчет цены с прогрессивной скидкой до 30%
+  const calculatePrice = (rubles: number) => {
+    // От 500₽ (0% скидка) до 10000₽ (30% скидка)
+    const discountPercent = ((rubles - 500) / (10000 - 500)) * 30;
+    const baseEnergy = rubles; // 1₽ = 1 энергия
+    const bonus = Math.floor(baseEnergy * (discountPercent / 100));
+    return { energy: baseEnergy + bonus, discount: Math.round(discountPercent) };
+  };
+
+  const { energy, discount } = calculatePrice(energyAmount);
 
   const updateActivity = async () => {
     try {
@@ -49,6 +64,33 @@ export default function Profile() {
       });
     } catch (error) {
       console.error('Error updating activity:', error);
+    }
+  };
+
+  const handleEnergyPurchase = async () => {
+    try {
+      const response = await fetch(FUNCTIONS['add-energy'], {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-User-Id': currentUserId || '0'
+        },
+        body: JSON.stringify({ 
+          energy_amount: energy,
+          price: energyAmount 
+        })
+      });
+
+      if (response.ok) {
+        toast.success(`Получено ${energy} энергии за ${energyAmount}₽!`);
+        setEnergyModalOpen(false);
+        loadProfile();
+      } else {
+        const data = await response.json();
+        toast.error(data.error || 'Ошибка покупки');
+      }
+    } catch (error) {
+      toast.error('Ошибка покупки энергии');
     }
   };
 
@@ -465,9 +507,19 @@ export default function Profile() {
               )}
 
               {isOwnProfile && (
-                <div className="flex items-center gap-1 md:gap-1.5 text-muted-foreground mb-2 md:mb-3">
-                  <Icon name="Zap" size={14} className="text-yellow-500" />
-                  <span className="text-xs md:text-sm">{profile.energy} энергии</span>
+                <div className="flex items-center gap-2 mb-2 md:mb-3">
+                  <div className="flex items-center gap-1 md:gap-1.5 text-muted-foreground">
+                    <Icon name="Zap" size={14} className="text-yellow-500" />
+                    <span className="text-xs md:text-sm">{profile.energy} энергии</span>
+                  </div>
+                  <Button 
+                    size="sm" 
+                    onClick={() => setEnergyModalOpen(true)}
+                    className="h-6 px-2 text-xs bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
+                  >
+                    <Icon name="Plus" size={12} className="mr-1" />
+                    Пополнить
+                  </Button>
                 </div>
               )}
 
@@ -636,6 +688,93 @@ export default function Profile() {
           )}
         </div>
       )}
+
+      {/* Energy Purchase Dialog */}
+      <Dialog open={energyModalOpen} onOpenChange={setEnergyModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Icon name="Zap" className="text-yellow-500" />
+              Пополнение энергии
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Текущий баланс */}
+            <div className="flex items-center justify-between p-4 bg-purple-500/10 rounded-lg">
+              <span className="text-sm text-muted-foreground">Текущий баланс:</span>
+              <div className="flex items-center gap-1.5">
+                <Icon name="Zap" size={16} className="text-yellow-500" />
+                <span className="font-bold text-lg">{profile?.energy || 0}</span>
+              </div>
+            </div>
+
+            {/* Ползунок */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Сумма пополнения</label>
+                <Slider
+                  value={[energyAmount]}
+                  onValueChange={([value]) => setEnergyAmount(value)}
+                  min={500}
+                  max={10000}
+                  step={100}
+                  className="py-4"
+                />
+              </div>
+
+              {/* Информация о покупке */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg border border-purple-500/20">
+                  <div>
+                    <div className="text-2xl font-bold text-purple-600">{energyAmount}₽</div>
+                    <div className="text-xs text-muted-foreground">К оплате</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="flex items-center gap-1.5">
+                      <Icon name="Zap" size={20} className="text-yellow-500" />
+                      <span className="text-2xl font-bold text-yellow-600">+{energy}</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {discount > 0 && (
+                        <span className="text-green-600 font-medium">
+                          +{discount}% бонус
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Выгода */}
+                {discount > 0 && (
+                  <div className="flex items-center gap-2 p-3 bg-green-500/10 rounded-lg">
+                    <Icon name="TrendingUp" size={16} className="text-green-500" />
+                    <span className="text-sm text-green-600 font-medium">
+                      Экономия {discount}% — дополнительно +{energy - energyAmount} энергии!
+                    </span>
+                  </div>
+                )}
+
+                {/* Подсказка о максимальной скидке */}
+                {discount < 30 && (
+                  <div className="text-xs text-muted-foreground text-center">
+                    💡 При покупке на 10 000₽ скидка достигает 30%
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Кнопка покупки */}
+            <Button 
+              onClick={handleEnergyPurchase}
+              className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-yellow-500 via-orange-500 to-pink-500 hover:from-yellow-600 hover:via-orange-600 hover:to-pink-600"
+            >
+              <Icon name="ShoppingCart" size={20} className="mr-2" />
+              Пополнить на {energyAmount}₽
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
