@@ -28,6 +28,7 @@ export default function Blacklist() {
 
   const loadBlacklist = async () => {
     try {
+      // FUNCTION: blacklist - Получение списка заблокированных пользователей (GET)
       const response = await fetch(
         'https://functions.poehali.dev/7d7db6d4-88e3-4f83-8ad5-9fc30ccfd5bf',
         {
@@ -46,6 +47,7 @@ export default function Blacklist() {
 
   const handleUnblock = async (userId: number) => {
     try {
+      // FUNCTION: blacklist - Разблокировка пользователя (DELETE)
       const response = await fetch(
         `https://functions.poehali.dev/7d7db6d4-88e3-4f83-8ad5-9fc30ccfd5bf?blockedUserId=${userId}`,
         {

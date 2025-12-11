@@ -58,6 +58,7 @@ export default function Profile() {
 
   const updateActivity = async () => {
     try {
+      // FUNCTION: update-activity - Обновление времени последней активности
       await fetch('https://functions.poehali.dev/a70b420b-cb23-4948-9a56-b8cefc96f976', {
         method: 'POST',
         headers: { 'X-User-Id': currentUserId || '0' }
@@ -69,6 +70,7 @@ export default function Profile() {
 
   const handleEnergyPurchase = async () => {
     try {
+      // FUNCTION: add-energy - Добавление энергии (покупка)
       const response = await fetch(FUNCTIONS['add-energy'], {
         method: 'POST',
         headers: {
@@ -113,11 +115,13 @@ export default function Profile() {
 
   const loadProfile = async () => {
     try {
+      // FUNCTION: get-user - Получение данных профиля пользователя
       const response = await fetch(
         `${FUNCTIONS['get-user']}?user_id=${userId}`
       );
       const data = await response.json();
       
+      // FUNCTION: profile-photos - Получение фотографий пользователя для аватара
       const photosResponse = await fetch(
         `${FUNCTIONS['profile-photos']}?userId=${userId}`,
         {
@@ -139,6 +143,7 @@ export default function Profile() {
 
   const loadPhotos = async () => {
     try {
+      // FUNCTION: profile-photos - Получение всех фотографий пользователя
       const response = await fetch(
         `${FUNCTIONS['profile-photos']}?userId=${userId}`,
         {
@@ -159,6 +164,7 @@ export default function Profile() {
 
     setIsAddingPhoto(true);
     try {
+      // FUNCTION: profile-photos - Добавление фото по URL
       const encodedUrl = encodeURIComponent(photoUrl);
       const response = await fetch(
         `${FUNCTIONS['profile-photos']}?userId=${currentUserId}&action=add&photoUrl=${encodedUrl}`,
@@ -206,6 +212,7 @@ export default function Profile() {
         reader.readAsDataURL(file);
       });
 
+      // FUNCTION: generate-upload-url - Загрузка файла в S3 хранилище
       console.log('🟡 3. Uploading to Timeweb S3...', FUNCTIONS['generate-upload-url']);
       const uploadResponse = await fetch(FUNCTIONS['generate-upload-url'], {
         method: 'POST',
@@ -223,6 +230,7 @@ export default function Profile() {
       const { fileUrl } = await uploadResponse.json();
       console.log('🟡 5. Got fileUrl:', fileUrl);
 
+      // FUNCTION: profile-photos - Сохранение загруженного фото в БД
       console.log('🟡 6. Saving to database via GET (NO HEADERS)...', FUNCTIONS['profile-photos']);
       const addResponse = await fetch(
         `${FUNCTIONS['profile-photos']}?userId=${currentUserId}&action=add&photoUrl=${encodeURIComponent(fileUrl)}&authUserId=${currentUserId}`
@@ -249,6 +257,7 @@ export default function Profile() {
 
   const deletePhoto = async (photoId: number) => {
     try {
+      // FUNCTION: profile-photos - Удаление фотографии
       const response = await fetch(
         `https://functions.poehali.dev/6ab5e5ca-f93c-438c-bc46-7eb7a75e2734?photoId=${photoId}`,
         {
@@ -274,6 +283,7 @@ export default function Profile() {
 
   const checkBlockStatus = async () => {
     try {
+      // FUNCTION: blacklist - Получение списка заблокированных (проверка статуса)
       const response = await fetch(
         'https://functions.poehali.dev/7d7db6d4-88e3-4f83-8ad5-9fc30ccfd5bf',
         {
@@ -292,6 +302,7 @@ export default function Profile() {
     setCheckingBlock(true);
     try {
       if (isBlocked) {
+        // FUNCTION: blacklist - Разблокировка пользователя (DELETE)
         const response = await fetch(
           `${FUNCTIONS.blacklist}?targetUserId=${userId}`,
           {
@@ -304,6 +315,7 @@ export default function Profile() {
           toast.success('Пользователь разблокирован');
         }
       } else {
+        // FUNCTION: blacklist - Блокировка пользователя (POST)
         const response = await fetch(
           FUNCTIONS.blacklist,
           {

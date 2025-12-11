@@ -44,11 +44,13 @@ export default function UserMessages() {
 
   const loadProfile = async () => {
     try {
+      // FUNCTION: get-user - Получение данных профиля пользователя
       const response = await fetch(
         `https://functions.poehali.dev/518f730f-1a8e-45ad-b0ed-e9a66c5a3784?user_id=${userId}`
       );
       const data = await response.json();
       
+      // FUNCTION: profile-photos - Получение фотографий для аватара
       const photosResponse = await fetch(
         `https://functions.poehali.dev/6ab5e5ca-f93c-438c-bc46-7eb7a75e2734?userId=${userId}`,
         {
@@ -68,6 +70,7 @@ export default function UserMessages() {
 
   const loadMessages = async () => {
     try {
+      // FUNCTION: get-messages - Получение сообщений из глобального чата (фильтр по userId)
       const response = await fetch(
         `https://functions.poehali.dev/392f3078-9f28-4640-ab86-dcabecaf721a?limit=100&offset=0`,
         {

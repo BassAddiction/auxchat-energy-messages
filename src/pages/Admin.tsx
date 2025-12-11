@@ -47,6 +47,7 @@ export default function Admin() {
 
   const loadUsers = async () => {
     try {
+      // FUNCTION: admin-users - Получение списка всех пользователей (GET)
       const response = await fetch(
         "https://functions.poehali.dev/c9561d6d-10c4-4b31-915e-07e239e7ae5f"
       );
@@ -93,6 +94,7 @@ export default function Admin() {
         body.amount = amount;
       }
 
+      // FUNCTION: admin-users - Выполнение админ-действий: add_energy, ban, unban, delete (POST)
       const response = await fetch(
         "https://functions.poehali.dev/c9561d6d-10c4-4b31-915e-07e239e7ae5f",
         {

@@ -25,6 +25,7 @@ export default function Conversations() {
 
   const updateActivity = async () => {
     try {
+      // FUNCTION: update-activity - Обновление времени последней активности
       await fetch('https://functions.poehali.dev/a70b420b-cb23-4948-9a56-b8cefc96f976', {
         method: 'POST',
         headers: { 'X-User-Id': currentUserId || '0' }
@@ -74,6 +75,7 @@ export default function Conversations() {
 
   const loadConversations = async () => {
     try {
+      // FUNCTION: get-conversations - Получение списка диалогов (личные сообщения)
       const response = await fetch(
         'https://functions.poehali.dev/aea3125a-7d11-4637-af71-0998dfbaf5b2',
         {
@@ -89,6 +91,7 @@ export default function Conversations() {
       const conversationsWithPhotos = await Promise.all(
         newConversations.map(async (conv: Conversation) => {
           try {
+            // FUNCTION: profile-photos - Получение фотографий пользователя для аватара
             const photosResponse = await fetch(
               `https://functions.poehali.dev/6ab5e5ca-f93c-438c-bc46-7eb7a75e2734?userId=${conv.userId}`,
               { headers: { 'X-User-Id': currentUserId || '0' } }
