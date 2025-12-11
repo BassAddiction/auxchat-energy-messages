@@ -156,6 +156,7 @@ const Index = () => {
   const loadUnreadCount = async () => {
     if (!userId) return;
     try {
+      // FUNCTION: get-conversations - Получение количества непрочитанных личных сообщений
       const data = await api.getUnreadCount(userId.toString());
       const total = data.unreadCount || 0;
       
@@ -176,6 +177,7 @@ const Index = () => {
 
   const loadMessages = async (retryCount = 0) => {
     try {
+      // FUNCTION: get-messages - Получение списка сообщений из глобального чата с учетом радиуса
       const data = await api.getMessages(20, 0, geoRadius);
       if (data.messages) {
         const formattedMessages: Message[] = data.messages.map((msg: any) => ({
@@ -260,10 +262,12 @@ const Index = () => {
   const loadUser = async (id: number) => {
     console.log('[LOAD USER] Starting loadUser for id:', id);
     try {
+      // FUNCTION: get-user - Получение данных пользователя по ID
       const data = await api.getUser(id.toString());
       console.log('[LOAD USER] Got data:', data);
       
       if (data.username) {
+        // FUNCTION: profile-photos - Получение списка фотографий пользователя
         const photosData = await api.getProfilePhotos(id.toString());
         console.log('[LOAD USER] Photos data:', photosData);
         const userAvatar = photosData.photos && photosData.photos.length > 0 
@@ -308,6 +312,7 @@ const Index = () => {
   const loadSubscribedUsers = async () => {
     if (!userId) return;
     try {
+      // FUNCTION: get-subscriptions - Получение списка ID пользователей, на которых подписан текущий юзер
       const data = await api.getSubscriptions(userId.toString());
       const userIds = data.subscribedUserIds || [];
       console.log('[SUBSCRIPTIONS] Loaded subscribed users:', userIds);
@@ -322,6 +327,7 @@ const Index = () => {
   const updateActivity = async () => {
     if (!userId) return;
     try {
+      // FUNCTION: update-activity - Обновление времени последней активности пользователя
       await api.updateActivity(userId.toString());
     } catch (error) {
       console.error('Error updating activity:', error);
@@ -378,6 +384,7 @@ const Index = () => {
     }
 
     try {
+      // FUNCTION: login - Вход пользователя по телефону и паролю
       const data = await api.login(phone, password);
       
       if (data.error) {
@@ -408,6 +415,7 @@ const Index = () => {
     }
 
     try {
+      // FUNCTION: send-sms - Отправка SMS-кода на телефон для верификации
       const data = await api.sendSMS(phone);
       
       if (data.success) {
@@ -429,6 +437,7 @@ const Index = () => {
     }
 
     try {
+      // FUNCTION: verify-sms - Проверка SMS-кода
       const data = await api.verifySMS(phone, smsCode);
       
       if (data.success) {
@@ -462,7 +471,7 @@ const Index = () => {
         latitude = position.coords.latitude;
         longitude = position.coords.longitude;
         
-        // Определяем город через backend API (чтобы избежать CORS)
+        // FUNCTION: geocode - Определение города по координатам (чтобы избежать CORS)
         try {
           const geoResponse = await fetch(`https://functions.poehali.dev/90e9cacc-48ca-4b42-b817-3a77b67db25c?lat=${latitude}&lon=${longitude}`);
           const geoData = await geoResponse.json();
@@ -476,6 +485,7 @@ const Index = () => {
     }
 
     try {
+      // FUNCTION: register - Регистрация нового пользователя
       const response = await fetch(
         "https://functions.poehali.dev/1d4d268e-0d0a-454a-a1cc-ecd19c83471a",
         {
@@ -521,6 +531,7 @@ const Index = () => {
     }
 
     try {
+      // FUNCTION: reset-password - Сброс пароля пользователя
       const response = await fetch(
         "https://functions.poehali.dev/f1d38f0f-3d7d-459b-a52f-9ae703ac77d3",
         {
@@ -556,6 +567,7 @@ const Index = () => {
   const loadProfilePhotos = async () => {
     if (!userId) return;
     try {
+      // FUNCTION: profile-photos - Получение списка фотографий пользователя
       const response = await fetch(
         `https://functions.poehali.dev/6ab5e5ca-f93c-438c-bc46-7eb7a75e2734?userId=${userId}`,
         {
@@ -581,6 +593,7 @@ const Index = () => {
     if (!photoUrl.trim() || !userId) return;
     setIsAddingPhoto(true);
     try {
+      // FUNCTION: profile-photos - Добавление фото по URL в галерею пользователя
       const response = await fetch(
         'https://functions.poehali.dev/6ab5e5ca-f93c-438c-bc46-7eb7a75e2734',
         {
@@ -658,6 +671,7 @@ const Index = () => {
           
           setUploadProgress('Загрузка на сервер...');
           console.log('[PHOTO UPLOAD] Sending to upload function...');
+          // FUNCTION: upload-photo - Загрузка файла фото (base64) в S3 хранилище
           const uploadResponse = await fetch('https://functions.poehali.dev/e02155bb-d5d7-4a35-81a4-b089847fecf4', {
             method: 'POST',
             headers: {
@@ -684,6 +698,7 @@ const Index = () => {
 
           setUploadProgress('Сохранение в галерею...');
           console.log('[PHOTO UPLOAD] Adding photo to gallery...');
+          // FUNCTION: profile-photos - Добавление загруженного фото в галерею пользователя
           const addPhotoResponse = await fetch(
             'https://functions.poehali.dev/6ab5e5ca-f93c-438c-bc46-7eb7a75e2734',
             {
@@ -734,6 +749,7 @@ const Index = () => {
 
   const setMainPhoto = async (photoId: number) => {
     if (!userId) return;
+    // FUNCTION: profile-photos - Установка фото как главного (первое в галерее)
     const response = await fetch(
       'https://functions.poehali.dev/6ab5e5ca-f93c-438c-bc46-7eb7a75e2734',
       {
@@ -748,6 +764,7 @@ const Index = () => {
     if (response.ok) {
       loadProfilePhotos();
       if (user) {
+        // FUNCTION: profile-photos - Получение обновленного списка фото после установки главного
         const updatedPhotos = await fetch(
           `https://functions.poehali.dev/6ab5e5ca-f93c-438c-bc46-7eb7a75e2734?userId=${userId}`,
           {
@@ -764,6 +781,7 @@ const Index = () => {
 
   const deletePhoto = async (photoId: number) => {
     if (!userId) return;
+    // FUNCTION: profile-photos - Удаление фото из галереи пользователя
     const response = await fetch(
       `https://functions.poehali.dev/6ab5e5ca-f93c-438c-bc46-7eb7a75e2734?photoId=${photoId}`,
       {
@@ -859,7 +877,7 @@ const Index = () => {
       const latitude = position.coords.latitude;
       const longitude = position.coords.longitude;
       
-      // Определяем город через backend API (чтобы избежать CORS)
+      // FUNCTION: geocode - Определение города по координатам
       let city = '';
       try {
         const geoResponse = await fetch(
@@ -873,7 +891,7 @@ const Index = () => {
         console.error('[GEO] City lookup error:', e);
       }
 
-      // Отправляем на backend
+      // FUNCTION: update-location - Сохранение геолокации пользователя в БД
       const response = await fetch('https://functions.poehali.dev/1e164728-c695-4c1a-9496-29af61259212', {
         method: 'POST',
         headers: {
@@ -921,6 +939,7 @@ const Index = () => {
 
     if (messageText.trim()) {
       try {
+        // FUNCTION: send-message - Отправка сообщения в глобальный чат (receiverId=0)
         const data = await api.sendMessage(userId.toString(), 0, messageText.trim());
         
         if (data.error) {
@@ -972,6 +991,7 @@ const Index = () => {
     if (!userId) return;
     setCheckingSubscription(true);
     try {
+      // FUNCTION: subscribe - Проверка статуса подписки на пользователя
       const response = await fetch(
         `https://functions.poehali.dev/332c7a6c-5c6e-4f84-85de-81c8fd6ab8d5?targetUserId=${targetUserId}`,
         {
@@ -991,6 +1011,7 @@ const Index = () => {
     if (!userId || !selectedUserId) return;
     
     try {
+      // FUNCTION: subscribe - Подписка на пользователя (отслеживание в чате)
       const response = await fetch(
         "https://functions.poehali.dev/332c7a6c-5c6e-4f84-85de-81c8fd6ab8d5",
         {
@@ -1019,6 +1040,7 @@ const Index = () => {
     if (!userId || !selectedUserId) return;
     
     try {
+      // FUNCTION: subscribe - Отписка от пользователя (прекращение отслеживания)
       const response = await fetch(
         `https://functions.poehali.dev/332c7a6c-5c6e-4f84-85de-81c8fd6ab8d5?targetUserId=${selectedUserId}`,
         {
@@ -1063,6 +1085,7 @@ const Index = () => {
       const base64 = reader.result as string;
       
       try {
+        // FUNCTION: update-avatar - Обновление аватара пользователя (загрузка base64)
         const response = await fetch(
           "https://functions.poehali.dev/7ad164df-b661-49f1-882d-10407afaa9d8",
           {
@@ -1095,6 +1118,7 @@ const Index = () => {
     console.log("Creating payment for amount:", amount);
 
     try {
+      // FUNCTION: create-payment - Создание платежа YooKassa для пополнения энергии
       const response = await fetch(
         "https://functions.poehali.dev/f92685aa-bd08-4a3c-9170-4d421a00058c",
         {
