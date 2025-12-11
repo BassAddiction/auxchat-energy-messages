@@ -134,17 +134,24 @@ def handle_upload(event: Dict[str, Any]) -> Dict[str, Any]:
         # Parse JSON body with base64 data
         print('[DEBUG] Parsing request body')
         body_str = event.get('body', '{}')
+        print(f'[DEBUG] body_str type: {type(body_str)}, length: {len(body_str) if body_str else 0}')
+        print(f'[DEBUG] body_str first 200 chars: {body_str[:200] if body_str else "EMPTY"}')
+        
         body_data = json.loads(body_str)
+        print(f'[DEBUG] body_data keys: {list(body_data.keys())}')
+        
         file_base64 = body_data.get('fileData', body_data.get('audioData', ''))
         file_name = body_data.get('fileName', '')
         content_type = body_data.get('contentType', 'image/jpeg')
         
+        print(f'[DEBUG] Extracted: fileName={file_name}, contentType={content_type}, fileData_length={len(file_base64) if file_base64 else 0}')
+        
         if not file_base64:
-            print('[ERROR] No file data in request')
+            print('[ERROR] No file data in request - body_data was:', body_data)
             return {
                 'statusCode': 400,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'error': 'No file data provided'}),
+                'body': json.dumps({'error': 'No file data provided', 'received_keys': list(body_data.keys())}),
                 'isBase64Encoded': False
             }
         
