@@ -4,15 +4,30 @@
       "name": "OPTIONS request for CORS",
       "method": "OPTIONS",
       "path": "/",
-      "expectedStatus": 200
+      "expectedStatus": 204
     },
     {
-      "name": "Create payment",
+      "name": "Create payment with minimum amount",
       "method": "POST",
       "path": "/",
       "body": {
         "user_id": 1,
-        "amount": 50
+        "amount": 500
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "payment_url": "string",
+        "payment_id": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Create payment with maximum amount",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "user_id": 1,
+        "amount": 10000
       },
       "expectedStatus": 200,
       "expectedBody": {
