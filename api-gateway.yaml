@@ -14,7 +14,7 @@ paths:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
-        function_id: d4e1drh1ub4imqleg10q
+        function_id: d4e1drhlub4imqleg10q
 
   /create-payment:
     x-yc-apigateway-any-method:
@@ -44,7 +44,7 @@ paths:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
-        function_id: d4ebaqbsgmcc21od17od
+        function_id: d4eaga56qmoe21os17od
 
   /get-conversations:
     x-yc-apigateway-any-method:
@@ -68,37 +68,37 @@ paths:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
-        function_id: d4ek1ma9n1s3m5150jhb
+        function_id: d4ek1ma9nls3m5150jhb
 
   /add-reaction:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
-        function_id: d4elu8l3mmf6jpgb1581
+        function_id: d4elu8l3mmf6jpgbi581
 
   /profile-photos:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
-        function_id: d4emg5a53ihd1nncfhcm9
+        function_id: d4emmve89ihd1nnfhcm9
 
   /blacklist:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
-        function_id: d4enost4267cmd15cnf1
+        function_id: d4enost4267cmdl5cnfl
 
   /send-sms:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
-        function_id: d4eq4i3fov37r2ae1n7n
+        function_id: d4eq413fov37r2aeln7n
 
   /send-message:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
-        function_id: d4eqjhv1ab66or71e1i4
+        function_id: d4eqjhv1ab66or71eli4
 
   /register:
     x-yc-apigateway-any-method:
@@ -110,7 +110,7 @@ paths:
     x-yc-apigateway-any-method:
       x-yc-apigateway-integration:
         type: cloud_functions
-        function_id: d4eruja65h93o5n21its
+        function_id: d4eruja65h9305n2l1ts
 
   /update-activity:
     x-yc-apigateway-any-method:
