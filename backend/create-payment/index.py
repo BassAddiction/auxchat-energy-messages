@@ -82,7 +82,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     payment_data = {
         "amount": {
-            "value": f"{price}.00",
+            "value": f"{float(price):.2f}",
             "currency": "RUB"
         },
         "confirmation": {
@@ -93,7 +93,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         "description": f"Пополнение {int(energy_amount)} энергии",
         "metadata": {
             "user_id": str(user_id),
-            "energy_amount": energy_amount,
+            "energy_amount": str(energy_amount),
             "payment_method": payment_method
         }
     }
@@ -113,8 +113,20 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         method='POST'
     )
     
-    response = urllib.request.urlopen(req)
-    result = json.loads(response.read().decode('utf-8'))
+    try:
+        response = urllib.request.urlopen(req)
+        result = json.loads(response.read().decode('utf-8'))
+    except urllib.error.HTTPError as e:
+        error_body = e.read().decode('utf-8')
+        return {
+            'statusCode': 502,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'isBase64Encoded': False,
+            'body': json.dumps({
+                'error': f'YooKassa error: {e.code}',
+                'details': error_body
+            })
+        }
     
     confirmation_url = result.get('confirmation', {}).get('confirmation_url', '')
     payment_id = result.get('id', '')
