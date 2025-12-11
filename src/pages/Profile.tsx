@@ -216,8 +216,8 @@ export default function Profile() {
       console.log('🟡 3. Uploading to Timeweb S3...', FUNCTIONS['generate-upload-url']);
       const uploadResponse = await fetch(FUNCTIONS['generate-upload-url'], {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ audioData: base64, contentType: file.type })
+        headers: { 'Content-Type': 'application/json', 'X-User-Id': currentUserId || '0' },
+        body: JSON.stringify({ fileData: base64, fileName: file.name, contentType: file.type })
       });
 
       console.log('🟡 4. Upload response:', uploadResponse.status, uploadResponse.ok);
