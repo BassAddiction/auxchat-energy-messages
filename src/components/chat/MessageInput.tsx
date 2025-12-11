@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
+import { FUNCTIONS } from '@/lib/func2url';
 
 interface MessageInputProps {
   currentUserId: string | null;
@@ -81,7 +82,7 @@ export default function MessageInput({
       console.log('[VOICE] Starting upload, blob size:', audioBlob.size, 'duration:', duration);
       
       // Получаем presigned URL от бэкенда
-      const urlResponse = await fetch('https://functions.poehali.dev/559ff756-6b7f-42fc-8a61-2dac6de68639?contentType=audio/webm&extension=webm', {
+      const urlResponse = await fetch(`${FUNCTIONS["generate-upload-url"]}?contentType=audio/webm&extension=webm`, {
         method: 'GET',
         headers: {
           'X-User-Id': currentUserId
@@ -248,7 +249,7 @@ export default function MessageInput({
       const extension = file.name.split('.').pop() || 'jpg';
       const contentType = file.type;
 
-      const urlResponse = await fetch(`https://functions.poehali.dev/559ff756-6b7f-42fc-8a61-2dac6de68639?contentType=${contentType}&extension=${extension}`, {
+      const urlResponse = await fetch(`${FUNCTIONS["generate-upload-url"]}?contentType=${contentType}&extension=${extension}`, {
         method: 'GET',
         headers: {
           'X-User-Id': currentUserId!

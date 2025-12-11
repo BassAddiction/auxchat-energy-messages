@@ -59,7 +59,7 @@ export default function Profile() {
   const updateActivity = async () => {
     try {
       // FUNCTION: update-activity - Обновление времени последней активности
-      await fetch('https://functions.poehali.dev/a70b420b-cb23-4948-9a56-b8cefc96f976', {
+      await fetch(FUNCTIONS['update-activity'], {
         method: 'POST',
         headers: { 'X-User-Id': currentUserId || '0' }
       });
@@ -259,7 +259,7 @@ export default function Profile() {
     try {
       // FUNCTION: profile-photos - Удаление фотографии
       const response = await fetch(
-        `https://functions.poehali.dev/6ab5e5ca-f93c-438c-bc46-7eb7a75e2734?photoId=${photoId}`,
+        `${FUNCTIONS['profile-photos']}?photoId=${photoId}`,
         {
           method: 'DELETE',
           headers: {
@@ -285,7 +285,7 @@ export default function Profile() {
     try {
       // FUNCTION: blacklist - Получение списка заблокированных (проверка статуса)
       const response = await fetch(
-        'https://functions.poehali.dev/7d7db6d4-88e3-4f83-8ad5-9fc30ccfd5bf',
+        FUNCTIONS['blacklist'],
         {
           headers: { 'X-User-Id': currentUserId || '0' }
         }

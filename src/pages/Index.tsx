@@ -543,7 +543,7 @@ const Index = () => {
         // FUNCTION: geocode - Определение города по координатам (чтобы избежать CORS)
         try {
           const geoResponse = await fetch(
-            `https://functions.poehali.dev/90e9cacc-48ca-4b42-b817-3a77b67db25c?lat=${latitude}&lon=${longitude}`,
+            `${FUNCTIONS["geocode"]}?lat=${latitude}&lon=${longitude}`,
           );
           const geoData = await geoResponse.json();
           city = geoData.city || "";
@@ -558,7 +558,7 @@ const Index = () => {
     try {
       // FUNCTION: register - Регистрация нового пользователя
       const response = await fetch(
-        "https://functions.poehali.dev/1d4d268e-0d0a-454a-a1cc-ecd19c83471a",
+        FUNCTIONS["register"],
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -606,7 +606,7 @@ const Index = () => {
     try {
       // FUNCTION: reset-password - Сброс пароля пользователя
       const response = await fetch(
-        "https://functions.poehali.dev/f1d38f0f-3d7d-459b-a52f-9ae703ac77d3",
+        FUNCTIONS["reset-password"],
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -642,7 +642,7 @@ const Index = () => {
     try {
       // FUNCTION: profile-photos - Получение списка фотографий пользователя
       const response = await fetch(
-        `https://functions.poehali.dev/6ab5e5ca-f93c-438c-bc46-7eb7a75e2734?userId=${userId}`,
+        `${FUNCTIONS["profile-photos"]}?userId=${userId}`,
         {
           headers: {
             "X-User-Id": userId.toString(),
@@ -668,7 +668,7 @@ const Index = () => {
     try {
       // FUNCTION: profile-photos - Добавление фото по URL в галерею пользователя
       const response = await fetch(
-        "https://functions.poehali.dev/6ab5e5ca-f93c-438c-bc46-7eb7a75e2734",
+        FUNCTIONS["profile-photos"],
         {
           method: "POST",
           headers: {
@@ -761,7 +761,7 @@ const Index = () => {
           console.log("[PHOTO UPLOAD] Sending to upload function...");
           // FUNCTION: upload-photo - Загрузка файла фото (base64) в S3 хранилище
           const uploadResponse = await fetch(
-            "https://functions.poehali.dev/e02155bb-d5d7-4a35-81a4-b089847fecf4",
+            FUNCTIONS["upload-photo"],
             {
               method: "POST",
               headers: {
@@ -794,7 +794,7 @@ const Index = () => {
           console.log("[PHOTO UPLOAD] Adding photo to gallery...");
           // FUNCTION: profile-photos - Добавление загруженного фото в галерею пользователя
           const addPhotoResponse = await fetch(
-            "https://functions.poehali.dev/6ab5e5ca-f93c-438c-bc46-7eb7a75e2734",
+            FUNCTIONS["profile-photos"],
             {
               method: "POST",
               headers: {
@@ -859,7 +859,7 @@ const Index = () => {
     if (!userId) return;
     // FUNCTION: profile-photos - Установка фото как главного (первое в галерее)
     const response = await fetch(
-      "https://functions.poehali.dev/6ab5e5ca-f93c-438c-bc46-7eb7a75e2734",
+      FUNCTIONS["profile-photos"],
       {
         method: "PUT",
         headers: {
@@ -874,7 +874,7 @@ const Index = () => {
       if (user) {
         // FUNCTION: profile-photos - Получение обновленного списка фото после установки главного
         const updatedPhotos = await fetch(
-          `https://functions.poehali.dev/6ab5e5ca-f93c-438c-bc46-7eb7a75e2734?userId=${userId}`,
+          `${FUNCTIONS["profile-photos"]}?userId=${userId}`,
           {
             headers: { "X-User-Id": userId.toString() },
           },
@@ -891,7 +891,7 @@ const Index = () => {
     if (!userId) return;
     // FUNCTION: profile-photos - Удаление фото из галереи пользователя
     const response = await fetch(
-      `https://functions.poehali.dev/6ab5e5ca-f93c-438c-bc46-7eb7a75e2734?photoId=${photoId}`,
+      `${FUNCTIONS["profile-photos"]}?photoId=${photoId}`,
       {
         method: "DELETE",
         headers: {
@@ -997,7 +997,7 @@ const Index = () => {
       let city = "";
       try {
         const geoResponse = await fetch(
-          `https://functions.poehali.dev/90e9cacc-48ca-4b42-b817-3a77b67db25c?lat=${latitude}&lon=${longitude}`,
+          `${FUNCTIONS["geocode"]}?lat=${latitude}&lon=${longitude}`,
         );
         const geoData = await geoResponse.json();
         console.log("[GEO] Geocode response:", geoData);
@@ -1009,7 +1009,7 @@ const Index = () => {
 
       // FUNCTION: update-location - Сохранение геолокации пользователя в БД
       const response = await fetch(
-        "https://functions.poehali.dev/1e164728-c695-4c1a-9496-29af61259212",
+        FUNCTIONS["update-location"],
         {
           method: "POST",
           headers: {
@@ -1125,7 +1125,7 @@ const Index = () => {
     try {
       // FUNCTION: subscribe - Проверка статуса подписки на пользователя
       const response = await fetch(
-        `https://functions.poehali.dev/332c7a6c-5c6e-4f84-85de-81c8fd6ab8d5?targetUserId=${targetUserId}`,
+        `${FUNCTIONS["subscribe"]}?targetUserId=${targetUserId}`,
         {
           headers: { "X-User-Id": userId.toString() },
         },
@@ -1145,7 +1145,7 @@ const Index = () => {
     try {
       // FUNCTION: subscribe - Подписка на пользователя (отслеживание в чате)
       const response = await fetch(
-        "https://functions.poehali.dev/332c7a6c-5c6e-4f84-85de-81c8fd6ab8d5",
+        FUNCTIONS["subscribe"],
         {
           method: "POST",
           headers: {
@@ -1174,7 +1174,7 @@ const Index = () => {
     try {
       // FUNCTION: subscribe - Отписка от пользователя (прекращение отслеживания)
       const response = await fetch(
-        `https://functions.poehali.dev/332c7a6c-5c6e-4f84-85de-81c8fd6ab8d5?targetUserId=${selectedUserId}`,
+        `${FUNCTIONS["subscribe"]}?targetUserId=${selectedUserId}`,
         {
           method: "DELETE",
           headers: { "X-User-Id": userId.toString() },
@@ -1219,7 +1219,7 @@ const Index = () => {
       try {
         // FUNCTION: update-avatar - Обновление аватара пользователя (загрузка base64)
         const response = await fetch(
-          "https://functions.poehali.dev/7ad164df-b661-49f1-882d-10407afaa9d8",
+          FUNCTIONS["upload-photo"],
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },

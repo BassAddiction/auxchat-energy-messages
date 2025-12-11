@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
+import { FUNCTIONS } from '@/lib/func2url';
 
 interface BlockedUser {
   userId: number;
@@ -30,7 +31,7 @@ export default function Blacklist() {
     try {
       // FUNCTION: blacklist - Получение списка заблокированных пользователей (GET)
       const response = await fetch(
-        'https://functions.poehali.dev/7d7db6d4-88e3-4f83-8ad5-9fc30ccfd5bf',
+        FUNCTIONS['blacklist'],
         {
           headers: { 'X-User-Id': currentUserId || '0' }
         }
@@ -49,7 +50,7 @@ export default function Blacklist() {
     try {
       // FUNCTION: blacklist - Разблокировка пользователя (DELETE)
       const response = await fetch(
-        `https://functions.poehali.dev/7d7db6d4-88e3-4f83-8ad5-9fc30ccfd5bf?blockedUserId=${userId}`,
+        `${FUNCTIONS['blacklist']}?blockedUserId=${userId}`,
         {
           method: 'DELETE',
           headers: { 'X-User-Id': currentUserId || '0' }
