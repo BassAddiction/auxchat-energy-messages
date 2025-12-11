@@ -11,9 +11,20 @@ from botocore.config import Config
 from typing import Dict, Any
 from datetime import datetime
 
-def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
+def handler(event, context):
+    print(f'[DEBUG] Raw event type: {type(event)}')
+    print(f'[DEBUG] Raw event: {event}')
+    
     if isinstance(event, str):
         event = json.loads(event)
+    
+    if not isinstance(event, dict):
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': f'Invalid event type: {type(event)}'}),
+            'isBase64Encoded': False
+        }
     
     method: str = event.get('httpMethod', 'GET')
     
