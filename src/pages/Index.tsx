@@ -31,6 +31,7 @@ interface User {
   avatar: string;
   phone: string;
   energy: number;
+  status?: string;
 }
 
 const Index = () => {
@@ -79,6 +80,8 @@ const Index = () => {
   const [showProfile, setShowProfile] = useState(false);
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   const [newUsername, setNewUsername] = useState("");
+  const [isEditingStatus, setIsEditingStatus] = useState(false);
+  const [newStatus, setNewStatus] = useState("");
   const [profilePhotos, setProfilePhotos] = useState<{id: number; url: string}[]>([]);
   const [photoUrl, setPhotoUrl] = useState("");
   const [isAddingPhoto, setIsAddingPhoto] = useState(false);
@@ -322,6 +325,14 @@ const Index = () => {
       await api.updateActivity(userId.toString());
     } catch (error) {
       console.error('Error updating activity:', error);
+    }
+  };
+
+  const handleUpdateStatus = () => {
+    if (user && newStatus.trim()) {
+      setUser({ ...user, status: newStatus.trim() });
+      setIsEditingStatus(false);
+      setNewStatus("");
     }
   };
 
@@ -1209,9 +1220,48 @@ const Index = () => {
                             </Button>
                           </div>
                         )}
-                        <p className="text-sm text-muted-foreground">
-                          {user.phone}
-                        </p>
+                        
+                        {isEditingStatus ? (
+                          <div className="flex gap-2 mt-2">
+                            <Input
+                              value={newStatus}
+                              onChange={(e) => setNewStatus(e.target.value)}
+                              placeholder="Ваш статус"
+                              className="text-sm"
+                              maxLength={100}
+                            />
+                            <Button size="sm" onClick={handleUpdateStatus}>
+                              <Icon name="Check" size={16} />
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="ghost"
+                              onClick={() => {
+                                setIsEditingStatus(false);
+                                setNewStatus("");
+                              }}
+                            >
+                              <Icon name="X" size={16} />
+                            </Button>
+                          </div>
+                        ) : (
+                          <div 
+                            className="flex items-center gap-2 mt-1 cursor-pointer group"
+                            onClick={() => {
+                              setNewStatus(user.status || '');
+                              setIsEditingStatus(true);
+                            }}
+                          >
+                            <p className="text-sm text-muted-foreground italic">
+                              {user.status || 'Добавить статус...'}
+                            </p>
+                            <Icon 
+                              name="Edit2" 
+                              size={14} 
+                              className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                            />
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="space-y-2">
