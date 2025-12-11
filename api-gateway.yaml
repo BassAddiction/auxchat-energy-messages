@@ -9,6 +9,7 @@ paths:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4e10cfpm08ikk1k5mp4
+        service_account_id: ajekuudp0ggenbgn2gdt
 
   /generate-upload-url:
     x-yc-apigateway-any-method:
