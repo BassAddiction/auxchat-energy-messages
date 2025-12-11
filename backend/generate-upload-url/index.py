@@ -12,6 +12,9 @@ from typing import Dict, Any
 from datetime import datetime
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
+    if isinstance(event, str):
+        event = json.loads(event)
+    
     method: str = event.get('httpMethod', 'GET')
     
     if method == 'OPTIONS':
