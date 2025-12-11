@@ -1292,9 +1292,14 @@ const Index = () => {
       } else {
         const error = await response.json();
         console.error("Payment failed:", error);
-        alert(
-          "Ошибка создания платежа: " + (error.error || "Неизвестная ошибка"),
-        );
+        
+        // Показываем детальную ошибку от YooKassa, если есть
+        let errorMessage = error.error || "Неизвестная ошибка";
+        if (error.details) {
+          errorMessage += "\n\nДетали от YooKassa:\n" + error.details;
+        }
+        
+        alert("Ошибка создания платежа: " + errorMessage);
       }
     } catch (error) {
       console.error("Payment error:", error);
