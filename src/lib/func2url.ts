@@ -22,4 +22,6 @@ export const FUNCTIONS = {
   "send-message": "https://functions.yandexcloud.net/d4eqjhv1ab66or71e1i4",
   "verify-sms": "https://functions.yandexcloud.net/d4egj9hb0n3psc0eck02",
   "send-sms": "https://functions.yandexcloud.net/d4eq4i3fov37r2ae1n7n",
+  "geocode": "https://functions.poehali.dev/90e9cacc-48ca-4b42-b817-3a77b67db25c",
+  "update-location": "https://functions.poehali.dev/1e164728-c695-4c1a-9496-29af61259212",
 } as const;
