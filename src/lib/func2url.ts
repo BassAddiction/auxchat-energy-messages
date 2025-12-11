@@ -1,13 +1,13 @@
-const API_GATEWAY = "https://d5d3u0qjgspgbpnq0033.zj2i1qoy.apigw.yandexcloud.net";
+const API_GATEWAY = "https://d5dkffis8kfdsr7g6rjo.z7jmlavt.apigw.yandexcloud.net";
 
 export const FUNCTIONS = {
-  "upload-photo": "https://functions.yandexcloud.net/d4e1drhlub4imqleg10q",
-  "generate-upload-url": "https://functions.yandexcloud.net/d4e1drhlub4imqleg10q",
+  "upload-photo": `${API_GATEWAY}/generate-upload-url`,
+  "generate-upload-url": `${API_GATEWAY}/generate-upload-url`,
   "update-activity": `${API_GATEWAY}/update-activity`,
   "blacklist": `${API_GATEWAY}/blacklist`,
   "get-subscriptions": `${API_GATEWAY}/get-subscriptions`,
   "subscribe": `${API_GATEWAY}/subscribe`,
-  "profile-photos": "https://functions.yandexcloud.net/d4emmve89ihd1nnfhcm9",
+  "profile-photos": `${API_GATEWAY}/profile-photos`,
   "get-conversations": `${API_GATEWAY}/get-conversations`,
   "private-messages": `${API_GATEWAY}/private-messages`,
   "payment-webhook": `${API_GATEWAY}/payment-webhook`,
