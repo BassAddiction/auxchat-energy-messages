@@ -164,9 +164,18 @@ paths:
         function_id: d4eq4i3fov37r2ae1n7n
         service_account_id: ${SERVICE_ACCOUNT_ID}
 
-x-yc-apigateway:
-  cors:
-    origin: '*'
-    methods: 'GET,POST,PUT,DELETE,OPTIONS'
-    allowedHeaders: 'Content-Type,X-User-Id,X-Auth-Token,X-Session-Id'
-    maxAge: 86400
+x-yc-apigateway-cors:
+  allowed-origins:
+    - '*'
+  allowed-methods:
+    - GET
+    - POST
+    - PUT
+    - DELETE
+    - OPTIONS
+  allowed-headers:
+    - Content-Type
+    - X-User-Id
+    - X-Auth-Token
+    - X-Session-Id
+  max-age: 86400
