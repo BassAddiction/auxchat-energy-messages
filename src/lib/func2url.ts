@@ -1,8 +1,8 @@
 const API_GATEWAY = "https://d5dkffis8kfdsr7g6rjo.z7jmlavt.apigw.yandexcloud.net";
 
 export const FUNCTIONS = {
-  "upload-photo": "https://functions.poehali.dev/559ff756-6b7f-42fc-8a61-2dac6de68639",
-  "generate-upload-url": "https://functions.poehali.dev/559ff756-6b7f-42fc-8a61-2dac6de68639",
+  "upload-photo": `${API_GATEWAY}/generate-upload-url`,
+  "generate-upload-url": `${API_GATEWAY}/generate-upload-url`,
   "update-activity": `${API_GATEWAY}/update-activity`,
   "blacklist": `${API_GATEWAY}/blacklist`,
   "get-subscriptions": `${API_GATEWAY}/get-subscriptions`,
