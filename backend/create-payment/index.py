@@ -1,8 +1,9 @@
 '''
 Business: Create YooKassa payment for energy purchase with progressive discount
-Args: event with httpMethod, body containing user_id and amount (500-10000 RUB)
+Args: event with httpMethod, body containing user_id, amount (500-10000 RUB), and payment_method (sbp/sberPay/tPay)
 Returns: HTTP response with payment confirmation URL and payment_id
 Note: 1₽ = 1 energy base, up to +30% bonus at 10000₽
+      payment_method is stored in metadata for analytics, YooKassa auto-selects best payment option
 '''
 
 import json
@@ -39,6 +40,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     body_data = json.loads(event.get('body', '{}'))
     user_id = body_data.get('user_id')
     price_rubles = body_data.get('amount', 500)
+    payment_method = body_data.get('payment_method', 'sbp')  # sbp, sberPay, tPay
     
     if not user_id:
         return {
@@ -91,7 +93,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         "description": f"Пополнение {int(energy_amount)} энергии",
         "metadata": {
             "user_id": str(user_id),
-            "energy_amount": energy_amount
+            "energy_amount": energy_amount,
+            "payment_method": payment_method
         }
     }
     

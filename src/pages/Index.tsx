@@ -117,6 +117,8 @@ const Index = () => {
 
   const [geoPermissionModalOpen, setGeoPermissionModalOpen] = useState(false);
   const [updatingLocation, setUpdatingLocation] = useState(false);
+  const [paymentMethodModalOpen, setPaymentMethodModalOpen] = useState(false);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'sbp' | 'sberPay' | 'tPay' | null>(null);
   const [userLocation, setUserLocation] = useState<{lat: number; lon: number; city: string} | null>(null);
 
   // Расчет цены с прогрессивной скидкой до 30%
@@ -1115,7 +1117,17 @@ const Index = () => {
       return;
     }
 
-    console.log("Creating payment for amount:", amount);
+    // Открываем модальное окно выбора способа оплаты
+    setPaymentMethodModalOpen(true);
+  };
+
+  const handlePaymentMethodSelect = async (method: 'sbp' | 'sberPay' | 'tPay') => {
+    setSelectedPaymentMethod(method);
+    setPaymentMethodModalOpen(false);
+
+    if (!userId || !user) return;
+
+    console.log("Creating payment for amount:", energyAmount, "method:", method);
 
     try {
       // FUNCTION: create-payment - Создание платежа YooKassa для пополнения энергии
@@ -1126,7 +1138,8 @@ const Index = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             user_id: userId,
-            amount: amount,
+            amount: energyAmount,
+            payment_method: method,
           }),
         }
       );
@@ -1356,6 +1369,19 @@ const Index = () => {
                           <Icon name="ShoppingCart" size={18} className="mr-2" />
                           Пополнить на {energyAmount}₽
                         </Button>
+                        
+                        {/* Ссылка на оферту */}
+                        <div className="text-center">
+                          <button
+                            onClick={() => {
+                              setShowProfile(false);
+                              navigate('/oferta');
+                            }}
+                            className="text-xs text-muted-foreground hover:text-primary underline"
+                          >
+                            Публичная оферта
+                          </button>
+                        </div>
                       </div>
                     </div>
                     <div className="border-t pt-4">
@@ -2081,6 +2107,69 @@ const Index = () => {
             <p className="text-xs text-center text-muted-foreground">
               Без геолокации вы будете видеть сообщения от всех пользователей
             </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Payment Method Modal */}
+      <Dialog open={paymentMethodModalOpen} onOpenChange={setPaymentMethodModalOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Выберите способ оплаты</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 pt-4">
+            <Button
+              variant="outline"
+              className="w-full h-16 justify-start gap-3 hover:bg-purple-50 hover:border-purple-500"
+              onClick={() => handlePaymentMethodSelect('sbp')}
+            >
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-lg">
+                СБП
+              </div>
+              <div className="text-left flex-1">
+                <p className="font-semibold">Система Быстрых Платежей</p>
+                <p className="text-xs text-muted-foreground">Переводы по номеру телефона</p>
+              </div>
+              <Icon name="ChevronRight" size={20} className="text-muted-foreground" />
+            </Button>
+
+            <Button
+              variant="outline"
+              className="w-full h-16 justify-start gap-3 hover:bg-green-50 hover:border-green-500"
+              onClick={() => handlePaymentMethodSelect('sberPay')}
+            >
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-600 to-green-400 flex items-center justify-center text-white font-bold text-sm">
+                <Icon name="Smartphone" size={24} />
+              </div>
+              <div className="text-left flex-1">
+                <p className="font-semibold">SberPay</p>
+                <p className="text-xs text-muted-foreground">Оплата через приложение Сбербанк</p>
+              </div>
+              <Icon name="ChevronRight" size={20} className="text-muted-foreground" />
+            </Button>
+
+            <Button
+              variant="outline"
+              className="w-full h-16 justify-start gap-3 hover:bg-yellow-50 hover:border-yellow-500"
+              onClick={() => handlePaymentMethodSelect('tPay')}
+            >
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center text-white font-bold text-lg">
+                T
+              </div>
+              <div className="text-left flex-1">
+                <p className="font-semibold">T-Pay</p>
+                <p className="text-xs text-muted-foreground">Оплата через приложение Т-Банк</p>
+              </div>
+              <Icon name="ChevronRight" size={20} className="text-muted-foreground" />
+            </Button>
+
+            <Button
+              variant="ghost"
+              className="w-full"
+              onClick={() => setPaymentMethodModalOpen(false)}
+            >
+              Отмена
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
