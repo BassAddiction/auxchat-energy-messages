@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import Icon from "@/components/ui/icon";
 import { api } from "@/lib/api";
+import { FUNCTIONS } from "@/lib/func2url";
 
 interface Message {
   id: number;
@@ -1268,7 +1269,7 @@ const Index = () => {
     try {
       // FUNCTION: create-payment - Создание платежа YooKassa для пополнения энергии
       const response = await fetch(
-        "https://functions.yandexcloud.net/d4e1gbggnqgt6lrsh9n7",
+        FUNCTIONS["create-payment"],
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
