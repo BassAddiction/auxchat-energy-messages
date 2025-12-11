@@ -98,6 +98,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     }
     
+    # Логируем данные запроса для отладки
+    print(f"[DEBUG] Creating payment:")
+    print(f"  user_id: {user_id}")
+    print(f"  amount: {price}")
+    print(f"  energy: {energy_amount}")
+    print(f"  method: {payment_method}")
+    print(f"  idempotence_key: {idempotence_key}")
+    print(f"  payment_data: {json.dumps(payment_data, ensure_ascii=False)}")
+    
     auth_string = f"{shop_id}:{secret_key}"
     auth_bytes = auth_string.encode('utf-8')
     auth_b64 = base64.b64encode(auth_bytes).decode('utf-8')
@@ -114,17 +123,39 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     )
     
     try:
+        print("[DEBUG] Sending request to YooKassa...")
         response = urllib.request.urlopen(req)
         result = json.loads(response.read().decode('utf-8'))
+        print(f"[DEBUG] Success! Payment ID: {result.get('id')}")
     except urllib.error.HTTPError as e:
-        error_body = e.read().decode('utf-8')
+        print(f"[ERROR] YooKassa returned {e.code}")
+        try:
+            error_body = e.read().decode('utf-8')
+            print(f"[ERROR] Response body: {error_body}")
+            error_json = json.loads(error_body)
+        except:
+            error_body = str(e)
+            error_json = {'raw_error': error_body}
+        
         return {
-            'statusCode': 502,
+            'statusCode': 400,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
             'isBase64Encoded': False,
             'body': json.dumps({
-                'error': f'YooKassa error: {e.code}',
-                'details': error_body
+                'error': f'YooKassa HTTP {e.code}',
+                'details': error_json,
+                'raw_response': error_body
+            }, ensure_ascii=False)
+        }
+    except Exception as e:
+        print(f"[ERROR] Unexpected error: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'isBase64Encoded': False,
+            'body': json.dumps({
+                'error': 'Unexpected error',
+                'details': str(e)
             })
         }
     
