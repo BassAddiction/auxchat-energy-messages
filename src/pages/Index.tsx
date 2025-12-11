@@ -748,7 +748,7 @@ const Index = () => {
           }
 
           const requestBody = {
-            file: base64Data,
+            fileData: base64Data,
             contentType: file.type,
           };
           console.log(
