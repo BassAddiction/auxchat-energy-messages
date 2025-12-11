@@ -91,6 +91,24 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         },
         "capture": True,
         "description": f"Пополнение {int(energy_amount)} энергии",
+        "receipt": {
+            "customer": {
+                "email": "customer@auxchat.ru"
+            },
+            "items": [
+                {
+                    "description": f"Пополнение {int(energy_amount)} энергии",
+                    "quantity": "1",
+                    "amount": {
+                        "value": f"{float(price):.2f}",
+                        "currency": "RUB"
+                    },
+                    "vat_code": 1,
+                    "payment_mode": "full_payment",
+                    "payment_subject": "service"
+                }
+            ]
+        },
         "metadata": {
             "user_id": str(user_id),
             "energy_amount": str(energy_amount),
