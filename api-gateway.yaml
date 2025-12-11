@@ -86,7 +86,6 @@ paths:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4elu8l3mmf6jpgbi581
-        service_account_id: ajekuudp0ggenbgn2gdt
 
   /profile-photos:
     x-yc-apigateway-any-method:
