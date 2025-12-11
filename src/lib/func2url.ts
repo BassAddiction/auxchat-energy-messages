@@ -8,7 +8,7 @@ export const FUNCTIONS = {
   "profile-photos": "https://functions.poehali.dev/6ab5e5ca-f93c-438c-bc46-7eb7a75e2734",
   "get-conversations": "https://functions.poehali.dev/aea3125a-7d11-4637-af71-0998dfbaf5b2",
   "private-messages": "https://functions.poehali.dev/0222e582-5c06-4780-85fa-c9145e5bba14",
-  "payment-webhook": "https://functions.poehali.dev/39c159dc-cf4b-4d2e-8919-591b5583cb96",
+  "payment-webhook": "https://functions.yandexcloud.net/d4e235nr619fsgkt1qvi",
   "create-payment": "https://functions.poehali.dev/f92685aa-bd08-4a3c-9170-4d421a00058c",
   "add-energy": "https://functions.poehali.dev/f9307039-6dd4-4bc5-9b0e-992b36715215",
   "register": "https://functions.poehali.dev/1d4d268e-0d0a-454a-a1cc-ecd19c83471a",
