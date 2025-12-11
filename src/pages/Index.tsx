@@ -769,6 +769,7 @@ const Index = () => {
   };
 
   const openPhotoViewer = (index: number) => {
+    setShowProfile(false); // Закрываем модальное окно профиля
     setCurrentPhotoIndex(index);
     setViewerOpen(true);
   };
@@ -1783,7 +1784,7 @@ const Index = () => {
       </main>
 
       {viewerOpen && profilePhotos.length > 0 && (
-        <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center">
+        <div className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center">
           <button
             onClick={() => setViewerOpen(false)}
             className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
