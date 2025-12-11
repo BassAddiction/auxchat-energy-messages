@@ -1,45 +1,25 @@
 export const FUNCTIONS = {
-  "upload-photo":
-    "https://functions.poehali.dev/e02155bb-d5d7-4a35-81a4-b089847fecf4",
-  "generate-upload-url":
-    "https://functions.poehali.dev/559ff756-6b7f-42fc-8a61-2dac6de68639",
-  "update-activity":
-    "https://functions.poehali.dev/a70b420b-cb23-4948-9a56-b8cefc96f976",
-  blacklist:
-    "https://functions.poehali.dev/7d7db6d4-88e3-4f83-8ad5-9fc30ccfd5bf",
-  "get-subscriptions":
-    "https://functions.poehali.dev/ac3ea823-b6ec-4987-9602-18e412db6458",
-  subscribe:
-    "https://functions.poehali.dev/332c7a6c-5c6e-4f84-85de-81c8fd6ab8d5",
-  "profile-photos":
-    "https://functions.poehali.dev/6ab5e5ca-f93c-438c-bc46-7eb7a75e2734",
-  "get-conversations":
-    "https://functions.poehali.dev/aea3125a-7d11-4637-af71-0998dfbaf5b2",
-  "private-messages":
-    "https://functions.poehali.dev/0222e582-5c06-4780-85fa-c9145e5bba14",
+  "upload-photo": "https://functions.yandexcloud.net/d4e1drh1ub4imqleg10q",
+  "generate-upload-url": "https://functions.yandexcloud.net/d4e1drh1ub4imqleg10q",
+  "update-activity": "https://functions.yandexcloud.net/d4es73t1cfkmee0kd724",
+  blacklist: "https://functions.yandexcloud.net/d4enost4267cmd15cnf1",
+  "get-subscriptions": "https://functions.yandexcloud.net/d4eaga56gmoe21os17od",
+  subscribe: "https://functions.yandexcloud.net/d4eruja65h9305n21its",
+  "profile-photos": "https://functions.yandexcloud.net/d4emmve89ihd1nnfhcm9",
+  "get-conversations": "https://functions.yandexcloud.net/d4ebuvvtbpqd5f09070g",
+  "private-messages": "https://functions.yandexcloud.net/d4es8snba4ua5e0s6kgr",
   "payment-webhook": "https://functions.yandexcloud.net/d4e235nr619fsgkt1qvi",
   "create-payment": "https://functions.yandexcloud.net/d4e1gbggnqgt6lrsh9n7",
-  "add-energy":
-    "https://functions.poehali.dev/f9307039-6dd4-4bc5-9b0e-992b36715215",
-  register:
-    "https://functions.poehali.dev/1d4d268e-0d0a-454a-a1cc-ecd19c83471a",
-  "reset-password":
-    "https://functions.poehali.dev/f1d38f0f-3d7d-459b-a52f-9ae703ac77d3",
-  login: "https://functions.poehali.dev/57bd04c8-4731-4857-a2b8-a71c6bda783a",
-  "add-reaction":
-    "https://functions.poehali.dev/71ceb200-e467-4cf1-8f37-7d831ae549e7",
-  "get-user":
-    "https://functions.poehali.dev/518f730f-1a8e-45ad-b0ed-e9a66c5a3784",
-  "create-user":
-    "https://functions.poehali.dev/ce477ede-fb67-4de1-8f61-ad91d7ba3623",
-  "admin-users":
-    "https://functions.poehali.dev/c9561d6d-10c4-4b31-915e-07e239e7ae5f",
-  "get-messages":
-    "https://functions.poehali.dev/392f3078-9f28-4640-ab86-dcabecaf721a",
-  "send-message":
-    "https://functions.poehali.dev/8d34c54f-b2de-42c1-ac0c-9f6ecf5e16f6",
-  "verify-sms":
-    "https://functions.poehali.dev/c4359550-f604-4126-8e72-5087a670b7cb",
-  "send-sms":
-    "https://functions.poehali.dev/39b076de-8be1-48c0-8684-f94df4548b91",
+  "add-energy": "https://functions.yandexcloud.net/d4e10cfpm08ikk1k5mp4",
+  register: "https://functions.yandexcloud.net/d4erd2o6kv7rjhsb9a9h",
+  "reset-password": "https://functions.yandexcloud.net/d4ek1ma9n1s3m5150jhb",
+  login: "https://functions.yandexcloud.net/d4eae7r2eq6bt0ucrv35",
+  "add-reaction": "https://functions.yandexcloud.net/d4e1u813mmf6jpgb1581",
+  "get-user": "https://functions.yandexcloud.net/d4ev53geag7ku6b1dvpj",
+  "create-user": "https://functions.yandexcloud.net/d4egbht42po268s1q56a",
+  "admin-users": "https://functions.yandexcloud.net/d4ev3dr7fqpjpd9p24ma",
+  "get-messages": "https://functions.yandexcloud.net/d4e25ugin6o29hr4ots8",
+  "send-message": "https://functions.yandexcloud.net/d4eqjhv1ab66or71e1i4",
+  "verify-sms": "https://functions.yandexcloud.net/d4egj9hb0n3psc0eck02",
+  "send-sms": "https://functions.yandexcloud.net/d4eq4i3fov37r2ae1n7n",
 } as const;
