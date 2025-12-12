@@ -34,8 +34,8 @@ export const FUNCTIONS = FUNCTION_NAMES.reduce((acc, name) => {
   return acc;
 }, {} as Record<string, string>);
 
-// upload-photo - separate function on poehali.dev (uploads to Timeweb S3 via upload_fileobj)
-FUNCTIONS['upload-photo'] = 'https://functions.poehali.dev/e02155bb-d5d7-4a35-81a4-b089847fecf4';
+// upload-photo - separate function on poehali.dev (uploads to Timeweb S3 via HTTP PUT)
+FUNCTIONS['upload-photo'] = 'https://functions.poehali.dev/41e9c94d-2a84-4246-81ff-6e3f2f9b2ea0';
 
 // geocode - separate function on poehali.dev for geolocation (API Gateway doesn't proxy it)
 FUNCTIONS['geocode'] = 'https://functions.poehali.dev/90e9cacc-48ca-4b42-b817-3a77b67db25c';

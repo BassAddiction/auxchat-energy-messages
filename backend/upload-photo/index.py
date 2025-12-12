@@ -131,8 +131,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     
     # Generate public URL for Timeweb S3
-    # Format: https://{bucket}.s3.timeweb.cloud/{filename}
-    public_url = f"https://{bucket_name}.s3.timeweb.cloud/{filename}"
+    # Format: https://{bucket}.s3.timeweb.com/{filename}
+    public_url = f"https://{bucket_name}.s3.timeweb.com/{filename}"
     print(f'[UPLOAD-PHOTO] Public URL: {public_url}')
     
     return {
