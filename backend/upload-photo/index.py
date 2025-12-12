@@ -21,7 +21,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'headers': {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'POST, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, X-User-Id',
+                'Access-Control-Allow-Headers': 'Content-Type, X-User-Id, X-Content-Type',
                 'Access-Control-Max-Age': '86400'
             },
             'body': ''
@@ -35,34 +35,49 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     
     # Parse request
-    body_str = event.get('body') or '{}'
-    print(f'[UPLOAD] Body string length: {len(body_str)}')
-    body_data = json.loads(body_str) if body_str else {}
-    print(f'[UPLOAD] Body data keys: {list(body_data.keys())}')
+    body_str = event.get('body') or ''
+    is_base64_encoded = event.get('isBase64Encoded', False)
     
-    file_base64 = body_data.get('fileData') or body_data.get('audioData') or body_data.get('file')
-    content_type = body_data.get('contentType', 'image/jpeg')
-    print(f'[UPLOAD] Content type: {content_type}')
-    print(f'[UPLOAD] File base64 length: {len(file_base64) if file_base64 else 0}')
+    print(f'[UPLOAD] Body length: {len(body_str)}, isBase64: {is_base64_encoded}')
     
-    if not file_base64:
-        return {
-            'statusCode': 400,
-            'headers': {'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'No file data provided'})
-        }
+    # Get content type from headers
+    headers = event.get('headers') or {}
+    content_type = headers.get('X-Content-Type') or headers.get('x-content-type') or 'image/jpeg'
     
-    # Decode base64 (strip data:image/... prefix if present)
-    try:
-        if ',' in file_base64:
-            file_base64 = file_base64.split(',')[1]
-        file_data = base64.b64decode(file_base64)
-    except Exception as e:
-        return {
-            'statusCode': 400,
-            'headers': {'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': f'Invalid base64: {str(e)}'})
-        }
+    # Decode body
+    if is_base64_encoded:
+        try:
+            file_data = base64.b64decode(body_str)
+            print(f'[UPLOAD] Decoded binary, size: {len(file_data)} bytes')
+        except Exception as e:
+            return {
+                'statusCode': 400,
+                'headers': {'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'error': f'Invalid base64: {str(e)}'})
+            }
+    else:
+        try:
+            body_data = json.loads(body_str) if body_str else {}
+            file_base64 = body_data.get('fileData') or body_data.get('audioData') or body_data.get('file')
+            content_type = body_data.get('contentType', content_type)
+            
+            if not file_base64:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'No file data provided'})
+                }
+            
+            if ',' in file_base64:
+                file_base64 = file_base64.split(',')[1]
+            file_data = base64.b64decode(file_base64)
+            print(f'[UPLOAD] Decoded from JSON, size: {len(file_data)} bytes')
+        except Exception as e:
+            return {
+                'statusCode': 400,
+                'headers': {'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'error': f'Invalid request: {str(e)}'})
+            }
     
     # Generate unique filename
     timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
@@ -79,6 +94,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     print(f'[UPLOAD-PHOTO] Bucket: {bucket_name}')
     
     from botocore.config import Config
+    from botocore.exceptions import ClientError, ReadTimeoutError
     
     s3 = boto3.client('s3',
         endpoint_url=endpoint,
@@ -86,24 +102,33 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         aws_secret_access_key=os.environ['TIMEWEB_S3_SECRET_KEY'],
         region_name=os.environ.get('TIMEWEB_S3_REGION', 'ru-1'),
         config=Config(
-            connect_timeout=15,
-            read_timeout=60,
-            retries={'max_attempts': 3}
+            connect_timeout=10,
+            read_timeout=30,
+            retries={'max_attempts': 1, 'mode': 'standard'}
         )
     )
     
     try:
-        print(f'[UPLOAD-PHOTO] Starting upload to bucket {bucket_name}, file size: {len(file_data)} bytes')
-        # Timeweb S3: НЕ используем ACL, настраиваем права через панель Timeweb
+        print(f'[UPLOAD-PHOTO] Uploading {len(file_data)} bytes to {bucket_name}/{filename}')
+        
         s3.put_object(
             Bucket=bucket_name,
             Key=filename,
             Body=file_data,
             ContentType=content_type
         )
-        print(f'[UPLOAD-PHOTO] Upload successful!')
+        
+        print(f'[UPLOAD-PHOTO] Upload complete!')
+    except (ClientError, ReadTimeoutError) as e:
+        error_msg = f'{type(e).__name__}: {str(e)}'
+        print(f'[UPLOAD-PHOTO] Upload failed: {error_msg}')
+        return {
+            'statusCode': 500,
+            'headers': {'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': f'S3 upload failed: {error_msg}'})
+        }
     except Exception as e:
-        print(f'[UPLOAD-PHOTO] Upload error: {type(e).__name__}: {str(e)}')
+        print(f'[UPLOAD-PHOTO] Unexpected error: {type(e).__name__}: {str(e)}')
         return {
             'statusCode': 500,
             'headers': {'Access-Control-Allow-Origin': '*'},

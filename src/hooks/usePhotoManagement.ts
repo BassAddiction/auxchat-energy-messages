@@ -52,33 +52,33 @@ export const usePhotoManagement = (
 
     setIsAddingPhoto(true);
     try {
-      console.log('[PHOTO] Getting presigned URL...');
-      const presignedResponse = await fetch(
-        `${FUNCTIONS['generate-presigned-url']}?contentType=${encodeURIComponent(file.type)}`
-      );
+      console.log('[PHOTO] Reading file...');
+      const reader = new FileReader();
+      const base64 = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve((reader.result as string).split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
 
-      if (!presignedResponse.ok) {
-        throw new Error('Failed to get upload URL');
-      }
-
-      const { uploadUrl, publicUrl } = await presignedResponse.json();
-      console.log('[PHOTO] Uploading directly to S3...');
-
-      const uploadResponse = await fetch(uploadUrl, {
-        method: 'PUT',
-        headers: { 'Content-Type': file.type },
-        body: file
+      console.log('[PHOTO] Uploading to Swift...');
+      const uploadResponse = await fetch(FUNCTIONS['upload-photo'], {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ audioData: base64, contentType: file.type })
       });
 
       if (!uploadResponse.ok) {
+        const errorText = await uploadResponse.text();
+        console.error('[PHOTO] Upload failed:', uploadResponse.status, errorText);
         throw new Error(`Upload failed: ${uploadResponse.status}`);
       }
 
-      console.log('[PHOTO] Uploaded:', publicUrl);
+      const { fileUrl } = await uploadResponse.json();
+      console.log('[PHOTO] Uploaded:', fileUrl);
+
       console.log('[PHOTO] Saving to database...');
-      
       const addResponse = await fetch(
-        `${FUNCTIONS['profile-photos']}?userId=${currentUserId}&action=add&photoUrl=${encodeURIComponent(publicUrl)}&authUserId=${currentUserId}`
+        `${FUNCTIONS['profile-photos']}?userId=${currentUserId}&action=add&photoUrl=${encodeURIComponent(fileUrl)}&authUserId=${currentUserId}`
       );
 
       if (addResponse.ok) {
@@ -134,40 +134,51 @@ export const usePhotoManagement = (
     }
 
     setUploadingFile(true);
-    console.log('[PHOTO UPLOAD] Getting presigned URL...');
     
     try {
-      const presignedResponse = await fetch(
-        `${FUNCTIONS['generate-presigned-url']}?contentType=${encodeURIComponent(file.type)}`
-      );
+      console.log('[PHOTO UPLOAD] Reading file...');
+      const reader = new FileReader();
+      
+      const imageBase64 = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => {
+          const base64 = (reader.result as string).split(',')[1];
+          resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
 
-      if (!presignedResponse.ok) {
-        throw new Error('Failed to get upload URL');
-      }
-
-      const { uploadUrl, publicUrl } = await presignedResponse.json();
-      console.log('[PHOTO UPLOAD] Uploading directly to S3...');
-
-      const uploadResponse = await fetch(uploadUrl, {
-        method: 'PUT',
-        headers: { 'Content-Type': file.type },
-        body: file
+      console.log('[PHOTO UPLOAD] Uploading to Swift...');
+      
+      const uploadResponse = await fetch(FUNCTIONS['upload-photo'], {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          audioData: imageBase64,
+          contentType: file.type
+        })
       });
 
       if (!uploadResponse.ok) {
-        throw new Error(`Upload failed: ${uploadResponse.status}`);
+        const errorText = await uploadResponse.text();
+        console.error('[PHOTO UPLOAD] Upload failed:', uploadResponse.status, errorText);
+        toast.error(`Ошибка загрузки: ${uploadResponse.status}`);
+        throw new Error('Upload failed');
       }
 
-      console.log('[PHOTO UPLOAD] Uploaded:', publicUrl);
+      const { fileUrl } = await uploadResponse.json();
+      console.log('[PHOTO UPLOAD] Uploaded:', fileUrl);
+
       console.log('[PHOTO UPLOAD] Saving to database...');
-      
       const addPhotoResponse = await fetch(FUNCTIONS['profile-photos'], {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-User-Id': currentUserId || '0'
         },
-        body: JSON.stringify({ photoUrl: publicUrl })
+        body: JSON.stringify({ photoUrl: fileUrl })
       });
 
       if (addPhotoResponse.ok) {
