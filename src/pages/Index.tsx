@@ -455,15 +455,14 @@ const Index = () => {
         latitude = position.coords.latitude;
         longitude = position.coords.longitude;
 
-        // FUNCTION: geocode - Определение города по координатам (чтобы избежать CORS)
+        // Определение города по координатам через Nominatim API
         try {
-          if (FUNCTIONS["geocode"]) {
-            const geoResponse = await fetch(
-              `${FUNCTIONS["geocode"]}?lat=${latitude}&lon=${longitude}`,
-            );
-            const geoData = await geoResponse.json();
-            city = geoData.city || "";
-          }
+          const geoResponse = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1`,
+            { headers: { 'User-Agent': 'AuxChat/1.0' } }
+          );
+          const geoData = await geoResponse.json();
+          city = geoData.address?.city || geoData.address?.town || geoData.address?.village || "";
         } catch (e) {
           console.log("Не удалось определить город");
         }
@@ -907,18 +906,17 @@ const Index = () => {
       const latitude = position.coords.latitude;
       const longitude = position.coords.longitude;
 
-      // FUNCTION: geocode - Определение города по координатам
+      // Определение города по координатам через Nominatim API
       let city = "";
       try {
-        if (FUNCTIONS["geocode"]) {
-          const geoResponse = await fetch(
-            `${FUNCTIONS["geocode"]}?lat=${latitude}&lon=${longitude}`,
-          );
-          const geoData = await geoResponse.json();
-          console.log("[GEO] Geocode response:", geoData);
-          city = geoData.city || "";
-          console.log("[GEO] Extracted city:", city);
-        }
+        const geoResponse = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1`,
+          { headers: { 'User-Agent': 'AuxChat/1.0' } }
+        );
+        const geoData = await geoResponse.json();
+        console.log("[GEO] Geocode response:", geoData);
+        city = geoData.address?.city || geoData.address?.town || geoData.address?.village || "";
+        console.log("[GEO] Extracted city:", city);
       } catch (e) {
         console.error("[GEO] City lookup error:", e);
       }
