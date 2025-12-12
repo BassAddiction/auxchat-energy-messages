@@ -54,19 +54,50 @@ export const usePhotoManagement = (
 
     setIsAddingPhoto(true);
     try {
-      console.log('🟡 2. Reading file as base64...');
-      const reader = new FileReader();
-      const base64 = await new Promise<string>((resolve, reject) => {
-        reader.onload = () => resolve((reader.result as string).split(',')[1]);
+      console.log('🟡 2. Compressing image...');
+      const compressedBase64 = await new Promise<string>((resolve, reject) => {
+        const img = new Image();
+        const reader = new FileReader();
+        
+        reader.onload = (e) => {
+          img.src = e.target?.result as string;
+        };
+        
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d')!;
+          
+          let width = img.width;
+          let height = img.height;
+          const maxSize = 1200;
+          
+          if (width > height && width > maxSize) {
+            height = (height * maxSize) / width;
+            width = maxSize;
+          } else if (height > maxSize) {
+            width = (width * maxSize) / height;
+            height = maxSize;
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          const base64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+          console.log('🟢 Compressed:', Math.round(base64.length * 0.75 / 1024), 'KB');
+          resolve(base64);
+        };
+        
+        img.onerror = reject;
         reader.onerror = reject;
         reader.readAsDataURL(file);
       });
 
-      console.log('🟡 3. Uploading to Timeweb S3...', FUNCTIONS['generate-upload-url']);
+      console.log('🟡 3. Uploading to S3...', FUNCTIONS['generate-upload-url']);
       const uploadResponse = await fetch(FUNCTIONS['generate-upload-url'], {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-User-Id': currentUserId || '0' },
-        body: JSON.stringify({ fileData: base64, fileName: file.name, contentType: file.type })
+        body: JSON.stringify({ fileData: compressedBase64, fileName: file.name, contentType: 'image/jpeg' })
       });
 
       console.log('🟡 4. Upload response:', uploadResponse.status, uploadResponse.ok);
