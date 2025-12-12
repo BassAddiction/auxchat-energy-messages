@@ -49,6 +49,9 @@ FUNCTIONS['update-location'] = 'https://functions.poehali.dev/1e164728-c695-4c1a
 // generate-upload-url - for voice messages and chat photo uploads (on Yandex Cloud)
 FUNCTIONS['generate-upload-url'] = 'https://functions.yandexcloud.net/d4e1drhlub4imqleg10q';
 
+// generate-presigned-url - for direct photo uploads to Timeweb S3 (no timeout!)
+FUNCTIONS['generate-presigned-url'] = 'https://functions.poehali.dev/b1d84747-728f-4a4c-ab3f-86b7093bfbb9';
+
 console.log('[FUNC2URL] Generated FUNCTIONS:', FUNCTIONS);
 console.log('[FUNC2URL] upload-photo =', FUNCTIONS['upload-photo']);
 console.log('[FUNC2URL] generate-upload-url =', FUNCTIONS['generate-upload-url']);

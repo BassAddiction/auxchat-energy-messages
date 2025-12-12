@@ -52,33 +52,33 @@ export const usePhotoManagement = (
 
     setIsAddingPhoto(true);
     try {
-      console.log('[PHOTO] Reading file...');
-      const reader = new FileReader();
-      const base64 = await new Promise<string>((resolve, reject) => {
-        reader.onload = () => resolve((reader.result as string).split(',')[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
+      console.log('[PHOTO] Getting presigned URL...');
+      const presignedResponse = await fetch(
+        `${FUNCTIONS['generate-presigned-url']}?contentType=${encodeURIComponent(file.type)}`
+      );
 
-      console.log('[PHOTO] Uploading to S3...');
-      const uploadResponse = await fetch(FUNCTIONS['upload-photo'], {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ audioData: base64, contentType: file.type })
+      if (!presignedResponse.ok) {
+        throw new Error('Failed to get upload URL');
+      }
+
+      const { uploadUrl, publicUrl } = await presignedResponse.json();
+      console.log('[PHOTO] Uploading directly to S3...');
+
+      const uploadResponse = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type },
+        body: file
       });
 
       if (!uploadResponse.ok) {
-        const errorText = await uploadResponse.text();
-        console.error('[PHOTO] Upload failed:', uploadResponse.status, errorText);
         throw new Error(`Upload failed: ${uploadResponse.status}`);
       }
 
-      const { fileUrl } = await uploadResponse.json();
-      console.log('[PHOTO] Uploaded:', fileUrl);
-
+      console.log('[PHOTO] Uploaded:', publicUrl);
       console.log('[PHOTO] Saving to database...');
+      
       const addResponse = await fetch(
-        `${FUNCTIONS['profile-photos']}?userId=${currentUserId}&action=add&photoUrl=${encodeURIComponent(fileUrl)}&authUserId=${currentUserId}`
+        `${FUNCTIONS['profile-photos']}?userId=${currentUserId}&action=add&photoUrl=${encodeURIComponent(publicUrl)}&authUserId=${currentUserId}`
       );
 
       if (addResponse.ok) {
@@ -134,79 +134,54 @@ export const usePhotoManagement = (
     }
 
     setUploadingFile(true);
-    console.log('START: uploadingFile = true');
+    console.log('[PHOTO UPLOAD] Getting presigned URL...');
     
     try {
-      console.log('1. Reading file...');
-      const reader = new FileReader();
-      
-      const imageBase64 = await new Promise<string>((resolve, reject) => {
-        reader.onload = () => {
-          const base64 = (reader.result as string).split(',')[1];
-          resolve(base64);
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
+      const presignedResponse = await fetch(
+        `${FUNCTIONS['generate-presigned-url']}?contentType=${encodeURIComponent(file.type)}`
+      );
 
-      console.log('2. File read, uploading to S3...');
-      console.log('   ALL FUNCTIONS:', FUNCTIONS);
-      console.log('   URL:', FUNCTIONS['upload-photo']);
-      console.log('   Content-Type:', file.type);
-      console.log('   Base64 length:', imageBase64.length);
-      
-      const uploadResponse = await fetch(FUNCTIONS['upload-photo'], {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ 
-          audioData: imageBase64,
-          contentType: file.type
-        })
-      });
-
-      console.log('3. Upload response:', uploadResponse.status, uploadResponse.statusText);
-      console.log('   Response headers:', Object.fromEntries(uploadResponse.headers.entries()));
-      
-      if (!uploadResponse.ok) {
-        const errorText = await uploadResponse.text();
-        console.error('Upload error details:', {
-          status: uploadResponse.status,
-          statusText: uploadResponse.statusText,
-          body: errorText
-        });
-        toast.error(`Ошибка загрузки: ${uploadResponse.status} ${errorText}`);
-        throw new Error('Upload failed');
+      if (!presignedResponse.ok) {
+        throw new Error('Failed to get upload URL');
       }
 
-      const { fileUrl } = await uploadResponse.json();
-      console.log('4. Got fileUrl:', fileUrl);
+      const { uploadUrl, publicUrl } = await presignedResponse.json();
+      console.log('[PHOTO UPLOAD] Uploading directly to S3...');
 
-      console.log('5. Saving to database...');
+      const uploadResponse = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type },
+        body: file
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error(`Upload failed: ${uploadResponse.status}`);
+      }
+
+      console.log('[PHOTO UPLOAD] Uploaded:', publicUrl);
+      console.log('[PHOTO UPLOAD] Saving to database...');
+      
       const addPhotoResponse = await fetch(FUNCTIONS['profile-photos'], {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-User-Id': currentUserId || '0'
         },
-        body: JSON.stringify({ photoUrl: fileUrl })
+        body: JSON.stringify({ photoUrl: publicUrl })
       });
 
-      console.log('6. Save response:', addPhotoResponse.status);
       if (addPhotoResponse.ok) {
         toast.success('Фото добавлено');
         loadPhotos();
       } else {
         const error = await addPhotoResponse.json();
-        console.error('Save error:', error);
+        console.error('[PHOTO UPLOAD] Save error:', error);
         toast.error(error.error || 'Ошибка добавления фото');
       }
     } catch (error) {
-      console.error('Upload failed:', error);
+      console.error('[PHOTO UPLOAD] Failed:', error);
       toast.error(`Ошибка загрузки: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
     } finally {
-      console.log('FINALLY: setting uploadingFile = false');
       setUploadingFile(false);
       e.target.value = '';
     }
