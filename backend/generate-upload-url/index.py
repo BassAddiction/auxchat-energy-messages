@@ -186,7 +186,7 @@ def handle_upload(event: Dict[str, Any]) -> Dict[str, Any]:
         
         print(f'[DEBUG] Generated filename: {filename}')
         
-        # Upload to S3 with increased timeouts for Swift
+        # Upload to S3 with reduced timeouts to avoid Gateway Timeout
         print('[DEBUG] Creating S3 client')
         from botocore.config import Config as BotoConfig
         s3_client = boto3.client(
@@ -197,10 +197,10 @@ def handle_upload(event: Dict[str, Any]) -> Dict[str, Any]:
             region_name=s3_region,
             config=BotoConfig(
                 signature_version='s3v4',
-                connect_timeout=10,
-                read_timeout=60,
-                retries={'max_attempts': 3, 'mode': 'adaptive'},
-                max_pool_connections=10
+                connect_timeout=5,
+                read_timeout=20,
+                retries={'max_attempts': 1, 'mode': 'standard'},
+                max_pool_connections=5
             )
         )
         
