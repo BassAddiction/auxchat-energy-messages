@@ -86,9 +86,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         aws_secret_access_key=os.environ['TIMEWEB_S3_SECRET_KEY'],
         region_name=os.environ.get('TIMEWEB_S3_REGION', 'ru-1'),
         config=Config(
-            connect_timeout=5,
-            read_timeout=10,
-            retries={'max_attempts': 2}
+            connect_timeout=15,
+            read_timeout=60,
+            retries={'max_attempts': 3}
         )
     )
     
