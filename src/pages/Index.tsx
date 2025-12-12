@@ -16,56 +16,13 @@ import { Slider } from "@/components/ui/slider";
 import Icon from "@/components/ui/icon";
 import { api } from "@/lib/api";
 import { FUNCTIONS } from "@/lib/func2url";
-
-interface Message {
-  id: number;
-  userId: number;
-  username: string;
-  avatar: string;
-  text: string;
-  timestamp: Date;
-  reactions: { emoji: string; count: number }[];
-}
-
-interface User {
-  username: string;
-  avatar: string;
-  phone: string;
-  energy: number;
-  status?: string;
-}
+import { Message, User } from "@/types";
+import { playNotificationSound, calculatePrice, initializeUserId } from "@/lib/indexHelpers";
 
 const Index = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
-  const [userId, setUserId] = useState<number | null>(() => {
-    // Force clear old data and set to user 7
-    const appVersion = localStorage.getItem("app_version");
-    console.log("[INIT] App version:", appVersion);
-    if (appVersion !== "v3") {
-      console.log("[INIT] Version mismatch, clearing localStorage");
-      localStorage.clear();
-      localStorage.setItem("app_version", "v3");
-      localStorage.setItem("auxchat_user_id", "7");
-      localStorage.setItem("username", "AuxChat");
-      console.log("[INIT] Set default userId to 7");
-      return 7;
-    }
-
-    const stored = localStorage.getItem("auxchat_user_id");
-    console.log("[INIT] Stored userId from localStorage:", stored);
-    if (stored && stored !== "null") {
-      const parsed = parseInt(stored);
-      console.log("[INIT] Parsed userId:", parsed);
-      return parsed;
-    }
-
-    // Auto-login as user 7 (AuxChat) if not logged in
-    console.log("[INIT] No valid userId, setting to 7");
-    localStorage.setItem("auxchat_user_id", "7");
-    localStorage.setItem("username", "AuxChat");
-    return 7;
-  });
+  const [userId, setUserId] = useState<number | null>(() => initializeUserId());
   console.log("[COMPONENT] Rendering with userId:", userId);
   const [messages, setMessages] = useState<Message[]>([]);
   const [messageText, setMessageText] = useState("");
@@ -136,49 +93,7 @@ const Index = () => {
     city: string;
   } | null>(null);
 
-  // Расчет цены с прогрессивной скидкой до 30%
-  const calculatePrice = (rubles: number) => {
-    // От 500₽ (0% скидка) до 10000₽ (30% скидка)
-    const discountPercent = ((rubles - 500) / (10000 - 500)) * 30;
-    const baseEnergy = rubles; // 1₽ = 1 энергия
-    const bonus = Math.floor(baseEnergy * (discountPercent / 100));
-    return {
-      energy: baseEnergy + bonus,
-      discount: Math.round(discountPercent),
-    };
-  };
-
   const { energy: calculatedEnergy, discount } = calculatePrice(energyAmount);
-
-  const playNotificationSound = () => {
-    try {
-      const audioContext = new (window.AudioContext ||
-        (window as any).webkitAudioContext)();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-
-      oscillator.type = "sine";
-      oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(
-        800,
-        audioContext.currentTime + 0.1,
-      );
-
-      gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(
-        0.01,
-        audioContext.currentTime + 0.15,
-      );
-
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-
-      oscillator.start();
-      oscillator.stop(audioContext.currentTime + 0.15);
-    } catch (e) {
-      console.log("Audio play failed:", e);
-    }
-  };
 
   const loadUnreadCount = async () => {
     if (!userId) return;
