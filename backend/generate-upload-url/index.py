@@ -4,6 +4,8 @@ Args: event with httpMethod, query params (filename, contentType)
 Returns: HTTP response with pre-signed upload URL
 '''
 
+# Привет Серый это я Юра с поехали
+
 import json
 import os
 import boto3
