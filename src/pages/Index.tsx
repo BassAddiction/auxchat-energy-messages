@@ -457,11 +457,13 @@ const Index = () => {
 
         // FUNCTION: geocode - Определение города по координатам (чтобы избежать CORS)
         try {
-          const geoResponse = await fetch(
-            `${FUNCTIONS["geocode"]}?lat=${latitude}&lon=${longitude}`,
-          );
-          const geoData = await geoResponse.json();
-          city = geoData.city || "";
+          if (FUNCTIONS["geocode"]) {
+            const geoResponse = await fetch(
+              `${FUNCTIONS["geocode"]}?lat=${latitude}&lon=${longitude}`,
+            );
+            const geoData = await geoResponse.json();
+            city = geoData.city || "";
+          }
         } catch (e) {
           console.log("Не удалось определить город");
         }
@@ -908,13 +910,15 @@ const Index = () => {
       // FUNCTION: geocode - Определение города по координатам
       let city = "";
       try {
-        const geoResponse = await fetch(
-          `${FUNCTIONS["geocode"]}?lat=${latitude}&lon=${longitude}`,
-        );
-        const geoData = await geoResponse.json();
-        console.log("[GEO] Geocode response:", geoData);
-        city = geoData.city || "";
-        console.log("[GEO] Extracted city:", city);
+        if (FUNCTIONS["geocode"]) {
+          const geoResponse = await fetch(
+            `${FUNCTIONS["geocode"]}?lat=${latitude}&lon=${longitude}`,
+          );
+          const geoData = await geoResponse.json();
+          console.log("[GEO] Geocode response:", geoData);
+          city = geoData.city || "";
+          console.log("[GEO] Extracted city:", city);
+        }
       } catch (e) {
         console.error("[GEO] City lookup error:", e);
       }
