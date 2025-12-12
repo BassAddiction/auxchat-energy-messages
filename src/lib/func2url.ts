@@ -1,29 +1,3 @@
-const API_GATEWAY = "https://d5dkffis8kfdsr7g6rjo.z7jmlavt.apigw.yandexcloud.net";
+import func2url from '../../backend/func2url.json';
 
-export const FUNCTIONS = {
-  "upload-photo": `${API_GATEWAY}/generate-upload-url`,
-  "generate-upload-url": `${API_GATEWAY}/generate-upload-url`,
-  "update-activity": `${API_GATEWAY}/update-activity`,
-  "blacklist": `${API_GATEWAY}/blacklist`,
-  "get-subscriptions": `${API_GATEWAY}/get-subscriptions`,
-  "subscribe": `${API_GATEWAY}/subscribe`,
-  "profile-photos": `${API_GATEWAY}/profile-photos`,
-  "get-conversations": `${API_GATEWAY}/get-conversations`,
-  "private-messages": `${API_GATEWAY}/private-messages`,
-  "payment-webhook": `${API_GATEWAY}/payment-webhook`,
-  "create-payment": `${API_GATEWAY}/create-payment`,
-  "add-energy": `${API_GATEWAY}/add-energy`,
-  "register": `${API_GATEWAY}/register`,
-  "reset-password": `${API_GATEWAY}/reset-password`,
-  "login": `${API_GATEWAY}/login`,
-  "add-reaction": `${API_GATEWAY}/add-reaction`,
-  "get-user": `${API_GATEWAY}/get-user`,
-  "create-user": `${API_GATEWAY}/create-user`,
-  "admin-users": `${API_GATEWAY}/admin-users`,
-  "get-messages": `${API_GATEWAY}/get-messages`,
-  "send-message": `${API_GATEWAY}/send-message`,
-  "verify-sms": `${API_GATEWAY}/verify-sms`,
-  "send-sms": `${API_GATEWAY}/send-sms`,
-  "geocode": `${API_GATEWAY}/geocode`,
-  "update-location": `${API_GATEWAY}/update-location`,
-} as const;
+export const FUNCTIONS = func2url as Record<string, string>;
