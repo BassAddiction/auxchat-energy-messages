@@ -188,7 +188,7 @@ def handle_upload(event: Dict[str, Any]) -> Dict[str, Any]:
         
         print(f'[DEBUG] Generated filename: {filename}')
         
-        # Upload to S3 - no timeouts, let it complete
+        # Upload to S3 with timeouts
         print('[DEBUG] Creating S3 client')
         from botocore.config import Config as BotoConfig
         s3_client = boto3.client(
@@ -197,7 +197,12 @@ def handle_upload(event: Dict[str, Any]) -> Dict[str, Any]:
             aws_access_key_id=s3_access_key,
             aws_secret_access_key=s3_secret_key,
             region_name=s3_region,
-            config=BotoConfig(signature_version='s3v4')
+            config=BotoConfig(
+                signature_version='s3v4',
+                connect_timeout=5,
+                read_timeout=20,
+                retries={'max_attempts': 2}
+            )
         )
         
         print('[DEBUG] Uploading to S3...')
