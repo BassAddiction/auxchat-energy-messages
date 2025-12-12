@@ -52,6 +52,7 @@ export const usePhotoManagement = (
 
     setIsAddingPhoto(true);
     try {
+      console.log('[PHOTO] Reading file...');
       const reader = new FileReader();
       const base64 = await new Promise<string>((resolve, reject) => {
         reader.onload = () => resolve((reader.result as string).split(',')[1]);
@@ -59,16 +60,23 @@ export const usePhotoManagement = (
         reader.readAsDataURL(file);
       });
 
-      const uploadResponse = await fetch(FUNCTIONS['generate-upload-url'], {
+      console.log('[PHOTO] Uploading to S3...');
+      const uploadResponse = await fetch(FUNCTIONS['upload-profile-photo'], {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-User-Id': currentUserId || '0' },
-        body: JSON.stringify({ fileData: base64, fileName: file.name, contentType: file.type })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileData: base64, contentType: file.type })
       });
 
-      if (!uploadResponse.ok) throw new Error('Upload failed');
+      if (!uploadResponse.ok) {
+        const errorText = await uploadResponse.text();
+        console.error('[PHOTO] Upload failed:', uploadResponse.status, errorText);
+        throw new Error(`Upload failed: ${uploadResponse.status}`);
+      }
 
       const { fileUrl } = await uploadResponse.json();
+      console.log('[PHOTO] Uploaded:', fileUrl);
 
+      console.log('[PHOTO] Saving to database...');
       const addResponse = await fetch(
         `${FUNCTIONS['profile-photos']}?userId=${currentUserId}&action=add&photoUrl=${encodeURIComponent(fileUrl)}&authUserId=${currentUserId}`
       );
@@ -77,10 +85,13 @@ export const usePhotoManagement = (
         toast.success('Фото загружено');
         loadPhotos();
       } else {
+        const errorText = await addResponse.text();
+        console.error('[PHOTO] Save failed:', addResponse.status, errorText);
         toast.error('Не удалось сохранить фото');
       }
     } catch (error) {
-      toast.error('Ошибка загрузки');
+      console.error('[PHOTO] Error:', error);
+      toast.error(`Ошибка загрузки: ${error instanceof Error ? error.message : 'Unknown'}`);
     } finally {
       setIsAddingPhoto(false);
       e.target.value = '';
