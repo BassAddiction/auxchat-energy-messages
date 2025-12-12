@@ -94,7 +94,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     print(f'[UPLOAD-PHOTO] Bucket: {bucket_name}')
     
     from botocore.config import Config
-    from botocore.exceptions import ClientError, ReadTimeoutError
+    import io
     
     s3 = boto3.client('s3',
         endpoint_url=endpoint,
@@ -102,33 +102,28 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         aws_secret_access_key=os.environ['TIMEWEB_S3_SECRET_KEY'],
         region_name=os.environ.get('TIMEWEB_S3_REGION', 'ru-1'),
         config=Config(
-            connect_timeout=10,
-            read_timeout=30,
-            retries={'max_attempts': 1, 'mode': 'standard'}
+            connect_timeout=5,
+            read_timeout=20,
+            retries={'max_attempts': 2}
         )
     )
     
     try:
-        print(f'[UPLOAD-PHOTO] Uploading {len(file_data)} bytes to {bucket_name}/{filename}')
+        print(f'[UPLOAD-PHOTO] Uploading {len(file_data)} bytes')
         
-        s3.put_object(
-            Bucket=bucket_name,
-            Key=filename,
-            Body=file_data,
-            ContentType=content_type
+        # Use BytesIO for efficient streaming
+        file_obj = io.BytesIO(file_data)
+        
+        s3.upload_fileobj(
+            file_obj,
+            bucket_name,
+            filename,
+            ExtraArgs={'ContentType': content_type}
         )
         
-        print(f'[UPLOAD-PHOTO] Upload complete!')
-    except (ClientError, ReadTimeoutError) as e:
-        error_msg = f'{type(e).__name__}: {str(e)}'
-        print(f'[UPLOAD-PHOTO] Upload failed: {error_msg}')
-        return {
-            'statusCode': 500,
-            'headers': {'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': f'S3 upload failed: {error_msg}'})
-        }
+        print(f'[UPLOAD-PHOTO] Success!')
     except Exception as e:
-        print(f'[UPLOAD-PHOTO] Unexpected error: {type(e).__name__}: {str(e)}')
+        print(f'[UPLOAD-PHOTO] Error: {type(e).__name__}: {str(e)}')
         return {
             'statusCode': 500,
             'headers': {'Access-Control-Allow-Origin': '*'},
