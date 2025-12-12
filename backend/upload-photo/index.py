@@ -94,12 +94,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     try:
         print(f'[UPLOAD-PHOTO] Starting upload to bucket {bucket_name}, file size: {len(file_data)} bytes')
+        # Timeweb S3: НЕ используем ACL, настраиваем права через панель Timeweb
         s3.put_object(
             Bucket=bucket_name,
             Key=filename,
             Body=file_data,
-            ContentType=content_type,
-            ACL='public-read'  # Делаем файл публично доступным
+            ContentType=content_type
         )
         print(f'[UPLOAD-PHOTO] Upload successful!')
     except Exception as e:
