@@ -24,6 +24,8 @@ const FUNCTION_NAMES = [
   'private-messages',
   'admin-users',
   'get-user',
+  'geocode',
+  'update-location',
 ];
 
 // Generate FUNCTIONS object with API Gateway URLs
