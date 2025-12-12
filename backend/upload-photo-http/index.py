@@ -2,6 +2,8 @@ import json
 import os
 import base64
 import requests
+import hashlib
+import hmac
 from typing import Dict, Any
 from datetime import datetime
 
@@ -64,22 +66,75 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     extension = content_type.split('/')[-1]
     filename = f'photos/{timestamp}.{extension}'
     
-    # Timeweb S3 HTTP upload
+    # Timeweb S3 HTTP upload with AWS Signature v4
     bucket_name = os.environ['TIMEWEB_S3_BUCKET_NAME']
     access_key = os.environ['TIMEWEB_S3_ACCESS_KEY']
     secret_key = os.environ['TIMEWEB_S3_SECRET_KEY']
+    region = os.environ.get('TIMEWEB_S3_REGION', 'ru-1')
     
-    # Use simple HTTP PUT with AWS Signature v2 (simpler, faster)
+    # AWS Signature v4
+    now = datetime.utcnow()
+    amz_date = now.strftime('%Y%m%dT%H%M%SZ')
+    date_stamp = now.strftime('%Y%m%d')
+    
+    # Create canonical request
+    method = 'PUT'
+    canonical_uri = f'/{filename}'
+    canonical_querystring = ''
+    
+    payload_hash = hashlib.sha256(file_data).hexdigest()
+    
+    canonical_headers = (
+        f'content-type:{content_type}\n'
+        f'host:{bucket_name}.s3.timeweb.com\n'
+        f'x-amz-content-sha256:{payload_hash}\n'
+        f'x-amz-date:{amz_date}\n'
+    )
+    signed_headers = 'content-type;host;x-amz-content-sha256;x-amz-date'
+    
+    canonical_request = (
+        f'{method}\n{canonical_uri}\n{canonical_querystring}\n'
+        f'{canonical_headers}\n{signed_headers}\n{payload_hash}'
+    )
+    
+    # Create string to sign
+    algorithm = 'AWS4-HMAC-SHA256'
+    credential_scope = f'{date_stamp}/{region}/s3/aws4_request'
+    string_to_sign = (
+        f'{algorithm}\n{amz_date}\n{credential_scope}\n'
+        f'{hashlib.sha256(canonical_request.encode()).hexdigest()}'
+    )
+    
+    # Calculate signature
+    def sign(key, msg):
+        return hmac.new(key, msg.encode(), hashlib.sha256).digest()
+    
+    k_date = sign(('AWS4' + secret_key).encode(), date_stamp)
+    k_region = sign(k_date, region)
+    k_service = sign(k_region, 's3')
+    k_signing = sign(k_service, 'aws4_request')
+    signature = hmac.new(k_signing, string_to_sign.encode(), hashlib.sha256).hexdigest()
+    
+    # Create authorization header
+    authorization = (
+        f'{algorithm} Credential={access_key}/{credential_scope}, '
+        f'SignedHeaders={signed_headers}, Signature={signature}'
+    )
+    
     upload_url = f"https://{bucket_name}.s3.timeweb.com/{filename}"
     
     try:
-        print(f'[HTTP-UPLOAD] Uploading {len(file_data)} bytes to {upload_url}')
+        print(f'[HTTP-UPLOAD] Uploading {len(file_data)} bytes with signature')
         
-        # Simple PUT request without signature (if bucket is public)
         response = requests.put(
             upload_url,
             data=file_data,
-            headers={'Content-Type': content_type},
+            headers={
+                'Content-Type': content_type,
+                'x-amz-date': amz_date,
+                'x-amz-content-sha256': payload_hash,
+                'Authorization': authorization
+            },
             timeout=15
         )
         
