@@ -32,8 +32,12 @@ export const FUNCTIONS = FUNCTION_NAMES.reduce((acc, name) => {
   return acc;
 }, {} as Record<string, string>);
 
-// upload-photo - separate function on poehali.dev for photo uploads
+// upload-photo - separate function on poehali.dev for profile photo uploads
 FUNCTIONS['upload-photo'] = 'https://functions.poehali.dev/e02155bb-d5d7-4a35-81a4-b089847fecf4';
+
+// generate-upload-url - for voice messages and chat photo uploads (on Yandex Cloud)
+FUNCTIONS['generate-upload-url'] = 'https://functions.yandexcloud.net/d4e1drhlub4imqleg10q';
 
 console.log('[FUNC2URL] Generated FUNCTIONS:', FUNCTIONS);
 console.log('[FUNC2URL] upload-photo =', FUNCTIONS['upload-photo']);
+console.log('[FUNC2URL] generate-upload-url =', FUNCTIONS['generate-upload-url']);
