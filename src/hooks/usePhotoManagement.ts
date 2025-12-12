@@ -99,29 +99,28 @@ export const usePhotoManagement = (
 
       console.log(`[PHOTO] Compressed: ${file.size} -> ${compressedFile.size} bytes`);
       
-      console.log('[PHOTO] Getting presigned URL...');
-      const presignedResponse = await fetch(
-        `${FUNCTIONS['generate-presigned-url']}?contentType=image/jpeg`
-      );
+      // Convert to base64
+      const reader = new FileReader();
+      const base64 = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve((reader.result as string).split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(compressedFile);
+      });
 
-      if (!presignedResponse.ok) {
-        throw new Error('Failed to get upload URL');
-      }
-
-      const { uploadUrl, fileUrl } = await presignedResponse.json();
-      console.log('[PHOTO] Got presigned URL, uploading directly to S3...');
-
-      const uploadResponse = await fetch(uploadUrl, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'image/jpeg' },
-        body: compressedFile
+      console.log('[PHOTO] Uploading to poehali.dev S3...');
+      const uploadResponse = await fetch(FUNCTIONS['generate-upload-url'], {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ audioData: base64, contentType: 'image/jpeg' })
       });
 
       if (!uploadResponse.ok) {
-        console.error('[PHOTO] Upload failed:', uploadResponse.status);
+        const errorText = await uploadResponse.text();
+        console.error('[PHOTO] Upload failed:', uploadResponse.status, errorText);
         throw new Error(`Upload failed: ${uploadResponse.status}`);
       }
 
+      const { fileUrl } = await uploadResponse.json();
       console.log('[PHOTO] Uploaded:', fileUrl);
 
       console.log('[PHOTO] Saving to database...');
@@ -230,30 +229,29 @@ export const usePhotoManagement = (
 
       console.log(`[PHOTO UPLOAD] Compressed: ${file.size} -> ${compressedFile.size} bytes`);
       
-      console.log('[PHOTO UPLOAD] Getting presigned URL...');
-      const presignedResponse = await fetch(
-        `${FUNCTIONS['generate-presigned-url']}?contentType=image/jpeg`
-      );
+      // Convert to base64
+      const reader = new FileReader();
+      const imageBase64 = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve((reader.result as string).split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(compressedFile);
+      });
 
-      if (!presignedResponse.ok) {
-        throw new Error('Failed to get upload URL');
-      }
-
-      const { uploadUrl, fileUrl } = await presignedResponse.json();
-      console.log('[PHOTO UPLOAD] Got presigned URL, uploading directly to S3...');
-      
-      const uploadResponse = await fetch(uploadUrl, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'image/jpeg' },
-        body: compressedFile
+      console.log('[PHOTO UPLOAD] Uploading to poehali.dev S3...');
+      const uploadResponse = await fetch(FUNCTIONS['generate-upload-url'], {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ audioData: imageBase64, contentType: 'image/jpeg' })
       });
 
       if (!uploadResponse.ok) {
-        console.error('[PHOTO UPLOAD] Upload failed:', uploadResponse.status);
+        const errorText = await uploadResponse.text();
+        console.error('[PHOTO UPLOAD] Upload failed:', uploadResponse.status, errorText);
         toast.error(`Ошибка загрузки: ${uploadResponse.status}`);
         throw new Error('Upload failed');
       }
 
+      const { fileUrl } = await uploadResponse.json();
       console.log('[PHOTO UPLOAD] Uploaded:', fileUrl);
 
       console.log('[PHOTO UPLOAD] Saving to database...');
