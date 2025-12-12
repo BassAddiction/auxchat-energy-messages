@@ -131,10 +131,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     
     # Generate public URL for Timeweb S3
-    # Format: https://s3.timeweb.cloud/{bucket}/{filename}
-    access_key = os.environ['TIMEWEB_S3_ACCESS_KEY']
-    public_url = f"https://s3.twcstorage.ru/{access_key}/{bucket_name}/{filename}"
-    print(f'[UPLOAD-PHOTO] Uploaded to: {public_url}')
+    # Format: https://{bucket}.s3.timeweb.cloud/{filename}
+    public_url = f"https://{bucket_name}.s3.timeweb.cloud/{filename}"
+    print(f'[UPLOAD-PHOTO] Public URL: {public_url}')
     
     return {
         'statusCode': 200,
