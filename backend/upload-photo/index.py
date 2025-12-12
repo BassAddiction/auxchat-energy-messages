@@ -70,16 +70,30 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     filename = f'photos/{timestamp}.{extension}'
     
     # Upload to Timeweb S3
-    s3 = boto3.client('s3',
-        endpoint_url=os.environ['TIMEWEB_S3_ENDPOINT'],
-        aws_access_key_id=os.environ['TIMEWEB_S3_ACCESS_KEY'],
-        aws_secret_access_key=os.environ['TIMEWEB_S3_SECRET_KEY'],
-        region_name=os.environ.get('TIMEWEB_S3_REGION', 'ru-1')
-    )
-    
+    endpoint = os.environ['TIMEWEB_S3_ENDPOINT']
+    access_key = os.environ['TIMEWEB_S3_ACCESS_KEY']
     bucket_name = os.environ['TIMEWEB_S3_BUCKET_NAME']
     
+    print(f'[UPLOAD-PHOTO] Endpoint: {endpoint}')
+    print(f'[UPLOAD-PHOTO] Access key: {access_key[:8]}...')
+    print(f'[UPLOAD-PHOTO] Bucket: {bucket_name}')
+    
+    from botocore.config import Config
+    
+    s3 = boto3.client('s3',
+        endpoint_url=endpoint,
+        aws_access_key_id=access_key,
+        aws_secret_access_key=os.environ['TIMEWEB_S3_SECRET_KEY'],
+        region_name=os.environ.get('TIMEWEB_S3_REGION', 'ru-1'),
+        config=Config(
+            connect_timeout=5,
+            read_timeout=10,
+            retries={'max_attempts': 2}
+        )
+    )
+    
     try:
+        print(f'[UPLOAD-PHOTO] Starting upload to bucket {bucket_name}, file size: {len(file_data)} bytes')
         s3.put_object(
             Bucket=bucket_name,
             Key=filename,
@@ -87,7 +101,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             ContentType=content_type,
             ACL='public-read'  # Делаем файл публично доступным
         )
+        print(f'[UPLOAD-PHOTO] Upload successful!')
     except Exception as e:
+        print(f'[UPLOAD-PHOTO] Upload error: {type(e).__name__}: {str(e)}')
         return {
             'statusCode': 500,
             'headers': {'Access-Control-Allow-Origin': '*'},
