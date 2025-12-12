@@ -32,3 +32,6 @@ export const FUNCTIONS = FUNCTION_NAMES.reduce((acc, name) => {
   acc[name] = `${API_GATEWAY}/${name}`;
   return acc;
 }, {} as Record<string, string>);
+
+console.log('[FUNC2URL] Generated FUNCTIONS:', FUNCTIONS);
+console.log('[FUNC2URL] generate-upload-url =', FUNCTIONS['generate-upload-url']);
