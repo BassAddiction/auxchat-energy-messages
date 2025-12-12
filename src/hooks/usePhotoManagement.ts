@@ -150,6 +150,7 @@ export const usePhotoManagement = (
       });
 
       console.log('2. File read, uploading to S3...');
+      console.log('   ALL FUNCTIONS:', FUNCTIONS);
       console.log('   URL:', FUNCTIONS['generate-upload-url']);
       console.log('   Content-Type:', file.type);
       console.log('   Base64 length:', imageBase64.length);
