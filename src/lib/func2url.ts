@@ -43,6 +43,9 @@ FUNCTIONS['geocode'] = 'https://functions.poehali.dev/90e9cacc-48ca-4b42-b817-3a
 // get-user - separate function on poehali.dev for user data with city field
 FUNCTIONS['get-user'] = 'https://functions.poehali.dev/518f730f-1a8e-45ad-b0ed-e9a66c5a3784';
 
+// update-location - separate function on poehali.dev for updating user geolocation
+FUNCTIONS['update-location'] = 'https://functions.poehali.dev/1e164728-c695-4c1a-9496-29af61259212';
+
 // generate-upload-url - for voice messages and chat photo uploads (on Yandex Cloud)
 FUNCTIONS['generate-upload-url'] = 'https://functions.yandexcloud.net/d4e1drhlub4imqleg10q';
 
