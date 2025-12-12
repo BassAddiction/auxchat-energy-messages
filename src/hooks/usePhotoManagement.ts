@@ -52,9 +52,56 @@ export const usePhotoManagement = (
 
     setIsAddingPhoto(true);
     try {
+      console.log('[PHOTO] Compressing image...');
+      
+      // Compress image to reduce size and upload time
+      const compressedFile = await new Promise<Blob>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+            
+            // Max dimensions 1920x1920
+            const maxDim = 1920;
+            if (width > maxDim || height > maxDim) {
+              if (width > height) {
+                height = (height * maxDim) / width;
+                width = maxDim;
+              } else {
+                width = (width * maxDim) / height;
+                height = maxDim;
+              }
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx?.drawImage(img, 0, 0, width, height);
+            
+            canvas.toBlob(
+              (blob) => {
+                if (blob) resolve(blob);
+                else reject(new Error('Compression failed'));
+              },
+              'image/jpeg',
+              0.85
+            );
+          };
+          img.onerror = reject;
+          img.src = e.target?.result as string;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      console.log(`[PHOTO] Compressed: ${file.size} -> ${compressedFile.size} bytes`);
+      
       console.log('[PHOTO] Getting presigned URL...');
       const presignedResponse = await fetch(
-        `${FUNCTIONS['generate-presigned-url']}?contentType=${encodeURIComponent(file.type)}`
+        `${FUNCTIONS['generate-presigned-url']}?contentType=image/jpeg`
       );
 
       if (!presignedResponse.ok) {
@@ -66,8 +113,8 @@ export const usePhotoManagement = (
 
       const uploadResponse = await fetch(uploadUrl, {
         method: 'PUT',
-        headers: { 'Content-Type': file.type },
-        body: file
+        headers: { 'Content-Type': 'image/jpeg' },
+        body: compressedFile
       });
 
       if (!uploadResponse.ok) {
@@ -137,9 +184,55 @@ export const usePhotoManagement = (
     setUploadingFile(true);
     
     try {
+      console.log('[PHOTO UPLOAD] Compressing image...');
+      
+      // Compress image
+      const compressedFile = await new Promise<Blob>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+            
+            const maxDim = 1920;
+            if (width > maxDim || height > maxDim) {
+              if (width > height) {
+                height = (height * maxDim) / width;
+                width = maxDim;
+              } else {
+                width = (width * maxDim) / height;
+                height = maxDim;
+              }
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx?.drawImage(img, 0, 0, width, height);
+            
+            canvas.toBlob(
+              (blob) => {
+                if (blob) resolve(blob);
+                else reject(new Error('Compression failed'));
+              },
+              'image/jpeg',
+              0.85
+            );
+          };
+          img.onerror = reject;
+          img.src = e.target?.result as string;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      console.log(`[PHOTO UPLOAD] Compressed: ${file.size} -> ${compressedFile.size} bytes`);
+      
       console.log('[PHOTO UPLOAD] Getting presigned URL...');
       const presignedResponse = await fetch(
-        `${FUNCTIONS['generate-presigned-url']}?contentType=${encodeURIComponent(file.type)}`
+        `${FUNCTIONS['generate-presigned-url']}?contentType=image/jpeg`
       );
 
       if (!presignedResponse.ok) {
@@ -151,8 +244,8 @@ export const usePhotoManagement = (
       
       const uploadResponse = await fetch(uploadUrl, {
         method: 'PUT',
-        headers: { 'Content-Type': file.type },
-        body: file
+        headers: { 'Content-Type': 'image/jpeg' },
+        body: compressedFile
       });
 
       if (!uploadResponse.ok) {
