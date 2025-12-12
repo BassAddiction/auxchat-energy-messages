@@ -7,10 +7,11 @@ from datetime import datetime
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
-    Загружает фотографию пользователя в S3 хранилище
+    Загружает фотографию пользователя в Timeweb S3 хранилище
     Args: event - dict с httpMethod, body (base64 изображение)
-    Returns: HTTP response с CDN URL загруженного файла
+    Returns: HTTP response с публичным URL загруженного файла
     '''
+    print('[UPLOAD-PHOTO] Using Timeweb S3 storage')
     method: str = event.get('httpMethod', 'POST')
     
     # Handle CORS OPTIONS
@@ -68,19 +69,23 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     extension = content_type.split('/')[-1]
     filename = f'photos/{timestamp}.{extension}'
     
-    # Upload to S3
+    # Upload to Timeweb S3
     s3 = boto3.client('s3',
-        endpoint_url='https://bucket.poehali.dev',
-        aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
-        aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
+        endpoint_url=os.environ['TIMEWEB_S3_ENDPOINT'],
+        aws_access_key_id=os.environ['TIMEWEB_S3_ACCESS_KEY'],
+        aws_secret_access_key=os.environ['TIMEWEB_S3_SECRET_KEY'],
+        region_name=os.environ.get('TIMEWEB_S3_REGION', 'ru-1')
     )
+    
+    bucket_name = os.environ['TIMEWEB_S3_BUCKET_NAME']
     
     try:
         s3.put_object(
-            Bucket='files',
+            Bucket=bucket_name,
             Key=filename,
             Body=file_data,
-            ContentType=content_type
+            ContentType=content_type,
+            ACL='public-read'  # Делаем файл публично доступным
         )
     except Exception as e:
         return {
@@ -89,8 +94,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'body': json.dumps({'error': f'Upload failed: {str(e)}'})
         }
     
-    # Generate CDN URL
-    cdn_url = f"https://cdn.poehali.dev/projects/{os.environ['AWS_ACCESS_KEY_ID']}/bucket/{filename}"
+    # Generate public URL for Timeweb S3
+    # Format: https://s3.timeweb.cloud/{bucket}/{filename}
+    access_key = os.environ['TIMEWEB_S3_ACCESS_KEY']
+    public_url = f"https://s3.twcstorage.ru/{access_key}/{bucket_name}/{filename}"
+    print(f'[UPLOAD-PHOTO] Uploaded to: {public_url}')
     
     return {
         'statusCode': 200,
@@ -99,5 +107,5 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'Access-Control-Allow-Origin': '*'
         },
         'isBase64Encoded': False,
-        'body': json.dumps({'url': cdn_url, 'fileUrl': cdn_url})
+        'body': json.dumps({'url': public_url, 'fileUrl': public_url})
     }
