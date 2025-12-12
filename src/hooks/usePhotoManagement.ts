@@ -60,36 +60,49 @@ export const usePhotoManagement = (
         const reader = new FileReader();
         
         reader.onload = (e) => {
-          img.src = e.target?.result as string;
+          if (!e.target?.result) {
+            reject(new Error('Failed to read file'));
+            return;
+          }
+          img.src = e.target.result as string;
         };
         
         img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d')!;
-          
-          let width = img.width;
-          let height = img.height;
-          const maxSize = 1200;
-          
-          if (width > height && width > maxSize) {
-            height = (height * maxSize) / width;
-            width = maxSize;
-          } else if (height > maxSize) {
-            width = (width * maxSize) / height;
-            height = maxSize;
+          try {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            if (!ctx) {
+              reject(new Error('Canvas not supported'));
+              return;
+            }
+            
+            let width = img.width;
+            let height = img.height;
+            const maxSize = 800;
+            
+            if (width > height && width > maxSize) {
+              height = (height * maxSize) / width;
+              width = maxSize;
+            } else if (height > maxSize) {
+              width = (width * maxSize) / height;
+              height = maxSize;
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            const base64 = canvas.toDataURL('image/jpeg', 0.6).split(',')[1];
+            console.log('🟢 Compressed:', Math.round(base64.length * 0.75 / 1024), 'KB');
+            resolve(base64);
+          } catch (err) {
+            reject(err);
           }
-          
-          canvas.width = width;
-          canvas.height = height;
-          ctx.drawImage(img, 0, 0, width, height);
-          
-          const base64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
-          console.log('🟢 Compressed:', Math.round(base64.length * 0.75 / 1024), 'KB');
-          resolve(base64);
         };
         
-        img.onerror = reject;
-        reader.onerror = reject;
+        img.onerror = () => reject(new Error('Failed to load image'));
+        reader.onerror = () => reject(new Error('Failed to read file'));
         reader.readAsDataURL(file);
       });
 
