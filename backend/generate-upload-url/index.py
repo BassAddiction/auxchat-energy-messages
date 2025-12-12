@@ -133,7 +133,7 @@ def handle_upload(event: Dict[str, Any]) -> Dict[str, Any]:
         s3_access_key = os.environ.get('TIMEWEB_S3_ACCESS_KEY')
         s3_secret_key = os.environ.get('TIMEWEB_S3_SECRET_KEY')
         s3_bucket = os.environ.get('TIMEWEB_S3_BUCKET_NAME')
-        s3_endpoint = os.environ.get('TIMEWEB_S3_ENDPOINT', 'https://s3.timeweb.cloud')
+        s3_endpoint = 'https://s3.twcstorage.ru'
         s3_region = 'ru-1'
         
         print(f'[DEBUG] S3 config: endpoint={s3_endpoint}, bucket={s3_bucket}, region={s3_region}')
@@ -188,7 +188,7 @@ def handle_upload(event: Dict[str, Any]) -> Dict[str, Any]:
         
         print(f'[DEBUG] Generated filename: {filename}')
         
-        # Upload to S3 with reduced timeouts to avoid Gateway Timeout
+        # Upload to S3 - no timeouts, let it complete
         print('[DEBUG] Creating S3 client')
         from botocore.config import Config as BotoConfig
         s3_client = boto3.client(
@@ -197,13 +197,7 @@ def handle_upload(event: Dict[str, Any]) -> Dict[str, Any]:
             aws_access_key_id=s3_access_key,
             aws_secret_access_key=s3_secret_key,
             region_name=s3_region,
-            config=BotoConfig(
-                signature_version='s3v4',
-                connect_timeout=5,
-                read_timeout=20,
-                retries={'max_attempts': 1, 'mode': 'standard'},
-                max_pool_connections=5
-            )
+            config=BotoConfig(signature_version='s3v4')
         )
         
         print('[DEBUG] Uploading to S3...')
