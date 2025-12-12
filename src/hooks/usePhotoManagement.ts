@@ -61,10 +61,10 @@ export const usePhotoManagement = (
       });
 
       console.log('[PHOTO] Uploading to S3...');
-      const uploadResponse = await fetch(FUNCTIONS['upload-profile-photo'], {
+      const uploadResponse = await fetch(FUNCTIONS['generate-upload-url'], {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fileData: base64, contentType: file.type })
+        body: JSON.stringify({ audioData: base64, contentType: file.type })
       });
 
       if (!uploadResponse.ok) {
