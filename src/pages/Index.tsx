@@ -675,17 +675,14 @@ const Index = () => {
           setUploadProgress("Загрузка на сервер...");
           console.log("[PHOTO UPLOAD] Sending to upload function...");
           // FUNCTION: upload-photo - Загрузка файла фото (base64) в S3 хранилище
-          const uploadResponse = await fetch(
-            FUNCTIONS["upload-photo"],
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "X-User-Id": userId.toString(),
-              },
-              body: JSON.stringify(requestBody),
+          const uploadResponse = await fetch(FUNCTIONS["upload-photo"], {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-User-Id": userId.toString(),
             },
-          );
+            body: JSON.stringify(requestBody),
+          });
 
           console.log(
             "[PHOTO UPLOAD] Upload response status:",

@@ -39,7 +39,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     body_data = json.loads(body_str) if body_str else {}
     print(f'[UPLOAD] Body data keys: {list(body_data.keys())}')
     
-    file_base64 = body_data.get('file')
+    file_base64 = body_data.get('fileData') or body_data.get('audioData') or body_data.get('file')
     content_type = body_data.get('contentType', 'image/jpeg')
     print(f'[UPLOAD] Content type: {content_type}')
     print(f'[UPLOAD] File base64 length: {len(file_base64) if file_base64 else 0}')
@@ -51,8 +51,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'body': json.dumps({'error': 'No file data provided'})
         }
     
-    # Decode base64
+    # Decode base64 (strip data:image/... prefix if present)
     try:
+        if ',' in file_base64:
+            file_base64 = file_base64.split(',')[1]
         file_data = base64.b64decode(file_base64)
     except Exception as e:
         return {
@@ -97,5 +99,5 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'Access-Control-Allow-Origin': '*'
         },
         'isBase64Encoded': False,
-        'body': json.dumps({'url': cdn_url})
+        'body': json.dumps({'url': cdn_url, 'fileUrl': cdn_url})
     }

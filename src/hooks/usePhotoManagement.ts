@@ -61,7 +61,7 @@ export const usePhotoManagement = (
       });
 
       console.log('[PHOTO] Uploading to S3...');
-      const uploadResponse = await fetch(FUNCTIONS['generate-upload-url'], {
+      const uploadResponse = await fetch(FUNCTIONS['upload-photo'], {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ audioData: base64, contentType: file.type })
@@ -151,11 +151,11 @@ export const usePhotoManagement = (
 
       console.log('2. File read, uploading to S3...');
       console.log('   ALL FUNCTIONS:', FUNCTIONS);
-      console.log('   URL:', FUNCTIONS['generate-upload-url']);
+      console.log('   URL:', FUNCTIONS['upload-photo']);
       console.log('   Content-Type:', file.type);
       console.log('   Base64 length:', imageBase64.length);
       
-      const uploadResponse = await fetch(FUNCTIONS['generate-upload-url'], {
+      const uploadResponse = await fetch(FUNCTIONS['upload-photo'], {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

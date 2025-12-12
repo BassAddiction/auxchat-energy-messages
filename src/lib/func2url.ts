@@ -32,8 +32,8 @@ export const FUNCTIONS = FUNCTION_NAMES.reduce((acc, name) => {
   return acc;
 }, {} as Record<string, string>);
 
-// generate-upload-url must be called DIRECTLY (API Gateway doesn't support POST with body)
-FUNCTIONS['generate-upload-url'] = 'https://functions.yandexcloud.net/d4e1drhlub4imqleg10q';
+// upload-photo - separate function on poehali.dev for photo uploads
+FUNCTIONS['upload-photo'] = 'https://functions.poehali.dev/e02155bb-d5d7-4a35-81a4-b089847fecf4';
 
 console.log('[FUNC2URL] Generated FUNCTIONS:', FUNCTIONS);
-console.log('[FUNC2URL] generate-upload-url =', FUNCTIONS['generate-upload-url']);
+console.log('[FUNC2URL] upload-photo =', FUNCTIONS['upload-photo']);
