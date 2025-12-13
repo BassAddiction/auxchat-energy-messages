@@ -101,7 +101,9 @@ def handle_get(event: Dict[str, Any]) -> Dict[str, Any]:
             ExpiresIn=300
         )
         
+        print(f'[DEBUG] Generated presigned URL: {presigned_url}')
         file_url = f'https://s3.twcstorage.ru/{s3_access_key}/{s3_bucket}/{filename}'
+        print(f'[DEBUG] Public file URL: {file_url}')
         
         return {
             'statusCode': 200,
