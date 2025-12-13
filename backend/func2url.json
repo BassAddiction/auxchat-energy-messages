@@ -1,6 +1,4 @@
 {
-  "send-push": "https://functions.poehali.dev/78814097-be24-4f14-96b8-669fcaaf2e05",
-  "save-fcm-token": "https://functions.poehali.dev/f6255dce-1e54-4c76-8631-8f735a137a0d",
   "update-profile": "https://functions.poehali.dev/36d49543-be95-42f4-b5ed-08ba658f93bb",
   "upload-photo-http": "https://functions.poehali.dev/41e9c94d-2a84-4246-81ff-6e3f2f9b2ea0",
   "upload-photo-swift": "https://functions.poehali.dev/d889a35b-929e-415d-a169-1c0d03bd11ab",

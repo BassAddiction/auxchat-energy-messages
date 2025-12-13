@@ -102,11 +102,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         last_activity = row[3]
         is_online = False
         if last_activity:
-            if isinstance(last_activity, str):
-                last_activity = datetime.fromisoformat(last_activity.replace('Z', '+00:00'))
-            now = datetime.now(last_activity.tzinfo) if last_activity.tzinfo else datetime.now()
-            time_diff = now - last_activity
-            is_online = time_diff < timedelta(minutes=2)
+            time_diff = datetime.utcnow() - last_activity
+            is_online = time_diff < timedelta(minutes=5)
         
         conversations.append({
             'userId': row[0],
