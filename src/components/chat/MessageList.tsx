@@ -89,7 +89,17 @@ export default function MessageList({
         const isOwn = String(message.senderId) === String(currentUserId);
         
         return (
-          <div key={message.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'} relative group`}>
+          <div key={message.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'} gap-2`}>
+            {isOwn && longPressMessageId === message.id && (
+              <button
+                onClick={() => handleDelete(message.id)}
+                className="w-10 h-10 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors self-end mb-1 flex-shrink-0"
+                aria-label="Удалить сообщение"
+              >
+                <Icon name="Trash2" size={18} />
+              </button>
+            )}
+            
             <div 
               className={`max-w-[75%] md:max-w-md rounded-2xl px-3 py-2 shadow-sm ${
                 isOwn 
@@ -143,16 +153,6 @@ export default function MessageList({
                 )}
               </div>
             </div>
-            
-            {isOwn && longPressMessageId === message.id && (
-              <button
-                onClick={() => handleDelete(message.id)}
-                className="absolute -left-10 top-1/2 -translate-y-1/2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors"
-                aria-label="Удалить сообщение"
-              >
-                <Icon name="Trash2" size={16} />
-              </button>
-            )}
           </div>
         );
       })}
