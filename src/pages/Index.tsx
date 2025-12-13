@@ -252,6 +252,7 @@ const Index = () => {
           avatar: userAvatar,
           phone: data.phone,
           energy: data.energy,
+          status: data.status || '',
         });
         console.log(
           "[LOAD USER] User set successfully with avatar:",
@@ -314,11 +315,31 @@ const Index = () => {
     }
   };
 
-  const handleUpdateStatus = () => {
-    if (user && newStatus.trim()) {
-      setUser({ ...user, status: newStatus.trim() });
-      setIsEditingStatus(false);
-      setNewStatus("");
+  const handleUpdateStatus = async () => {
+    if (!user || !newStatus.trim() || !userId) return;
+    
+    try {
+      // FUNCTION: update-profile - Обновление статуса пользователя
+      const response = await fetch(FUNCTIONS["update-profile"], {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-User-Id': userId.toString()
+        },
+        body: JSON.stringify({ status: newStatus.trim() })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setUser({ ...user, status: data.status });
+        setIsEditingStatus(false);
+        setNewStatus("");
+      } else {
+        alert('Не удалось обновить статус');
+      }
+    } catch (error) {
+      console.error('Error updating status:', error);
+      alert('Ошибка при обновлении статуса');
     }
   };
 

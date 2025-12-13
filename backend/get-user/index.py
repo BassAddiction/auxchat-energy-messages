@@ -10,7 +10,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
           context with request_id
     Returns: HTTP response with user data including latitude, longitude, city
     '''
-    print('[GET-USER v3] Handler called with city field')  # Force redeploy
+    print('[GET-USER v4] Handler called with status field support')  # Force redeploy
     method: str = event.get('httpMethod', 'GET')
     
     if method == 'OPTIONS':
@@ -69,17 +69,18 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'isBase64Encoded': False
         }
     
-    # Try with city column first, fallback if it doesn't exist
+    # Try with city and status columns first, fallback if they don't exist
     try:
         cur.execute(
-            f"SELECT id, phone, username, avatar_url, energy, is_banned, bio, last_activity, latitude, longitude, city FROM users WHERE id = {user_id_int}"
+            f"SELECT id, phone, username, avatar_url, energy, is_banned, bio, last_activity, latitude, longitude, city, status FROM users WHERE id = {user_id_int}"
         )
         row = cur.fetchone()
         has_city = True
+        has_status = True
         cur.close()
         conn.close()
     except Exception as e:
-        print(f'[GET-USER] Error with city column: {e}, reconnecting for fallback')
+        print(f'[GET-USER] Error with city/status columns: {e}, reconnecting for fallback')
         # Close failed connection and create new one
         try:
             cur.close()
@@ -89,11 +90,20 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         # Reconnect
         conn = psycopg2.connect(dsn)
         cur = conn.cursor()
-        cur.execute(
-            f"SELECT id, phone, username, avatar_url, energy, is_banned, bio, last_activity, latitude, longitude FROM users WHERE id = {user_id_int}"
-        )
-        row = cur.fetchone()
-        has_city = False
+        try:
+            cur.execute(
+                f"SELECT id, phone, username, avatar_url, energy, is_banned, bio, last_activity, latitude, longitude, city FROM users WHERE id = {user_id_int}"
+            )
+            row = cur.fetchone()
+            has_city = True
+            has_status = False
+        except:
+            cur.execute(
+                f"SELECT id, phone, username, avatar_url, energy, is_banned, bio, last_activity, latitude, longitude FROM users WHERE id = {user_id_int}"
+            )
+            row = cur.fetchone()
+            has_city = False
+            has_status = False
         cur.close()
         conn.close()
     
@@ -105,14 +115,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'isBase64Encoded': False
         }
     
-    # Проверяем активность (онлайн если был активен менее 5 минут назад)
-    from datetime import datetime, timedelta
-    last_activity = row[7]
-    is_online = False
-    if last_activity:
-        time_diff = datetime.utcnow() - last_activity
-        is_online = time_diff < timedelta(minutes=5)
-    
     result_data = {
         'id': row[0],
         'phone': row[1],
@@ -122,7 +124,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         'is_admin': False,
         'is_banned': row[5] if row[5] is not None else False,
         'bio': row[6] if row[6] else '',
-        'status': 'online' if is_online else 'offline',
+        'status': row[11] if has_status and len(row) > 11 and row[11] else '',
         'latitude': float(row[8]) if len(row) > 8 and row[8] is not None else None,
         'longitude': float(row[9]) if len(row) > 9 and row[9] is not None else None,
         'city': row[10] if has_city and len(row) > 10 and row[10] else ''

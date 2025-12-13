@@ -21,6 +21,7 @@ const FUNCTION_NAMES = [
   'register',
   'subscribe',
   'update-activity',
+  'update-profile',
   'private-messages',
   'admin-users',
   'get-user',
