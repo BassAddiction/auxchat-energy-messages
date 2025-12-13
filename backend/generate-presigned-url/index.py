@@ -69,7 +69,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         )
         
         # Generate public URL for Timeweb S3
-        public_url = f"https://{bucket_name}.s3.timeweb.com/{filename}"
+        public_url = f"https://s3.twcstorage.ru/{access_key}/{bucket_name}/{filename}"
         
         return {
             'statusCode': 200,

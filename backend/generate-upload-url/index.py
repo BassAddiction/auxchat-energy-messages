@@ -101,7 +101,7 @@ def handle_get(event: Dict[str, Any]) -> Dict[str, Any]:
             ExpiresIn=300
         )
         
-        file_url = f'{s3_endpoint}/{s3_bucket}/{filename}'
+        file_url = f'https://s3.twcstorage.ru/{s3_access_key}/{s3_bucket}/{filename}'
         
         return {
             'statusCode': 200,
@@ -217,7 +217,7 @@ def handle_upload(event: Dict[str, Any]) -> Dict[str, Any]:
         )
         
         print('[DEBUG] Upload successful')
-        file_url = f'{s3_endpoint}/{s3_bucket}/{filename}'
+        file_url = f'https://s3.twcstorage.ru/{s3_access_key}/{s3_bucket}/{filename}'
         
         return {
             'statusCode': 200,
