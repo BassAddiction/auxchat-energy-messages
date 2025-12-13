@@ -70,15 +70,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'isBase64Encoded': False
         }
     
-    # Try with city column first, fallback if it doesn't exist
+    # Try with status and city columns first, fallback if they don't exist
     try:
         cur.execute(
-            f"SELECT id, phone, username, avatar_url, energy, is_banned, bio, last_activity, latitude, longitude, city FROM users WHERE id = {user_id_int}"
+            f"SELECT id, phone, username, avatar_url, energy, is_banned, bio, last_activity, latitude, longitude, city, status FROM users WHERE id = {user_id_int}"
         )
         row = cur.fetchone()
         has_city = True
+        has_status = True
     except Exception as e:
-        print(f'[GET-USER] Error with city column: {e}, reconnecting for fallback')
+        print(f'[GET-USER] Error with city/status columns: {e}, reconnecting for fallback')
         # Close failed connection and create new one
         try:
             cur.close()
@@ -93,6 +94,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         )
         row = cur.fetchone()
         has_city = False
+        has_status = False
     
     cur.close()
     conn.close()
@@ -105,25 +107,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'isBase64Encoded': False
         }
     
-    # Compute online status based on last_activity
-    import datetime
-    is_online = False
-    if len(row) > 7 and row[7]:
-        try:
-            last_activity = row[7]
-            # Convert to datetime if string
-            if isinstance(last_activity, str):
-                last_activity = datetime.datetime.fromisoformat(last_activity.replace('Z', '+00:00'))
-            # Convert naive datetime to aware
-            elif isinstance(last_activity, datetime.datetime) and last_activity.tzinfo is None:
-                last_activity = last_activity.replace(tzinfo=datetime.timezone.utc)
-            
-            now = datetime.datetime.now(datetime.timezone.utc)
-            diff = (now - last_activity).total_seconds()
-            is_online = diff < 300  # 5 minutes
-        except Exception as e:
-            print(f'[GET-USER] Error computing online status: {e}')
-            pass
+    # Extract user status from database (custom text status, not online/offline)
+    user_status = ''
+    if has_status and len(row) > 11 and row[11]:
+        user_status = str(row[11])
     
     # Helper function to clean strings from control characters
     def clean_string(s):
@@ -142,7 +129,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         'is_admin': False,
         'is_banned': row[5] if row[5] is not None else False,
         'bio': clean_string(row[6]) if row[6] else '',
-        'status': 'online' if is_online else 'offline',
+        'status': clean_string(user_status),
         'latitude': float(row[8]) if len(row) > 8 and row[8] is not None else None,
         'longitude': float(row[9]) if len(row) > 9 and row[9] is not None else None,
         'city': clean_string(row[10]) if has_city and len(row) > 10 and row[10] else ''
