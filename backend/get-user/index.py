@@ -120,6 +120,17 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     if has_status and len(row) > 11 and row[11]:
         user_custom_status = str(row[11])
     
+    # Compute online/offline status based on last_activity
+    from datetime import datetime, timedelta
+    last_activity = row[7]  # last_activity column
+    is_online = False
+    if last_activity:
+        if isinstance(last_activity, str):
+            last_activity = datetime.fromisoformat(last_activity.replace('Z', '+00:00'))
+        now = datetime.now(last_activity.tzinfo) if last_activity.tzinfo else datetime.now()
+        time_diff = now - last_activity
+        is_online = time_diff < timedelta(minutes=5)
+    
     result_data = {
         'id': row[0],
         'phone': clean_string(row[1]),
@@ -129,6 +140,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         'is_admin': False,
         'is_banned': row[5] if row[5] is not None else False,
         'bio': clean_string(row[6]) if row[6] else '',
+        'status': 'online' if is_online else 'offline',
         'custom_status': clean_string(user_custom_status),
         'latitude': float(row[8]) if len(row) > 8 and row[8] is not None else None,
         'longitude': float(row[9]) if len(row) > 9 and row[9] is not None else None,
