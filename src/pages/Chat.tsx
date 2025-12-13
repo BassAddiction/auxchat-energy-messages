@@ -57,13 +57,16 @@ export default function Chat() {
       return;
     }
     try {
-      // Передаём user_id через query параметр, потому что nginx перезаписывает X-User-Id
-      const url = `${FUNCTIONS["update-activity"]}?user_id=${currentUserId}`;
-      console.log('[UPDATE-ACTIVITY] Sending request to:', url);
+      // Передаём user_id через body JSON, потому что nginx перезаписывает X-User-Id и отрезает query параметры
+      console.log('[UPDATE-ACTIVITY] Sending request with user_id:', currentUserId);
       // FUNCTION: update-activity - Обновление времени последней активности
-      const response = await fetch(url, {
+      const response = await fetch(FUNCTIONS["update-activity"], {
         method: 'POST',
-        headers: { 'X-User-Id': currentUserId || '0' }
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-User-Id': currentUserId || '0'
+        },
+        body: JSON.stringify({ user_id: currentUserId })
       });
       console.log('[UPDATE-ACTIVITY] Response:', response.status);
     } catch (error) {

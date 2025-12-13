@@ -37,19 +37,33 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     query_params = event.get('queryStringParameters') or {}
     
     # Пытаемся получить user_id из разных источников:
-    # 1. Query параметр (приоритет - не перезаписывается nginx)
-    # 2. X-Auth-User-Id заголовок (альтернатива)
-    # 3. X-User-Id заголовок (может быть перезаписан nginx)
-    user_id_str = (
-        query_params.get('user_id') or 
-        headers.get('X-Auth-User-Id') or 
-        headers.get('x-auth-user-id') or
-        headers.get('X-User-Id') or 
-        headers.get('x-user-id')
-    )
+    # 1. Body JSON (приоритет - nginx не трогает body)
+    # 2. Query параметр (может быть отрезан nginx)
+    # 3. X-Auth-User-Id заголовок (альтернатива)
+    # 4. X-User-Id заголовок (перезаписывается nginx на auxchat.ru)
+    user_id_str = None
+    
+    # Пробуем достать из body
+    body_str = event.get('body', '')
+    if body_str:
+        try:
+            body_data = json.loads(body_str)
+            user_id_str = str(body_data.get('user_id', ''))
+            print(f'[UPDATE-ACTIVITY] user_id from body: {user_id_str}')
+        except:
+            pass
+    
+    # Если в body нет, пробуем другие источники
+    if not user_id_str:
+        user_id_str = (
+            query_params.get('user_id') or 
+            headers.get('X-Auth-User-Id') or 
+            headers.get('x-auth-user-id') or
+            headers.get('X-User-Id') or 
+            headers.get('x-user-id')
+        )
     
     print(f'[UPDATE-ACTIVITY] user_id from query: {query_params.get("user_id")}')
-    print(f'[UPDATE-ACTIVITY] user_id from X-Auth-User-Id: {headers.get("X-Auth-User-Id")}')
     print(f'[UPDATE-ACTIVITY] user_id from X-User-Id: {headers.get("X-User-Id")}')
     print(f'[UPDATE-ACTIVITY] Final user_id_str: {user_id_str}')
     
@@ -57,7 +71,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return {
             'statusCode': 401,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'user_id required (query param or X-Auth-User-Id header)'}),
+            'body': json.dumps({'error': 'user_id required (body JSON or header)'}),
             'isBase64Encoded': False
         }
     
