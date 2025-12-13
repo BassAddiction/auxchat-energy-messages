@@ -80,7 +80,12 @@ def handle_get(event: Dict[str, Any]) -> Dict[str, Any]:
             }
         
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
-        filename = f'voice-messages/voice_{timestamp}.{extension}'
+        
+        # Determine folder based on content type
+        if content_type.startswith('image/'):
+            filename = f'profile-photos/photo_{timestamp}.{extension}'
+        else:
+            filename = f'voice-messages/voice_{timestamp}.{extension}'
         
         s3_client = boto3.client(
             's3',
