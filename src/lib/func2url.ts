@@ -34,23 +34,23 @@ export const FUNCTIONS = FUNCTION_NAMES.reduce((acc, name) => {
   return acc;
 }, {} as Record<string, string>);
 
-// upload-photo - separate function on poehali.dev (uploads to Timeweb S3 via HTTP PUT)
-FUNCTIONS['upload-photo'] = 'https://functions.poehali.dev/41e9c94d-2a84-4246-81ff-6e3f2f9b2ea0';
+// upload-photo - uploads to Timeweb S3 via HTTP PUT (now on auxchat.ru)
+FUNCTIONS['upload-photo'] = `${API_GATEWAY}/upload-photo`;
 
-// geocode - separate function on poehali.dev for geolocation (API Gateway doesn't proxy it)
-FUNCTIONS['geocode'] = 'https://functions.poehali.dev/90e9cacc-48ca-4b42-b817-3a77b67db25c';
+// geocode - for geolocation (now on auxchat.ru)
+FUNCTIONS['geocode'] = `${API_GATEWAY}/geocode`;
 
-// get-user - separate function on poehali.dev for user data with city field
-FUNCTIONS['get-user'] = 'https://functions.poehali.dev/518f730f-1a8e-45ad-b0ed-e9a66c5a3784';
+// get-user - for user data with city field (now on auxchat.ru)
+FUNCTIONS['get-user'] = `${API_GATEWAY}/get-user`;
 
-// update-location - separate function on poehali.dev for updating user geolocation
-FUNCTIONS['update-location'] = 'https://functions.poehali.dev/1e164728-c695-4c1a-9496-29af61259212';
+// update-location - for updating user geolocation (now on auxchat.ru)
+FUNCTIONS['update-location'] = `${API_GATEWAY}/update-location`;
 
-// generate-upload-url - for voice messages and chat photo uploads (on Yandex Cloud)
-FUNCTIONS['generate-upload-url'] = 'https://functions.yandexcloud.net/d4e1drhlub4imqleg10q';
+// generate-upload-url - for voice messages and chat photo uploads (now on auxchat.ru)
+FUNCTIONS['generate-upload-url'] = `${API_GATEWAY}/generate-upload-url`;
 
-// generate-presigned-url - for direct photo uploads to Timeweb S3 (no timeout!)
-FUNCTIONS['generate-presigned-url'] = 'https://functions.poehali.dev/b1d84747-728f-4a4c-ab3f-86b7093bfbb9';
+// generate-presigned-url - for direct photo uploads to Timeweb S3 (now on auxchat.ru)
+FUNCTIONS['generate-presigned-url'] = `${API_GATEWAY}/generate-presigned-url`;
 
 console.log('[FUNC2URL] Generated FUNCTIONS:', FUNCTIONS);
 console.log('[FUNC2URL] upload-photo =', FUNCTIONS['upload-photo']);
