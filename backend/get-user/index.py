@@ -119,19 +119,27 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         except:
             pass
     
+    # Helper function to clean strings from control characters
+    def clean_string(s):
+        if not s:
+            return ''
+        # Remove control characters except tab, newline, carriage return
+        import re
+        return re.sub(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]', '', str(s))
+    
     result_data = {
         'id': row[0],
-        'phone': row[1],
-        'username': row[2],
-        'avatar': row[3] if row[3] else '',
+        'phone': clean_string(row[1]),
+        'username': clean_string(row[2]),
+        'avatar': clean_string(row[3]) if row[3] else '',
         'energy': row[4],
         'is_admin': False,
         'is_banned': row[5] if row[5] is not None else False,
-        'bio': row[6] if row[6] else '',
+        'bio': clean_string(row[6]) if row[6] else '',
         'status': 'online' if is_online else 'offline',
         'latitude': float(row[8]) if len(row) > 8 and row[8] is not None else None,
         'longitude': float(row[9]) if len(row) > 9 and row[9] is not None else None,
-        'city': row[10] if has_city and len(row) > 10 and row[10] else ''
+        'city': clean_string(row[10]) if has_city and len(row) > 10 and row[10] else ''
     }
     
     return {
