@@ -84,15 +84,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     extension = content_type.split('/')[-1]
     filename = f'photos/{timestamp}.{extension}'
     
-    # Upload to poehali.dev S3
-    endpoint = 'https://bucket.poehali.dev'
-    access_key = os.environ['AWS_ACCESS_KEY_ID']
-    secret_key = os.environ['AWS_SECRET_ACCESS_KEY']
-    bucket_name = 'files'
+    # Upload to Timeweb S3
+    endpoint = os.environ['TIMEWEB_S3_ENDPOINT']
+    access_key = os.environ['TIMEWEB_S3_ACCESS_KEY']
+    secret_key = os.environ['TIMEWEB_S3_SECRET_KEY']
+    bucket_name = os.environ['TIMEWEB_S3_BUCKET_NAME']
     
-    print(f'[UPLOAD-PHOTO] Using poehali.dev S3')
     print(f'[UPLOAD-PHOTO] Endpoint: {endpoint}')
     print(f'[UPLOAD-PHOTO] Access key: {access_key[:8]}...')
+    print(f'[UPLOAD-PHOTO] Bucket: {bucket_name}')
     
     from botocore.config import Config
     import io
@@ -101,6 +101,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         endpoint_url=endpoint,
         aws_access_key_id=access_key,
         aws_secret_access_key=secret_key,
+        region_name=os.environ.get('TIMEWEB_S3_REGION', 'ru-1'),
         config=Config(
             connect_timeout=5,
             read_timeout=20,
@@ -130,9 +131,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'body': json.dumps({'error': f'Upload failed: {str(e)}'})
         }
     
-    # Generate public URL for poehali.dev CDN
-    # Format: https://cdn.poehali.dev/projects/{AWS_ACCESS_KEY_ID}/bucket/{filename}
-    public_url = f"https://cdn.poehali.dev/projects/{access_key}/bucket/{filename}"
+    # Generate public URL for Timeweb S3
+    # Format: https://{bucket}.s3.timeweb.com/{filename}
+    public_url = f"https://{bucket_name}.s3.timeweb.com/{filename}"
     print(f'[UPLOAD-PHOTO] Public URL: {public_url}')
     
     return {
