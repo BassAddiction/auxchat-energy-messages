@@ -1,7 +1,7 @@
 # ==========================================
 # Stage 1: Build Frontend
 # ==========================================
-# Cache bust: 2025-12-13 14:09 - Fixed rewrite rule for /api/ stripping
+# Cache bust: 2025-12-13 14:37 - Removed poehali.dev telemetry scripts from index.html
 FROM node:18 AS frontend-builder
 
 WORKDIR /app
