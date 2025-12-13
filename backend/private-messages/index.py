@@ -250,9 +250,52 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 f"UPDATE users SET last_activity = CURRENT_TIMESTAMP WHERE id = '{safe_user_id_update}'"
             )
             
+            # Получаем данные получателя для отправки push-уведомления
+            cur.execute(f"SELECT fcm_token, username FROM users WHERE id = {receiver_id}")
+            receiver_data = cur.fetchone()
+            
+            # Получаем имя отправителя
+            cur.execute(f"SELECT username FROM users WHERE id = {user_id}")
+            sender_data = cur.fetchone()
+            sender_username = sender_data[0] if sender_data else 'Пользователь'
+            
             conn.commit()
             cur.close()
             conn.close()
+            
+            # Если у получателя есть FCM токен - отправляем push
+            if receiver_data and receiver_data[0]:
+                try:
+                    import requests
+                    fcm_token = receiver_data[0]
+                    
+                    # Формируем текст уведомления
+                    if image_url:
+                        notification_text = '📷 Изображение'
+                    elif voice_url:
+                        notification_text = '🎤 Голосовое сообщение'
+                    else:
+                        notification_text = text[:50] + ('...' if len(text) > 50 else '')
+                    
+                    # Отправляем через нашу функцию send-push
+                    push_url = 'https://functions.poehali.dev/78814097-be24-4f14-96b8-669fcaaf2e05'
+                    requests.post(
+                        push_url,
+                        json={
+                            'fcm_token': fcm_token,
+                            'title': f'💬 {sender_username}',
+                            'body': notification_text,
+                            'data': {
+                                'chatUrl': f'/chat/{user_id}',
+                                'senderId': str(user_id)
+                            }
+                        },
+                        timeout=3  # Не ждём долго, чтобы не тормозить ответ
+                    )
+                    print(f'[PUSH] Sent notification to user {receiver_id}')
+                except Exception as e:
+                    # Если push не отправился - не падаем, просто логируем
+                    print(f'[PUSH] Failed to send notification: {e}')
             
             return {
                 'statusCode': 200,
