@@ -107,11 +107,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'isBase64Encoded': False
         }
     
-    # Extract user status from database (custom text status, not online/offline)
-    user_status = ''
-    if has_status and len(row) > 11 and row[11]:
-        user_status = str(row[11])
-    
     # Helper function to clean strings from control characters
     def clean_string(s):
         if not s:
@@ -119,6 +114,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         # Remove control characters except tab, newline, carriage return
         import re
         return re.sub(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]', '', str(s))
+    
+    # Extract custom user status (текстовый статус типа "привет настроение так то")
+    user_custom_status = ''
+    if has_status and len(row) > 11 and row[11]:
+        user_custom_status = str(row[11])
     
     result_data = {
         'id': row[0],
@@ -129,7 +129,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         'is_admin': False,
         'is_banned': row[5] if row[5] is not None else False,
         'bio': clean_string(row[6]) if row[6] else '',
-        'status': clean_string(user_status),
+        'custom_status': clean_string(user_custom_status),
         'latitude': float(row[8]) if len(row) > 8 and row[8] is not None else None,
         'longitude': float(row[9]) if len(row) > 9 and row[9] is not None else None,
         'city': clean_string(row[10]) if has_city and len(row) > 10 and row[10] else ''
