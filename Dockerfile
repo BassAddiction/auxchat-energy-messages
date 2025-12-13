@@ -1,7 +1,7 @@
 # ==========================================
 # Stage 1: Build Frontend
 # ==========================================
-# Cache bust: 2025-12-13 15:15 - vite.config.ts fixed, rebuild without pp-tagger
+# Cache bust: 2025-12-13 16:05 - FINAL REMOVAL telemetry from index.html (lines 28-32 deleted)
 FROM node:18 AS frontend-builder
 
 WORKDIR /app
