@@ -1,5 +1,5 @@
 // API Gateway Configuration - proxies all backend functions
-const API_GATEWAY = 'https://d5dkffis8kfdsr7g6rjo.z7jmlavt.apigw.yandexcloud.net';
+const API_GATEWAY = 'https://auxchat.ru/api';
 
 // Function names that are proxied through API Gateway
 const FUNCTION_NAMES = [
