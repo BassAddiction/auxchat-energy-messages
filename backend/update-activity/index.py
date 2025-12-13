@@ -34,18 +34,30 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     
     headers = event.get('headers', {})
+    query_params = event.get('queryStringParameters') or {}
     
-    # DEBUG: Логируем ВСЕ заголовки чтобы увидеть что приходит
-    print(f'[UPDATE-ACTIVITY] ALL HEADERS: {json.dumps(headers, indent=2)}')
-    print(f'[UPDATE-ACTIVITY] FULL EVENT: {json.dumps(event, indent=2, default=str)}')
+    # Пытаемся получить user_id из разных источников:
+    # 1. Query параметр (приоритет - не перезаписывается nginx)
+    # 2. X-Auth-User-Id заголовок (альтернатива)
+    # 3. X-User-Id заголовок (может быть перезаписан nginx)
+    user_id_str = (
+        query_params.get('user_id') or 
+        headers.get('X-Auth-User-Id') or 
+        headers.get('x-auth-user-id') or
+        headers.get('X-User-Id') or 
+        headers.get('x-user-id')
+    )
     
-    user_id_str = headers.get('X-User-Id') or headers.get('x-user-id')
+    print(f'[UPDATE-ACTIVITY] user_id from query: {query_params.get("user_id")}')
+    print(f'[UPDATE-ACTIVITY] user_id from X-Auth-User-Id: {headers.get("X-Auth-User-Id")}')
+    print(f'[UPDATE-ACTIVITY] user_id from X-User-Id: {headers.get("X-User-Id")}')
+    print(f'[UPDATE-ACTIVITY] Final user_id_str: {user_id_str}')
     
     if not user_id_str:
         return {
             'statusCode': 401,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'X-User-Id header required'}),
+            'body': json.dumps({'error': 'user_id required (query param or X-Auth-User-Id header)'}),
             'isBase64Encoded': False
         }
     
