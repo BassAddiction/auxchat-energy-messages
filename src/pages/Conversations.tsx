@@ -11,6 +11,7 @@ interface Conversation {
   username: string;
   avatarUrl: string | null;
   status: string;
+  last_seen?: string | null;
   lastMessage: string;
   lastMessageAt: string;
   unreadCount: number;
