@@ -74,7 +74,7 @@ export default function Chat() {
     const messagesInterval = setInterval(loadMessages, 3000);
     const profileInterval = setInterval(loadProfile, 2000);
     const typingInterval = setInterval(checkTypingStatus, 2000);
-    const activityInterval = setInterval(updateActivity, 60000);
+    const activityInterval = setInterval(updateActivity, 10000);
     
     // Отслеживаем когда пользователь переключается между вкладками
     const handleVisibilityChange = () => {

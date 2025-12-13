@@ -49,7 +49,7 @@ export default function Conversations() {
     updateActivity();
     loadConversations();
     const conversationsInterval = setInterval(loadConversations, 5000);
-    const activityInterval = setInterval(updateActivity, 60000);
+    const activityInterval = setInterval(updateActivity, 10000);
     
     // Отслеживаем когда пользователь переключается между вкладками
     const handleVisibilityChange = () => {
