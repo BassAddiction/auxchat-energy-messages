@@ -47,7 +47,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'isBase64Encoded': False
         }
     
-    dsn = os.environ.get('TIMEWEB_DB_URL')
+    dsn = os.environ.get('DATABASE_URL')
     if dsn and '?' in dsn:
         dsn += '&sslmode=require'
     elif dsn:
