@@ -129,12 +129,17 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     is_online = False
     last_seen = None
     if last_activity:
+        print(f'[GET-USER] Raw last_activity from DB: {repr(last_activity)}, type: {type(last_activity)}')
         if isinstance(last_activity, str):
             last_activity = datetime.fromisoformat(last_activity.replace('Z', '+00:00'))
+        print(f'[GET-USER] Parsed last_activity: {last_activity}, tzinfo: {last_activity.tzinfo}')
         now = datetime.now(last_activity.tzinfo) if last_activity.tzinfo else datetime.now()
+        print(f'[GET-USER] Current now: {now}, tzinfo: {now.tzinfo if hasattr(now, "tzinfo") else "N/A"}')
         time_diff = now - last_activity
+        print(f'[GET-USER] Time diff: {time_diff}, total_seconds: {time_diff.total_seconds()}')
         # Онлайн только если активность была меньше 15 секунд назад (как в WhatsApp)
         is_online = time_diff < timedelta(seconds=15)
+        print(f'[GET-USER] is_online={is_online} (threshold: 15 sec)')
         # Сохраняем время последней активности для отображения
         last_seen = last_activity.isoformat() if last_activity else None
     
