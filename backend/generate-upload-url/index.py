@@ -65,11 +65,11 @@ def handle_get(event: Dict[str, Any]) -> Dict[str, Any]:
         content_type = query_params.get('contentType', 'audio/webm')
         extension = query_params.get('extension', 'webm')
         
-        s3_access_key = os.environ.get('TIMEWEB_S3_ACCESS_KEY')
-        s3_secret_key = os.environ.get('TIMEWEB_S3_SECRET_KEY')
-        s3_bucket = os.environ.get('TIMEWEB_S3_BUCKET_NAME')
-        s3_endpoint = os.environ.get('TIMEWEB_S3_ENDPOINT', 'https://s3.twcstorage.ru')
-        s3_region = os.environ.get('TIMEWEB_S3_REGION', 'ru-1')
+        s3_access_key = os.environ.get('AWS_ACCESS_KEY_ID')
+        s3_secret_key = os.environ.get('AWS_SECRET_ACCESS_KEY')
+        s3_bucket = 'files'
+        s3_endpoint = 'https://bucket.poehali.dev'
+        s3_region = None
         
         if not all([s3_access_key, s3_secret_key, s3_bucket]):
             return {
@@ -87,7 +87,6 @@ def handle_get(event: Dict[str, Any]) -> Dict[str, Any]:
             endpoint_url=s3_endpoint,
             aws_access_key_id=s3_access_key,
             aws_secret_access_key=s3_secret_key,
-            region_name=s3_region,
             config=Config(signature_version='s3v4')
         )
         
@@ -101,7 +100,7 @@ def handle_get(event: Dict[str, Any]) -> Dict[str, Any]:
             ExpiresIn=300
         )
         
-        file_url = f'{s3_endpoint}/{s3_bucket}/{filename}'
+        file_url = f'https://cdn.poehali.dev/projects/{s3_access_key}/bucket/{filename}'
         
         return {
             'statusCode': 200,
@@ -130,11 +129,11 @@ def handle_upload(event: Dict[str, Any]) -> Dict[str, Any]:
     
     try:
         print('[DEBUG] Starting file upload via S3 API')
-        s3_access_key = os.environ.get('TIMEWEB_S3_ACCESS_KEY')
-        s3_secret_key = os.environ.get('TIMEWEB_S3_SECRET_KEY')
-        s3_bucket = os.environ.get('TIMEWEB_S3_BUCKET_NAME')
-        s3_endpoint = 'https://s3.twcstorage.ru'
-        s3_region = 'ru-1'
+        s3_access_key = os.environ.get('AWS_ACCESS_KEY_ID')
+        s3_secret_key = os.environ.get('AWS_SECRET_ACCESS_KEY')
+        s3_bucket = 'files'
+        s3_endpoint = 'https://bucket.poehali.dev'
+        s3_region = None
         
         print(f'[DEBUG] S3 config: endpoint={s3_endpoint}, bucket={s3_bucket}, region={s3_region}')
         
@@ -196,7 +195,6 @@ def handle_upload(event: Dict[str, Any]) -> Dict[str, Any]:
             endpoint_url=s3_endpoint,
             aws_access_key_id=s3_access_key,
             aws_secret_access_key=s3_secret_key,
-            region_name=s3_region,
             config=BotoConfig(
                 signature_version='s3v4',
                 connect_timeout=5,
@@ -217,7 +215,7 @@ def handle_upload(event: Dict[str, Any]) -> Dict[str, Any]:
         )
         
         print('[DEBUG] Upload successful')
-        file_url = f'{s3_endpoint}/{s3_bucket}/{filename}'
+        file_url = f'https://cdn.poehali.dev/projects/{s3_access_key}/bucket/{filename}'
         
         return {
             'statusCode': 200,

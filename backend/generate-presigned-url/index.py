@@ -42,16 +42,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     extension = content_type.split('/')[-1]
     filename = f'photos/{timestamp}.{extension}'
     
-    # Setup Timeweb S3 client
-    endpoint = os.environ['TIMEWEB_S3_ENDPOINT']
-    access_key = os.environ['TIMEWEB_S3_ACCESS_KEY']
-    bucket_name = os.environ['TIMEWEB_S3_BUCKET_NAME']
+    # Setup poehali.dev S3 client
+    endpoint = 'https://bucket.poehali.dev'
+    access_key = os.environ['AWS_ACCESS_KEY_ID']
+    secret_key = os.environ['AWS_SECRET_ACCESS_KEY']
+    bucket_name = 'files'
     
     s3 = boto3.client('s3',
         endpoint_url=endpoint,
         aws_access_key_id=access_key,
-        aws_secret_access_key=os.environ['TIMEWEB_S3_SECRET_KEY'],
-        region_name=os.environ.get('TIMEWEB_S3_REGION', 'ru-1'),
+        aws_secret_access_key=secret_key,
         config=Config(signature_version='s3v4')
     )
     
@@ -67,8 +67,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             ExpiresIn=600
         )
         
-        # Generate public URL
-        public_url = f"https://s3.twcstorage.ru/{access_key}/{bucket_name}/{filename}"
+        # Generate public URL for poehali.dev CDN
+        public_url = f"https://cdn.poehali.dev/projects/{access_key}/bucket/{filename}"
         
         return {
             'statusCode': 200,
