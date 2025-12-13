@@ -10,12 +10,14 @@ interface MessageInputProps {
   currentUserId: string | null;
   receiverId: number;
   onMessageSent: () => void;
+  onTyping?: () => void;
 }
 
 export default function MessageInput({
   currentUserId,
   receiverId,
   onMessageSent,
+  onTyping,
 }: MessageInputProps) {
   const [newMessage, setNewMessage] = useState('');
   const [isRecording, setIsRecording] = useState(false);
@@ -322,7 +324,10 @@ export default function MessageInput({
           <div className="flex-1 relative">
             <Input
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
+              onChange={(e) => {
+                setNewMessage(e.target.value);
+                onTyping?.();
+              }}
               onKeyDown={handleKeyDown}
               placeholder="Сообщение"
               className="w-full rounded-full bg-gray-100 border-0 pl-4 pr-4 h-10 focus-visible:ring-0 focus-visible:bg-gray-100"

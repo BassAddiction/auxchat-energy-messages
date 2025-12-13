@@ -25,6 +25,7 @@ interface ChatHeaderProps {
   onBack: () => void;
   onProfileClick: () => void;
   onBlockToggle: () => void;
+  isTyping?: boolean;
 }
 
 export default function ChatHeader({
@@ -37,6 +38,7 @@ export default function ChatHeader({
   onBack,
   onProfileClick,
   onBlockToggle,
+  isTyping = false,
 }: ChatHeaderProps) {
   return (
     <div className="bg-card/80 backdrop-blur border-b border-purple-500/20 p-3 md:p-4 flex items-center gap-3">
@@ -70,9 +72,20 @@ export default function ChatHeader({
         </div>
         <div className="text-left">
           <h2 className="font-bold text-sm md:text-base">{profile?.username}</h2>
-          <span className={`text-xs ${profile?.status === 'online' ? 'text-green-400' : 'text-muted-foreground'}`}>
-            {profile?.status === 'online' ? 'Онлайн' : 'Не в сети'}
-          </span>
+          {isTyping ? (
+            <span className="text-xs text-blue-500 flex items-center gap-1">
+              печатает
+              <span className="flex gap-0.5">
+                <span className="animate-bounce" style={{ animationDelay: '0ms' }}>.</span>
+                <span className="animate-bounce" style={{ animationDelay: '150ms' }}>.</span>
+                <span className="animate-bounce" style={{ animationDelay: '300ms' }}>.</span>
+              </span>
+            </span>
+          ) : (
+            <span className={`text-xs ${profile?.status === 'online' ? 'text-green-400' : 'text-muted-foreground'}`}>
+              {profile?.status === 'online' ? 'В сети' : 'Не в сети'}
+            </span>
+          )}
         </div>
       </button>
 

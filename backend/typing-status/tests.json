@@ -1,0 +1,38 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS request for CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Set typing status",
+      "method": "POST",
+      "path": "/",
+      "headers": {
+        "X-User-Id": "1"
+      },
+      "body": {
+        "typing_to": 2
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      }
+    },
+    {
+      "name": "Check typing status",
+      "method": "GET",
+      "path": "/?user_id=1",
+      "headers": {
+        "X-User-Id": "2"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "is_typing": "boolean"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
