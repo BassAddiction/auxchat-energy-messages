@@ -111,12 +111,18 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     if len(row) > 7 and row[7]:
         try:
             last_activity = row[7]
+            # Convert to datetime if string
             if isinstance(last_activity, str):
                 last_activity = datetime.datetime.fromisoformat(last_activity.replace('Z', '+00:00'))
+            # Convert naive datetime to aware
+            elif isinstance(last_activity, datetime.datetime) and last_activity.tzinfo is None:
+                last_activity = last_activity.replace(tzinfo=datetime.timezone.utc)
+            
             now = datetime.datetime.now(datetime.timezone.utc)
             diff = (now - last_activity).total_seconds()
             is_online = diff < 300  # 5 minutes
-        except:
+        except Exception as e:
+            print(f'[GET-USER] Error computing online status: {e}')
             pass
     
     # Helper function to clean strings from control characters
