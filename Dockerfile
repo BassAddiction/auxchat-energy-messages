@@ -1,7 +1,7 @@
 # ==========================================
 # Stage 1: Build Frontend
 # ==========================================
-# Cache bust: 2025-12-13 15:00 - ABSOLUTE FINAL removal of pp-min-2.js telemetry scripts
+# Cache bust: 2025-12-13 15:07 - REMOVED pp-tagger package + cleaned index.html
 FROM node:18 AS frontend-builder
 
 WORKDIR /app
