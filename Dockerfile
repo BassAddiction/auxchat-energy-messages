@@ -1,7 +1,7 @@
 # ==========================================
 # Stage 1: Build Frontend
 # ==========================================
-# Cache bust: 2025-12-13 15:07 - REMOVED pp-tagger package + cleaned index.html
+# Cache bust: 2025-12-13 15:15 - vite.config.ts fixed, rebuild without pp-tagger
 FROM node:18 AS frontend-builder
 
 WORKDIR /app
