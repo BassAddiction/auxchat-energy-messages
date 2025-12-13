@@ -129,7 +129,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             last_activity = datetime.fromisoformat(last_activity.replace('Z', '+00:00'))
         now = datetime.now(last_activity.tzinfo) if last_activity.tzinfo else datetime.now()
         time_diff = now - last_activity
-        is_online = time_diff < timedelta(minutes=5)
+        is_online = time_diff < timedelta(minutes=2)
     
     result_data = {
         'id': row[0],
