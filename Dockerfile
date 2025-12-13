@@ -1,7 +1,7 @@
 # ==========================================
 # Stage 1: Build Frontend
 # ==========================================
-# Cache bust: 2025-12-13 14:06 - FastAPI binds to localhost only (not 0.0.0.0)
+# Cache bust: 2025-12-13 14:09 - Fixed rewrite rule for /api/ stripping
 FROM node:18 AS frontend-builder
 
 WORKDIR /app
@@ -138,9 +138,10 @@ server {
         add_header Cache-Control "no-cache";
     }
     
-    # Backend API - без rewrite, прямая передача
+    # Backend API - убираем /api/ префикс через rewrite
     location /api/ {
-        proxy_pass http://127.0.0.1:8000/;
+        rewrite ^/api/(.*) /$1 break;
+        proxy_pass http://127.0.0.1:8000;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -174,6 +175,10 @@ echo "✅ Nginx started"
 
 # Тестируем что nginx отвечает
 curl -I http://127.0.0.1:80/ || echo "⚠️ Nginx не отвечает!"
+
+# Тестируем proxy /api/ → FastAPI
+echo "🧪 Testing /api/ proxy before FastAPI starts..."
+curl -I http://127.0.0.1:80/api/test 2>&1 | head -5
 
 # Запускаем FastAPI backend ТОЛЬКО на localhost (через nginx)
 echo "✅ Starting FastAPI on localhost:8000..."
