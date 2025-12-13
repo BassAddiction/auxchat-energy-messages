@@ -252,6 +252,7 @@ const Index = () => {
           avatar: userAvatar,
           phone: data.phone,
           energy: data.energy,
+          status: data.status || '',
         });
         console.log(
           "[LOAD USER] User set successfully with avatar:",
