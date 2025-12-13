@@ -1,7 +1,7 @@
 # ==========================================
 # Stage 1: Build Frontend
 # ==========================================
-# Cache bust: 2025-12-13 13:58 - Fixed nginx proxy /api/ routing
+# Cache bust: 2025-12-13 14:02 - Added nginx config debug logging
 FROM node:18 AS frontend-builder
 
 WORKDIR /app
@@ -23,8 +23,8 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Устанавливаем nginx
-RUN apt-get update && apt-get install -y nginx && rm -rf /var/lib/apt/lists/*
+# Устанавливаем nginx и curl для debug
+RUN apt-get update && apt-get install -y nginx curl && rm -rf /var/lib/apt/lists/*
 
 # Копируем backend функции
 COPY backend/ /app/backend/
@@ -161,9 +161,19 @@ set -e
 
 echo "🚀 Starting services..."
 
+# Показываем nginx конфиг для debug
+echo "📋 Nginx config:"
+cat /etc/nginx/sites-available/default | grep -A 15 "location /api/"
+
+# Тестируем nginx конфиг
+nginx -t
+
 # Запускаем nginx
 nginx
 echo "✅ Nginx started"
+
+# Тестируем что nginx отвечает
+curl -I http://127.0.0.1:80/ || echo "⚠️ Nginx не отвечает!"
 
 # Запускаем FastAPI backend
 echo "✅ Starting FastAPI..."
