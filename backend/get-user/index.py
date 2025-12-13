@@ -10,7 +10,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
           context with request_id
     Returns: HTTP response with user data including latitude, longitude, city
     '''
-    print('[GET-USER v4] Handler called with status field support')  # Force redeploy
+    print('[GET-USER v5] Handler called - rollback to working version')
     method: str = event.get('httpMethod', 'GET')
     
     if method == 'OPTIONS':
@@ -48,12 +48,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     
     dsn = os.environ.get('TIMEWEB_DB_URL')
-    print(f'[DEBUG GET-USER] DSN value: {dsn[:60] if dsn else "None/Empty"}')
     if dsn and '?' in dsn:
         dsn += '&sslmode=require'
     elif dsn:
         dsn += '?sslmode=require'
-    print(f'[DEBUG GET-USER] Final DSN: {dsn[:60] if dsn else "None/Empty"}')
+    
     conn = psycopg2.connect(dsn)
     cur = conn.cursor()
     
@@ -62,6 +61,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         # Convert to int to ensure it's safe
         user_id_int = int(user_id)
     except (ValueError, TypeError):
+        cur.close()
+        conn.close()
         return {
             'statusCode': 400,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
@@ -69,18 +70,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'isBase64Encoded': False
         }
     
-    # Try with city and status columns first, fallback if they don't exist
+    # Try with city column first, fallback if it doesn't exist
     try:
         cur.execute(
-            f"SELECT id, phone, username, avatar_url, energy, is_banned, bio, last_activity, latitude, longitude, city, status FROM users WHERE id = {user_id_int}"
+            f"SELECT id, phone, username, avatar_url, energy, is_banned, bio, last_activity, latitude, longitude, city FROM users WHERE id = {user_id_int}"
         )
         row = cur.fetchone()
         has_city = True
-        has_status = True
-        cur.close()
-        conn.close()
     except Exception as e:
-        print(f'[GET-USER] Error with city/status columns: {e}, reconnecting for fallback')
+        print(f'[GET-USER] Error with city column: {e}, reconnecting for fallback')
         # Close failed connection and create new one
         try:
             cur.close()
@@ -90,22 +88,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         # Reconnect
         conn = psycopg2.connect(dsn)
         cur = conn.cursor()
-        try:
-            cur.execute(
-                f"SELECT id, phone, username, avatar_url, energy, is_banned, bio, last_activity, latitude, longitude, city FROM users WHERE id = {user_id_int}"
-            )
-            row = cur.fetchone()
-            has_city = True
-            has_status = False
-        except:
-            cur.execute(
-                f"SELECT id, phone, username, avatar_url, energy, is_banned, bio, last_activity, latitude, longitude FROM users WHERE id = {user_id_int}"
-            )
-            row = cur.fetchone()
-            has_city = False
-            has_status = False
-        cur.close()
-        conn.close()
+        cur.execute(
+            f"SELECT id, phone, username, avatar_url, energy, is_banned, bio, last_activity, latitude, longitude FROM users WHERE id = {user_id_int}"
+        )
+        row = cur.fetchone()
+        has_city = False
+    
+    cur.close()
+    conn.close()
     
     if not row:
         return {
@@ -114,6 +104,20 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'body': json.dumps({'error': 'User not found'}),
             'isBase64Encoded': False
         }
+    
+    # Compute online status based on last_activity
+    import datetime
+    is_online = False
+    if len(row) > 7 and row[7]:
+        try:
+            last_activity = row[7]
+            if isinstance(last_activity, str):
+                last_activity = datetime.datetime.fromisoformat(last_activity.replace('Z', '+00:00'))
+            now = datetime.datetime.now(datetime.timezone.utc)
+            diff = (now - last_activity).total_seconds()
+            is_online = diff < 300  # 5 minutes
+        except:
+            pass
     
     result_data = {
         'id': row[0],
@@ -124,13 +128,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         'is_admin': False,
         'is_banned': row[5] if row[5] is not None else False,
         'bio': row[6] if row[6] else '',
-        'status': row[11] if has_status and len(row) > 11 and row[11] else '',
+        'status': 'online' if is_online else 'offline',
         'latitude': float(row[8]) if len(row) > 8 and row[8] is not None else None,
         'longitude': float(row[9]) if len(row) > 9 and row[9] is not None else None,
         'city': row[10] if has_city and len(row) > 10 and row[10] else ''
     }
-    
-    print(f'[GET-USER] User data: has_city={has_city}, row_len={len(row)}, city_value={row[10] if has_city and len(row) > 10 else "NO_CITY"}')
     
     return {
         'statusCode': 200,
