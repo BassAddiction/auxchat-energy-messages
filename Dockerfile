@@ -1,7 +1,7 @@
 # ==========================================
 # Stage 1: Build Frontend
 # ==========================================
-# Cache bust: 2025-12-13 14:37 - Removed poehali.dev telemetry scripts from index.html
+# Cache bust: 2025-12-13 14:50 - FINAL removal of poehali.dev telemetry (lines 27-31)
 FROM node:18 AS frontend-builder
 
 WORKDIR /app
