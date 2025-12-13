@@ -131,9 +131,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'body': json.dumps({'error': f'Upload failed: {str(e)}'})
         }
     
-    # Generate public URL for Timeweb S3
-    # Format: https://s3.twcstorage.ru/{access_key}/{bucket}/{filename}
-    public_url = f"https://s3.twcstorage.ru/{access_key}/{bucket_name}/{filename}"
+    # Generate public URL for Timeweb S3 (subdomain format)
+    public_url = f"https://{bucket_name}.s3.timeweb.com/{filename}"
     print(f'[UPLOAD-PHOTO] Public URL: {public_url}')
     
     return {

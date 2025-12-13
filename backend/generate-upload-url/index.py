@@ -107,7 +107,8 @@ def handle_get(event: Dict[str, Any]) -> Dict[str, Any]:
         )
         
         print(f'[DEBUG] Generated presigned URL: {presigned_url}')
-        file_url = f'https://s3.twcstorage.ru/{s3_access_key}/{s3_bucket}/{filename}'
+        # Public URL format for Timeweb S3 (subdomain format)
+        file_url = f'https://{s3_bucket}.s3.timeweb.com/{filename}'
         print(f'[DEBUG] Public file URL: {file_url}')
         
         return {
@@ -224,7 +225,8 @@ def handle_upload(event: Dict[str, Any]) -> Dict[str, Any]:
         )
         
         print('[DEBUG] Upload successful')
-        file_url = f'https://s3.twcstorage.ru/{s3_access_key}/{s3_bucket}/{filename}'
+        # Public URL format for Timeweb S3 (without access_key in path)
+        file_url = f'https://{s3_bucket}.s3.timeweb.com/{filename}'
         
         return {
             'statusCode': 200,
