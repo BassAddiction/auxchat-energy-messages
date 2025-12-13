@@ -142,9 +142,20 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         'city': clean_string(row[10]) if has_city and len(row) > 10 and row[10] else ''
     }
     
+    # Debug: log raw data before JSON encoding
+    print(f'[GET-USER] Raw result_data: {repr(result_data)}')
+    
+    try:
+        body_json = json.dumps(result_data)
+        print(f'[GET-USER] JSON body length: {len(body_json)}')
+    except Exception as e:
+        print(f'[GET-USER] JSON encode error: {e}')
+        print(f'[GET-USER] Problematic data: {result_data}')
+        raise
+    
     return {
         'statusCode': 200,
         'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-        'body': json.dumps(result_data),
+        'body': body_json,
         'isBase64Encoded': False
     }
