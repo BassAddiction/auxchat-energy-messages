@@ -1,0 +1,5 @@
+{
+  "name": "generate-presigned-url",
+  "version": "1.0.0",
+  "api_gateway": true
+}
