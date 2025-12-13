@@ -148,6 +148,10 @@ server {
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        # КРИТИЧЕСКИ ВАЖНО: передаём ВСЕ заголовки от клиента, не перезаписываем X-User-Id!
+        proxy_pass_request_headers on;
+        # Передаём query параметры
+        proxy_pass_request_body on;
         proxy_cache_bypass $http_upgrade;
         proxy_read_timeout 300s;
         proxy_connect_timeout 75s;
