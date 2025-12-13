@@ -48,6 +48,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     status = body_data.get('status')
     username = body_data.get('username')
     
+    print(f'[UPDATE-PROFILE] user_id={user_id}, status={repr(status)}, username={repr(username)}')
+    
     if not status and not username:
         return {
             'statusCode': 400,
@@ -76,8 +78,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     update_query = f"UPDATE users SET {', '.join(update_parts)} WHERE id = {int(user_id)} RETURNING id, username, status"
     
+    print(f'[UPDATE-PROFILE] Executing: {update_query}')
     cur.execute(update_query)
     result = cur.fetchone()
+    print(f'[UPDATE-PROFILE] Result: {result}')
     
     conn.commit()
     cur.close()
