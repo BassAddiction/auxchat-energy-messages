@@ -1,7 +1,7 @@
 # ==========================================
 # Stage 1: Build Frontend
 # ==========================================
-# Cache bust: 2025-12-13 14:02 - Added nginx config debug logging
+# Cache bust: 2025-12-13 14:06 - FastAPI binds to localhost only (not 0.0.0.0)
 FROM node:18 AS frontend-builder
 
 WORKDIR /app
@@ -175,9 +175,9 @@ echo "✅ Nginx started"
 # Тестируем что nginx отвечает
 curl -I http://127.0.0.1:80/ || echo "⚠️ Nginx не отвечает!"
 
-# Запускаем FastAPI backend
-echo "✅ Starting FastAPI..."
-exec uvicorn server:app --host 0.0.0.0 --port 8000
+# Запускаем FastAPI backend ТОЛЬКО на localhost (через nginx)
+echo "✅ Starting FastAPI on localhost:8000..."
+exec uvicorn server:app --host 127.0.0.1 --port 8000
 EOF
 
 RUN chmod +x /app/start.sh
