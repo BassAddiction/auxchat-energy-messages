@@ -27,6 +27,7 @@ const FUNCTION_NAMES = [
   'get-user',
   'geocode',
   'update-location',
+  'typing-status',
 ];
 
 // Generate FUNCTIONS object with API Gateway URLs

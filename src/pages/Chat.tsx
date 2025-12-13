@@ -290,7 +290,7 @@ export default function Chat() {
   // Отправка статуса "печатает"
   const sendTypingStatus = async () => {
     try {
-      await fetch('https://functions.poehali.dev/b4023b24-32b8-4458-b066-e90281607f06', {
+      await fetch(FUNCTIONS["typing-status"], {
         method: 'POST',
         headers: { 
           'X-User-Id': currentUserId || '0',
@@ -309,7 +309,7 @@ export default function Chat() {
   const checkTypingStatus = async () => {
     try {
       const response = await fetch(
-        `https://functions.poehali.dev/b4023b24-32b8-4458-b066-e90281607f06?user_id=${userId}`,
+        `${FUNCTIONS["typing-status"]}?user_id=${userId}`,
         {
           headers: {
             'X-User-Id': currentUserId || '0'
