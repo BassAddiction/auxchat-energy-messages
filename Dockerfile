@@ -1,6 +1,7 @@
 # ==========================================
 # Stage 1: Build Frontend
 # ==========================================
+# Cache bust: 2025-12-13 15:07 - REMOVED pp-tagger package + cleaned index.html
 FROM node:18 AS frontend-builder
 
 WORKDIR /app
@@ -22,8 +23,8 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Устанавливаем nginx
-RUN apt-get update && apt-get install -y nginx && rm -rf /var/lib/apt/lists/*
+# Устанавливаем nginx и curl для debug
+RUN apt-get update && apt-get install -y nginx curl && rm -rf /var/lib/apt/lists/*
 
 # Копируем backend функции
 COPY backend/ /app/backend/
@@ -137,9 +138,9 @@ server {
         add_header Cache-Control "no-cache";
     }
     
-    # Backend API
+    # Backend API - убираем /api/ префикс через rewrite
     location /api/ {
-        rewrite ^/api/(.*)$ /$1 break;
+        rewrite ^/api/(.*) /$1 break;
         proxy_pass http://127.0.0.1:8000;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -161,13 +162,27 @@ set -e
 
 echo "🚀 Starting services..."
 
+# Показываем nginx конфиг для debug
+echo "📋 Nginx config:"
+cat /etc/nginx/sites-available/default | grep -A 15 "location /api/"
+
+# Тестируем nginx конфиг
+nginx -t
+
 # Запускаем nginx
 nginx
 echo "✅ Nginx started"
 
-# Запускаем FastAPI backend
-echo "✅ Starting FastAPI..."
-exec uvicorn server:app --host 0.0.0.0 --port 8000
+# Тестируем что nginx отвечает
+curl -I http://127.0.0.1:80/ || echo "⚠️ Nginx не отвечает!"
+
+# Тестируем proxy /api/ → FastAPI
+echo "🧪 Testing /api/ proxy before FastAPI starts..."
+curl -I http://127.0.0.1:80/api/test 2>&1 | head -5
+
+# Запускаем FastAPI backend ТОЛЬКО на localhost (через nginx)
+echo "✅ Starting FastAPI on localhost:8000..."
+exec uvicorn server:app --host 127.0.0.1 --port 8000
 EOF
 
 RUN chmod +x /app/start.sh
