@@ -45,7 +45,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     
     user_id = int(user_id_str)
+    print(f'[UPDATE-ACTIVITY] Starting for user_id={user_id}')
+    
     dsn = os.environ.get('TIMEWEB_DB_URL')
+    print(f'[UPDATE-ACTIVITY] DSN exists: {bool(dsn)}, starts with postgresql: {dsn.startswith("postgresql://") if dsn else False}')
+    
     if dsn and '?' in dsn:
         dsn += '&sslmode=require'
     elif dsn:
@@ -53,15 +57,22 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     conn = psycopg2.connect(dsn)
     cur = conn.cursor()
+    print(f'[UPDATE-ACTIVITY] Connected to DB')
     
     safe_user_id = str(user_id).replace("'", "''")
-    cur.execute(
-        f"UPDATE users SET last_activity = CURRENT_TIMESTAMP WHERE id = '{safe_user_id}'"
-    )
+    query = f"UPDATE users SET last_activity = CURRENT_TIMESTAMP WHERE id = '{safe_user_id}'"
+    print(f'[UPDATE-ACTIVITY] Executing: {query}')
+    
+    cur.execute(query)
+    rows_affected = cur.rowcount
+    print(f'[UPDATE-ACTIVITY] Rows affected: {rows_affected}')
     
     conn.commit()
+    print(f'[UPDATE-ACTIVITY] Committed')
+    
     cur.close()
     conn.close()
+    print(f'[UPDATE-ACTIVITY] Connection closed')
     
     return {
         'statusCode': 200,
