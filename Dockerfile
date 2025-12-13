@@ -1,7 +1,7 @@
 # ==========================================
 # Stage 1: Build Frontend
 # ==========================================
-# Cache bust: 2025-12-13 16:05 - FINAL REMOVAL telemetry from index.html (lines 28-32 deleted)
+# Cache bust: 2025-12-13 16:10 - FINAL FIX telemetry scripts removed index.html L27-31 УДАЛЕНЫ
 FROM node:18 AS frontend-builder
 
 WORKDIR /app
