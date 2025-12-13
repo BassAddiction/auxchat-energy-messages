@@ -83,7 +83,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     print(f'[UPDATE-ACTIVITY] Starting for user_id={user_id}')
     
     dsn = os.environ.get('TIMEWEB_DB_URL')
-    print(f'[UPDATE-ACTIVITY] DSN exists: {bool(dsn)}, starts with postgresql: {dsn.startswith("postgresql://") if dsn else False}')
+    # Показываем только host и database name (без пароля)
+    dsn_safe = dsn.split('@')[1] if dsn and '@' in dsn else 'NO_DSN'
+    print(f'[UPDATE-ACTIVITY] DSN exists: {bool(dsn)}, connecting to: {dsn_safe}')
     
     if dsn and '?' in dsn:
         dsn += '&sslmode=require'
