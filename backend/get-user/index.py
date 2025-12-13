@@ -10,7 +10,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
           context with request_id
     Returns: HTTP response with user data including latitude, longitude, city
     '''
-    print('[GET-USER v4] Handler called with status field support')  # Force redeploy
+    print('[GET-USER v3] Handler called with city field')  # Force redeploy
     method: str = event.get('httpMethod', 'GET')
     
     if method == 'OPTIONS':
