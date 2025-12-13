@@ -65,11 +65,11 @@ export default function VoiceMessage({ voiceUrl, duration, isOwn }: VoiceMessage
       {/* Круглая кнопка Play/Pause */}
       <button
         onClick={togglePlay}
-        className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
+        className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 transition-all shadow-lg ${
           isOwn 
-            ? 'bg-white/20 hover:bg-white/30 text-white' 
-            : 'bg-blue-500 hover:bg-blue-600 text-white'
-        }`}
+            ? 'bg-gradient-to-br from-red-500 via-red-600 to-black hover:from-red-600 hover:via-red-700 hover:to-black' 
+            : 'bg-gradient-to-br from-red-400 via-rose-500 to-gray-900 hover:from-red-500 hover:via-rose-600 hover:to-black'
+        } text-white`}
       >
         {isPlaying ? (
           <Icon name="Pause" size={20} className="fill-current" />
