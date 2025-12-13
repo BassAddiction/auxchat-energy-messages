@@ -13,6 +13,7 @@ interface UserProfile {
   username: string;
   avatar: string;
   status: string;
+  last_seen?: string | null;
 }
 
 interface ChatHeaderProps {
@@ -83,7 +84,11 @@ export default function ChatHeader({
             </span>
           ) : (
             <span className={`text-xs ${profile?.status === 'online' ? 'text-green-400' : 'text-muted-foreground'}`}>
-              {profile?.status === 'online' ? 'В сети' : 'Не в сети'}
+              {profile?.status === 'online' ? 'В сети' : (
+                profile?.last_seen ? (
+                  `был(а) в ${new Date(profile.last_seen).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`
+                ) : 'Не в сети'
+              )}
             </span>
           )}
         </div>

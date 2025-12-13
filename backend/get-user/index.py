@@ -124,12 +124,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     from datetime import datetime, timedelta
     last_activity = row[7]  # last_activity column
     is_online = False
+    last_seen = None
     if last_activity:
         if isinstance(last_activity, str):
             last_activity = datetime.fromisoformat(last_activity.replace('Z', '+00:00'))
         now = datetime.now(last_activity.tzinfo) if last_activity.tzinfo else datetime.now()
         time_diff = now - last_activity
-        is_online = time_diff < timedelta(minutes=2)
+        # Онлайн только если активность была меньше 15 секунд назад (как в WhatsApp)
+        is_online = time_diff < timedelta(seconds=15)
+        # Сохраняем время последней активности для отображения
+        last_seen = last_activity.isoformat() if last_activity else None
     
     result_data = {
         'id': row[0],
@@ -141,6 +145,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         'is_banned': row[5] if row[5] is not None else False,
         'bio': clean_string(row[6]) if row[6] else '',
         'status': 'online' if is_online else 'offline',
+        'last_seen': last_seen,
         'custom_status': clean_string(user_custom_status),
         'latitude': float(row[8]) if len(row) > 8 and row[8] is not None else None,
         'longitude': float(row[9]) if len(row) > 9 and row[9] is not None else None,
