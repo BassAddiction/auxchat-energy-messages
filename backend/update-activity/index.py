@@ -34,6 +34,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     
     headers = event.get('headers', {})
+    
+    # DEBUG: Логируем ВСЕ заголовки чтобы увидеть что приходит
+    print(f'[UPDATE-ACTIVITY] ALL HEADERS: {json.dumps(headers, indent=2)}')
+    print(f'[UPDATE-ACTIVITY] FULL EVENT: {json.dumps(event, indent=2, default=str)}')
+    
     user_id_str = headers.get('X-User-Id') or headers.get('x-user-id')
     
     if not user_id_str:
