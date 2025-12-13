@@ -18,6 +18,18 @@
         "messages": "array"
       },
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "Delete message without messageId",
+      "method": "DELETE",
+      "path": "/",
+      "headers": {
+        "X-User-Id": "1"
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "messageId query param required"
+      }
     }
   ]
 }

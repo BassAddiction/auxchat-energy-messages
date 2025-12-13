@@ -20,7 +20,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'statusCode': 200,
             'headers': {
                 'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+                'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type, X-User-Id',
                 'Access-Control-Max-Age': '86400'
             },
@@ -258,6 +258,61 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                 'body': json.dumps({'success': True, 'messageId': message_id}),
+                'isBase64Encoded': False
+            }
+        
+        if method == 'DELETE':
+            query_params = event.get('queryStringParameters', {}) or {}
+            message_id_str = query_params.get('messageId')
+            
+            if not message_id_str:
+                cur.close()
+                conn.close()
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'messageId query param required'}),
+                    'isBase64Encoded': False
+                }
+            
+            message_id = int(message_id_str)
+            
+            # Проверяем, что сообщение принадлежит текущему пользователю
+            cur.execute(f"SELECT sender_id FROM private_messages WHERE id = {message_id}")
+            result = cur.fetchone()
+            
+            if not result:
+                cur.close()
+                conn.close()
+                return {
+                    'statusCode': 404,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'Message not found'}),
+                    'isBase64Encoded': False
+                }
+            
+            sender_id = result[0]
+            
+            if sender_id != user_id:
+                cur.close()
+                conn.close()
+                return {
+                    'statusCode': 403,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'You can only delete your own messages'}),
+                    'isBase64Encoded': False
+                }
+            
+            # Удаляем сообщение
+            cur.execute(f"DELETE FROM private_messages WHERE id = {message_id}")
+            conn.commit()
+            cur.close()
+            conn.close()
+            
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'success': True}),
                 'isBase64Encoded': False
             }
         
