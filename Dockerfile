@@ -1,6 +1,7 @@
 # ==========================================
 # Stage 1: Build Frontend
 # ==========================================
+# Cache bust: 2025-12-13 13:58 - Fixed nginx proxy /api/ routing
 FROM node:18 AS frontend-builder
 
 WORKDIR /app
