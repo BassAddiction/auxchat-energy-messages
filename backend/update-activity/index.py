@@ -45,13 +45,17 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     # Пробуем достать из body
     body_str = event.get('body', '')
+    print(f'[UPDATE-ACTIVITY] RAW BODY: {repr(body_str)}')
+    print(f'[UPDATE-ACTIVITY] BODY LENGTH: {len(body_str) if body_str else 0}')
+    print(f'[UPDATE-ACTIVITY] isBase64Encoded: {event.get("isBase64Encoded")}')
+    
     if body_str:
         try:
             body_data = json.loads(body_str)
             user_id_str = str(body_data.get('user_id', ''))
             print(f'[UPDATE-ACTIVITY] user_id from body: {user_id_str}')
-        except:
-            pass
+        except Exception as e:
+            print(f'[UPDATE-ACTIVITY] Failed to parse body JSON: {e}')
     
     # Если в body нет, пробуем другие источники
     if not user_id_str:
