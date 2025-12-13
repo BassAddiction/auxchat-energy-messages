@@ -91,19 +91,28 @@ export default function MessageList({
         return (
           <div key={message.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'} gap-2`}>
             {isOwn && longPressMessageId === message.id && (
-              <button
-                onClick={() => handleDelete(message.id)}
-                className="w-10 h-10 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors self-end mb-1 flex-shrink-0"
-                aria-label="Удалить сообщение"
-              >
-                <Icon name="Trash2" size={18} />
-              </button>
+              <div className="flex gap-2 self-end mb-1">
+                <button
+                  onClick={() => setLongPressMessageId(null)}
+                  className="w-10 h-10 bg-gray-400 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-gray-500 transition-colors flex-shrink-0"
+                  aria-label="Отменить"
+                >
+                  <Icon name="X" size={18} />
+                </button>
+                <button
+                  onClick={() => handleDelete(message.id)}
+                  className="w-10 h-10 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors flex-shrink-0"
+                  aria-label="Удалить сообщение"
+                >
+                  <Icon name="Trash2" size={18} />
+                </button>
+              </div>
             )}
             
             <div 
               className={`max-w-[75%] md:max-w-md rounded-2xl px-3 py-2 shadow-sm ${
                 isOwn 
-                  ? 'bg-blue-500 text-white rounded-br-sm' 
+                  ? 'bg-gray-200 text-gray-900 rounded-br-sm' 
                   : 'bg-gray-100 text-gray-900 rounded-bl-sm'
               }`}
               onTouchStart={() => handleLongPressStart(message.id, isOwn)}
