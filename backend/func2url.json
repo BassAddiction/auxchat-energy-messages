@@ -1,4 +1,5 @@
 {
+  "update-profile": "https://functions.poehali.dev/36d49543-be95-42f4-b5ed-08ba658f93bb",
   "upload-photo-http": "https://functions.poehali.dev/41e9c94d-2a84-4246-81ff-6e3f2f9b2ea0",
   "upload-photo-swift": "https://functions.poehali.dev/d889a35b-929e-415d-a169-1c0d03bd11ab",
   "generate-presigned-url": "https://functions.poehali.dev/b1d84747-728f-4a4c-ab3f-86b7093bfbb9",
