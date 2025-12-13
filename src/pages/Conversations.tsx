@@ -25,6 +25,10 @@ export default function Conversations() {
   const currentUserId = localStorage.getItem('auxchat_user_id');
 
   const updateActivity = async () => {
+    // НЕ обновляем активность если вкладка неактивна или пользователь не залогинен
+    if (document.hidden || !currentUserId || currentUserId === '0') {
+      return;
+    }
     try {
       // FUNCTION: update-activity - Обновление времени последней активности
       await fetch(FUNCTIONS['update-activity'], {
@@ -45,9 +49,20 @@ export default function Conversations() {
     loadConversations();
     const conversationsInterval = setInterval(loadConversations, 5000);
     const activityInterval = setInterval(updateActivity, 60000);
+    
+    // Отслеживаем когда пользователь переключается между вкладками
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        // Вкладка стала активной - обновляем активность
+        updateActivity();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
     return () => {
       clearInterval(conversationsInterval);
       clearInterval(activityInterval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 
