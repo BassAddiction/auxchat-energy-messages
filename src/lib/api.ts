@@ -4,12 +4,14 @@ import { FUNCTIONS } from './func2url';
 console.log('[API CONFIG] Using direct Yandex Cloud function URLs');
 
 export const api = {
-  // Helper to add auth header
+  // Helper to add auth header with JWT token
   headers(userId?: string | null) {
+    const token = localStorage.getItem('auxchat_token');
     const id = userId || localStorage.getItem('auxchat_user_id');
     return {
       'Content-Type': 'application/json',
-      ...(id && { 'X-User-Id': id }),
+      ...(token && { 'Authorization': `Bearer ${token}` }),
+      ...(id && { 'X-User-Id': id }),  // Keep for backward compatibility
     };
   },
 

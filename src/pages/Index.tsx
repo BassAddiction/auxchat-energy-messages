@@ -399,6 +399,11 @@ const Index = () => {
         });
         setUserId(data.id);
         localStorage.setItem("auxchat_user_id", data.id.toString());
+        // Save JWT token for secure authentication
+        if (data.token) {
+          localStorage.setItem("auxchat_token", data.token);
+          console.log("[AUTH] JWT token saved successfully");
+        }
         setIsAuthOpen(false);
         setPhone("");
         setPassword("");
@@ -522,6 +527,11 @@ const Index = () => {
         });
         setUserId(data.id);
         localStorage.setItem("auxchat_user_id", data.id.toString());
+        // Save JWT token for secure authentication
+        if (data.token) {
+          localStorage.setItem("auxchat_token", data.token);
+          console.log("[AUTH] JWT token saved successfully");
+        }
         setIsAuthOpen(false);
         resetAuthForm();
       } else {
