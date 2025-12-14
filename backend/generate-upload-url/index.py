@@ -80,7 +80,12 @@ def handle_get(event: Dict[str, Any]) -> Dict[str, Any]:
             }
         
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
-        filename = f'voice-messages/voice_{timestamp}.{extension}'
+        
+        # Determine folder based on content type
+        if content_type.startswith('image/'):
+            filename = f'profile-photos/photo_{timestamp}.{extension}'
+        else:
+            filename = f'voice-messages/voice_{timestamp}.{extension}'
         
         s3_client = boto3.client(
             's3',
@@ -101,7 +106,10 @@ def handle_get(event: Dict[str, Any]) -> Dict[str, Any]:
             ExpiresIn=300
         )
         
-        file_url = f'{s3_endpoint}/{s3_bucket}/{filename}'
+        print(f'[DEBUG] Generated presigned URL: {presigned_url}')
+        # Public URL format for Timeweb S3 (subdomain format)
+        file_url = f'https://{s3_bucket}.s3.timeweb.com/{filename}'
+        print(f'[DEBUG] Public file URL: {file_url}')
         
         return {
             'statusCode': 200,
@@ -217,7 +225,8 @@ def handle_upload(event: Dict[str, Any]) -> Dict[str, Any]:
         )
         
         print('[DEBUG] Upload successful')
-        file_url = f'{s3_endpoint}/{s3_bucket}/{filename}'
+        # Public URL format for Timeweb S3 (without access_key in path)
+        file_url = f'https://{s3_bucket}.s3.timeweb.com/{filename}'
         
         return {
             'statusCode': 200,

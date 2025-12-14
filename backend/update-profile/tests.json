@@ -1,0 +1,28 @@
+{
+  "tests": [
+    {
+      "name": "Update user status",
+      "method": "PUT",
+      "headers": {
+        "X-User-Id": "1"
+      },
+      "body": {
+        "status": "Новый статус"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "id": "number",
+        "status": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Update without user ID",
+      "method": "PUT",
+      "body": {
+        "status": "Test"
+      },
+      "expectedStatus": 401
+    }
+  ]
+}

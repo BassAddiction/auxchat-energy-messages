@@ -11,6 +11,7 @@ interface Conversation {
   username: string;
   avatarUrl: string | null;
   status: string;
+  last_seen?: string | null;
   lastMessage: string;
   lastMessageAt: string;
   unreadCount: number;
@@ -25,14 +26,27 @@ export default function Conversations() {
   const currentUserId = localStorage.getItem('auxchat_user_id');
 
   const updateActivity = async () => {
+    console.log('[UPDATE-ACTIVITY] Called, hidden:', document.hidden, 'userId:', currentUserId);
+    // НЕ обновляем активность если вкладка неактивна или пользователь не залогинен
+    if (document.hidden || !currentUserId || currentUserId === '0') {
+      console.log('[UPDATE-ACTIVITY] Skipped - tab hidden or no user');
+      return;
+    }
     try {
+      // Передаём user_id через body JSON, потому что nginx перезаписывает X-User-Id и отрезает query параметры
+      console.log('[UPDATE-ACTIVITY] Sending request with user_id:', currentUserId);
       // FUNCTION: update-activity - Обновление времени последней активности
-      await fetch(FUNCTIONS['update-activity'], {
+      const response = await fetch(FUNCTIONS['update-activity'], {
         method: 'POST',
-        headers: { 'X-User-Id': currentUserId || '0' }
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-User-Id': currentUserId || '0'
+        },
+        body: JSON.stringify({ user_id: currentUserId })
       });
+      console.log('[UPDATE-ACTIVITY] Response:', response.status);
     } catch (error) {
-      console.error('Error updating activity:', error);
+      console.error('[UPDATE-ACTIVITY] Error:', error);
     }
   };
 
@@ -44,10 +58,21 @@ export default function Conversations() {
     updateActivity();
     loadConversations();
     const conversationsInterval = setInterval(loadConversations, 5000);
-    const activityInterval = setInterval(updateActivity, 60000);
+    const activityInterval = setInterval(updateActivity, 10000);
+    
+    // Отслеживаем когда пользователь переключается между вкладками
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        // Вкладка стала активной - обновляем активность
+        updateActivity();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
     return () => {
       clearInterval(conversationsInterval);
       clearInterval(activityInterval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 

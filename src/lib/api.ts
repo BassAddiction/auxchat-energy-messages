@@ -137,6 +137,18 @@ export const api = {
     return res.json();
   },
 
+  async deleteMessage(messageId: number, userId: string) {
+    const res = await fetch(`${FUNCTIONS['private-messages']}?messageId=${messageId}`, {
+      method: 'DELETE',
+      headers: this.headers(userId),
+    });
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.error || 'Failed to delete message');
+    }
+    return res.json();
+  },
+
   async getUnreadCount(userId: string) {
     // Use get-conversations which includes unread counts
     const res = await fetch(FUNCTIONS['get-conversations'], {

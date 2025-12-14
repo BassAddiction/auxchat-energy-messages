@@ -20,7 +20,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'statusCode': 200,
             'headers': {
                 'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+                'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type, X-User-Id',
                 'Access-Control-Max-Age': '86400'
             },
@@ -133,7 +133,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     if created_at.tzinfo is None:
                         from datetime import timezone
                         created_at = created_at.replace(tzinfo=timezone.utc)
-                    created_at_str = created_at.isoformat()
+                    # Всегда используем Z вместо +00:00 для JS совместимости
+                    created_at_str = created_at.isoformat().replace('+00:00', 'Z')
                 else:
                     created_at_str = str(created_at) + 'Z'
                 
@@ -244,10 +245,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             cur.execute(insert_query)
             message_id = cur.fetchone()[0]
             
-            # Обновляем last_activity отправителя
+            # Обновляем last_activity отправителя (UTC)
             safe_user_id_update = str(user_id).replace("'", "''")
             cur.execute(
-                f"UPDATE users SET last_activity = CURRENT_TIMESTAMP WHERE id = '{safe_user_id_update}'"
+                f"UPDATE users SET last_activity = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') WHERE id = '{safe_user_id_update}'"
             )
             
             conn.commit()
@@ -258,6 +259,61 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                 'body': json.dumps({'success': True, 'messageId': message_id}),
+                'isBase64Encoded': False
+            }
+        
+        if method == 'DELETE':
+            query_params = event.get('queryStringParameters', {}) or {}
+            message_id_str = query_params.get('messageId')
+            
+            if not message_id_str:
+                cur.close()
+                conn.close()
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'messageId query param required'}),
+                    'isBase64Encoded': False
+                }
+            
+            message_id = int(message_id_str)
+            
+            # Проверяем, что сообщение принадлежит текущему пользователю
+            cur.execute(f"SELECT sender_id FROM private_messages WHERE id = {message_id}")
+            result = cur.fetchone()
+            
+            if not result:
+                cur.close()
+                conn.close()
+                return {
+                    'statusCode': 404,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'Message not found'}),
+                    'isBase64Encoded': False
+                }
+            
+            sender_id = result[0]
+            
+            if sender_id != user_id:
+                cur.close()
+                conn.close()
+                return {
+                    'statusCode': 403,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'You can only delete your own messages'}),
+                    'isBase64Encoded': False
+                }
+            
+            # Удаляем сообщение
+            cur.execute(f"DELETE FROM private_messages WHERE id = {message_id}")
+            conn.commit()
+            cur.close()
+            conn.close()
+            
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'success': True}),
                 'isBase64Encoded': False
             }
         

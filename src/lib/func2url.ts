@@ -21,11 +21,13 @@ const FUNCTION_NAMES = [
   'register',
   'subscribe',
   'update-activity',
+  'update-profile',
   'private-messages',
   'admin-users',
   'get-user',
   'geocode',
   'update-location',
+  'typing-status',
 ];
 
 // Generate FUNCTIONS object with API Gateway URLs

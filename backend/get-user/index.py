@@ -10,7 +10,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
           context with request_id
     Returns: HTTP response with user data including latitude, longitude, city
     '''
-    print('[GET-USER v3] Handler called with city field')  # Force redeploy
+    print('[GET-USER v5] Handler called - rollback to working version')
     method: str = event.get('httpMethod', 'GET')
     
     if method == 'OPTIONS':
@@ -48,12 +48,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     
     dsn = os.environ.get('TIMEWEB_DB_URL')
-    print(f'[DEBUG GET-USER] DSN value: {dsn[:60] if dsn else "None/Empty"}')
+    # Показываем только host и database name (без пароля)
+    dsn_safe = dsn.split('@')[1] if dsn and '@' in dsn else 'NO_DSN'
+    print(f'[GET-USER] DSN exists: {bool(dsn)}, connecting to: {dsn_safe}')
     if dsn and '?' in dsn:
         dsn += '&sslmode=require'
     elif dsn:
         dsn += '?sslmode=require'
-    print(f'[DEBUG GET-USER] Final DSN: {dsn[:60] if dsn else "None/Empty"}')
+    
     conn = psycopg2.connect(dsn)
     cur = conn.cursor()
     
@@ -62,6 +64,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         # Convert to int to ensure it's safe
         user_id_int = int(user_id)
     except (ValueError, TypeError):
+        cur.close()
+        conn.close()
         return {
             'statusCode': 400,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
@@ -69,17 +73,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'isBase64Encoded': False
         }
     
-    # Try with city column first, fallback if it doesn't exist
+    # Try with status and city columns first, fallback if they don't exist
     try:
         cur.execute(
-            f"SELECT id, phone, username, avatar_url, energy, is_banned, bio, last_activity, latitude, longitude, city FROM users WHERE id = {user_id_int}"
+            f"SELECT id, phone, username, avatar_url, energy, is_banned, bio, last_activity, latitude, longitude, city, status FROM users WHERE id = {user_id_int}"
         )
         row = cur.fetchone()
         has_city = True
-        cur.close()
-        conn.close()
+        has_status = True
     except Exception as e:
-        print(f'[GET-USER] Error with city column: {e}, reconnecting for fallback')
+        print(f'[GET-USER] Error with city/status columns: {e}, reconnecting for fallback')
         # Close failed connection and create new one
         try:
             cur.close()
@@ -94,8 +97,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         )
         row = cur.fetchone()
         has_city = False
-        cur.close()
-        conn.close()
+        has_status = False
+    
+    cur.close()
+    conn.close()
     
     if not row:
         return {
@@ -105,34 +110,75 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'isBase64Encoded': False
         }
     
-    # Проверяем активность (онлайн если был активен менее 5 минут назад)
-    from datetime import datetime, timedelta
-    last_activity = row[7]
+    # Helper function to clean strings from control characters
+    def clean_string(s):
+        if not s:
+            return ''
+        # Remove control characters except tab, newline, carriage return
+        import re
+        return re.sub(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]', '', str(s))
+    
+    # Extract custom user status (текстовый статус типа "привет настроение так то")
+    user_custom_status = ''
+    if has_status and len(row) > 11 and row[11]:
+        user_custom_status = str(row[11])
+    
+    # Compute online/offline status based on last_activity
+    from datetime import datetime, timedelta, timezone
+    last_activity = row[7]  # last_activity column
     is_online = False
+    last_seen = None
     if last_activity:
-        time_diff = datetime.utcnow() - last_activity
-        is_online = time_diff < timedelta(minutes=5)
+        print(f'[GET-USER] Raw last_activity from DB: {repr(last_activity)}, type: {type(last_activity)}')
+        # Ensure last_activity is timezone-aware (UTC)
+        if isinstance(last_activity, str):
+            last_activity = datetime.fromisoformat(last_activity.replace('Z', '+00:00'))
+        elif last_activity.tzinfo is None:
+            # Database returns naive datetime - assume it's UTC
+            last_activity = last_activity.replace(tzinfo=timezone.utc)
+        print(f'[GET-USER] Parsed last_activity: {last_activity}, tzinfo: {last_activity.tzinfo}')
+        # Always use UTC for comparison
+        now = datetime.now(timezone.utc)
+        print(f'[GET-USER] Current now (UTC): {now}, tzinfo: {now.tzinfo}')
+        time_diff = now - last_activity
+        print(f'[GET-USER] Time diff: {time_diff}, total_seconds: {time_diff.total_seconds()}')
+        # Онлайн только если активность была меньше 15 секунд назад (как в WhatsApp)
+        is_online = time_diff < timedelta(seconds=15)
+        print(f'[GET-USER] is_online={is_online} (threshold: 15 sec)')
+        # Сохраняем время последней активности для отображения
+        last_seen = last_activity.isoformat() if last_activity else None
     
     result_data = {
         'id': row[0],
-        'phone': row[1],
-        'username': row[2],
-        'avatar': row[3] if row[3] else '',
+        'phone': clean_string(row[1]),
+        'username': clean_string(row[2]),
+        'avatar': clean_string(row[3]) if row[3] else '',
         'energy': row[4],
         'is_admin': False,
         'is_banned': row[5] if row[5] is not None else False,
-        'bio': row[6] if row[6] else '',
+        'bio': clean_string(row[6]) if row[6] else '',
         'status': 'online' if is_online else 'offline',
+        'last_seen': last_seen,
+        'custom_status': clean_string(user_custom_status),
         'latitude': float(row[8]) if len(row) > 8 and row[8] is not None else None,
         'longitude': float(row[9]) if len(row) > 9 and row[9] is not None else None,
-        'city': row[10] if has_city and len(row) > 10 and row[10] else ''
+        'city': clean_string(row[10]) if has_city and len(row) > 10 and row[10] else ''
     }
     
-    print(f'[GET-USER] User data: has_city={has_city}, row_len={len(row)}, city_value={row[10] if has_city and len(row) > 10 else "NO_CITY"}')
+    # Debug: log raw data before JSON encoding
+    print(f'[GET-USER] Raw result_data: {repr(result_data)}')
+    
+    try:
+        body_json = json.dumps(result_data)
+        print(f'[GET-USER] JSON body length: {len(body_json)}')
+    except Exception as e:
+        print(f'[GET-USER] JSON encode error: {e}')
+        print(f'[GET-USER] Problematic data: {result_data}')
+        raise
     
     return {
         'statusCode': 200,
         'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-        'body': json.dumps(result_data),
+        'body': body_json,
         'isBase64Encoded': False
     }

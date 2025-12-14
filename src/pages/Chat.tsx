@@ -6,6 +6,7 @@ import ChatHeader from '@/components/chat/ChatHeader';
 import MessageList from '@/components/chat/MessageList';
 import MessageInput from '@/components/chat/MessageInput';
 import { FUNCTIONS } from '@/lib/func2url';
+import { api } from '@/lib/api';
 
 interface Message {
   id: number;
@@ -43,18 +44,33 @@ export default function Chat() {
   const [messageLimit, setMessageLimit] = useState(50);
   const [hasMoreMessages, setHasMoreMessages] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const currentUserId = localStorage.getItem('auxchat_user_id');
 
   const updateActivity = async () => {
+    console.log('[UPDATE-ACTIVITY] Called, hidden:', document.hidden, 'userId:', currentUserId);
+    // НЕ обновляем активность если вкладка неактивна или пользователь не залогинен
+    if (document.hidden || !currentUserId || currentUserId === '0') {
+      console.log('[UPDATE-ACTIVITY] Skipped - tab hidden or no user');
+      return;
+    }
     try {
+      // Передаём user_id через body JSON, потому что nginx перезаписывает X-User-Id и отрезает query параметры
+      console.log('[UPDATE-ACTIVITY] Sending request with user_id:', currentUserId);
       // FUNCTION: update-activity - Обновление времени последней активности
-      await fetch(FUNCTIONS["update-activity"], {
+      const response = await fetch(FUNCTIONS["update-activity"], {
         method: 'POST',
-        headers: { 'X-User-Id': currentUserId || '0' }
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-User-Id': currentUserId || '0'
+        },
+        body: JSON.stringify({ user_id: currentUserId })
       });
+      console.log('[UPDATE-ACTIVITY] Response:', response.status);
     } catch (error) {
-      console.error('Error updating activity:', error);
+      console.error('[UPDATE-ACTIVITY] Error:', error);
     }
   };
 
@@ -65,12 +81,25 @@ export default function Chat() {
     loadMessages();
     checkBlockStatus();
     const messagesInterval = setInterval(loadMessages, 3000);
-    const profileInterval = setInterval(loadProfile, 10000);
-    const activityInterval = setInterval(updateActivity, 60000);
+    const profileInterval = setInterval(loadProfile, 2000);
+    const typingInterval = setInterval(checkTypingStatus, 2000);
+    const activityInterval = setInterval(updateActivity, 10000);
+    
+    // Отслеживаем когда пользователь переключается между вкладками
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        // Вкладка стала активной - обновляем активность
+        updateActivity();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
     return () => {
       clearInterval(messagesInterval);
       clearInterval(profileInterval);
+      clearInterval(typingInterval);
       clearInterval(activityInterval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [userId]);
 
@@ -271,6 +300,68 @@ export default function Chat() {
     }
   };
 
+  const handleDeleteMessage = async (messageId: number) => {
+    try {
+      await api.deleteMessage(messageId, currentUserId!);
+      toast.success('Сообщение удалено');
+      // Обновляем список сообщений
+      loadMessages();
+    } catch (error: any) {
+      toast.error(error.message || 'Не удалось удалить сообщение');
+    }
+  };
+
+  // Отправка статуса "печатает"
+  const sendTypingStatus = async () => {
+    try {
+      await fetch(FUNCTIONS["typing-status"], {
+        method: 'POST',
+        headers: { 
+          'X-User-Id': currentUserId || '0',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          typing_to: userId
+        })
+      });
+    } catch (error) {
+      console.error('Error sending typing status:', error);
+    }
+  };
+
+  // Проверка статуса печати собеседника
+  const checkTypingStatus = async () => {
+    try {
+      const response = await fetch(
+        `${FUNCTIONS["typing-status"]}?user_id=${userId}`,
+        {
+          headers: {
+            'X-User-Id': currentUserId || '0'
+          }
+        }
+      );
+      const data = await response.json();
+      setIsTyping(data.is_typing || false);
+    } catch (error) {
+      console.error('Error checking typing status:', error);
+    }
+  };
+
+  // Обработчик ввода текста
+  const handleTyping = () => {
+    sendTypingStatus();
+    
+    // Сбрасываем предыдущий таймер
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    
+    // Через 3 секунды перестаём отправлять статус печати
+    typingTimeoutRef.current = setTimeout(() => {
+      // Можно отправить typing: false, но это опционально
+    }, 3000);
+  };
+
   if (loading) {
     return (
       <div className="h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex items-center justify-center">
@@ -292,6 +383,7 @@ export default function Chat() {
           onBack={() => navigate('/')}
           onProfileClick={() => navigate(`/profile/${userId}`)}
           onBlockToggle={handleBlockToggle}
+          isTyping={isTyping}
         />
       </div>
 
@@ -315,12 +407,14 @@ export default function Chat() {
             currentUserProfile={currentUserProfile}
             profile={profile}
             shouldAutoScroll={!loadingMore}
+            onDeleteMessage={handleDeleteMessage}
           />
           
           <MessageInput
             currentUserId={currentUserId}
             receiverId={Number(userId)}
             onMessageSent={loadMessages}
+            onTyping={handleTyping}
           />
         </div>
       </main>

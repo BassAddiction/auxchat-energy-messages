@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import VoiceMessage from './VoiceMessage';
 import Icon from '@/components/ui/icon';
 
@@ -31,17 +31,40 @@ interface MessageListProps {
   currentUserProfile: UserProfile | null;
   profile: UserProfile | null;
   shouldAutoScroll?: boolean;
+  onDeleteMessage?: (messageId: number) => void;
 }
 
 export default function MessageList({
   messages,
   currentUserId,
   shouldAutoScroll = true,
+  onDeleteMessage,
 }: MessageListProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const prevMessagesLengthRef = useRef(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const lastMessageIdRef = useRef<number | null>(null);
+  const [longPressMessageId, setLongPressMessageId] = useState<number | null>(null);
+  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleLongPressStart = (messageId: number, isOwn: boolean) => {
+    if (!isOwn) return;
+    longPressTimerRef.current = setTimeout(() => {
+      setLongPressMessageId(messageId);
+    }, 500);
+  };
+
+  const handleLongPressEnd = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  };
+
+  const handleDelete = (messageId: number) => {
+    onDeleteMessage?.(messageId);
+    setLongPressMessageId(null);
+  };
 
   useEffect(() => {
     console.log('[MessageList] Received messages:', messages.length, 'items', 'shouldAutoScroll:', shouldAutoScroll);
@@ -66,12 +89,38 @@ export default function MessageList({
         const isOwn = String(message.senderId) === String(currentUserId);
         
         return (
-          <div key={message.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[75%] md:max-w-md rounded-2xl px-3 py-2 shadow-sm ${
-              isOwn 
-                ? 'bg-blue-500 text-white rounded-br-sm' 
-                : 'bg-gray-100 text-gray-900 rounded-bl-sm'
-            }`}>
+          <div key={message.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'} gap-2`}>
+            {isOwn && longPressMessageId === message.id && (
+              <div className="flex gap-2 self-end mb-1">
+                <button
+                  onClick={() => setLongPressMessageId(null)}
+                  className="w-10 h-10 bg-gray-400 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-gray-500 transition-colors flex-shrink-0"
+                  aria-label="Отменить"
+                >
+                  <Icon name="X" size={18} />
+                </button>
+                <button
+                  onClick={() => handleDelete(message.id)}
+                  className="w-10 h-10 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors flex-shrink-0"
+                  aria-label="Удалить сообщение"
+                >
+                  <Icon name="Trash2" size={18} />
+                </button>
+              </div>
+            )}
+            
+            <div 
+              className={`max-w-[75%] md:max-w-md rounded-2xl px-3 py-2 shadow-sm ${
+                isOwn 
+                  ? 'bg-gray-200 text-gray-900 rounded-br-sm' 
+                  : 'bg-gray-100 text-gray-900 rounded-bl-sm'
+              }`}
+              onTouchStart={() => handleLongPressStart(message.id, isOwn)}
+              onTouchEnd={handleLongPressEnd}
+              onMouseDown={() => handleLongPressStart(message.id, isOwn)}
+              onMouseUp={handleLongPressEnd}
+              onMouseLeave={handleLongPressEnd}
+            >
               {message.imageUrl ? (
                 <div className="space-y-1">
                   <img 

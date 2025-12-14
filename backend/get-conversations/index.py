@@ -101,15 +101,23 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     for row in rows:
         last_activity = row[3]
         is_online = False
+        last_seen = None
         if last_activity:
-            time_diff = datetime.utcnow() - last_activity
-            is_online = time_diff < timedelta(minutes=5)
+            if isinstance(last_activity, str):
+                last_activity_dt = datetime.fromisoformat(last_activity.replace('Z', '+00:00'))
+            else:
+                last_activity_dt = last_activity
+            time_diff = datetime.utcnow() - last_activity_dt.replace(tzinfo=None)
+            # Онлайн только если активность была меньше 15 секунд назад (как в WhatsApp)
+            is_online = time_diff < timedelta(seconds=15)
+            last_seen = last_activity_dt.isoformat() if last_activity_dt else None
         
         conversations.append({
             'userId': row[0],
             'username': row[1],
             'avatarUrl': row[2],
             'status': 'online' if is_online else 'offline',
+            'last_seen': last_seen,
             'lastMessage': row[4],
             'lastMessageAt': row[5].isoformat(),
             'unreadCount': row[6]

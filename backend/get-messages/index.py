@@ -145,10 +145,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             if distance > max_distance_km:
                 continue  # Пропускаем слишком далёкие сообщения
         
+        # Ensure UTC timezone indicator (Z) for JS compatibility
+        from datetime import timezone
+        if hasattr(created_at, 'tzinfo') and created_at.tzinfo is None:
+            created_at = created_at.replace(tzinfo=timezone.utc)
+        created_at_str = created_at.isoformat().replace('+00:00', 'Z') if hasattr(created_at, 'isoformat') else str(created_at) + 'Z'
+        
         messages.append({
             'id': msg_id,
             'text': text,
-            'created_at': created_at.isoformat() + 'Z',
+            'created_at': created_at_str,
             'user': {
                 'id': user_id,
                 'username': username,
