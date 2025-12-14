@@ -106,7 +106,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     # Escape single quotes in text
     safe_text = text.replace("'", "''")
     cur.execute(
-        f"INSERT INTO messages (user_id, text, created_at) VALUES ('{safe_user_id}', '{safe_text}', (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')) RETURNING id, created_at"
+        f"INSERT INTO messages (user_id, text) VALUES ('{safe_user_id}', '{safe_text}') RETURNING id, created_at"
     )
     message_id, created_at = cur.fetchone()
     
