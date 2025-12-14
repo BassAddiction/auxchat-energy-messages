@@ -114,6 +114,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     cur.close()
     conn.close()
     
+    from datetime import timezone
+    if hasattr(created_at, 'tzinfo') and created_at.tzinfo is None:
+        created_at = created_at.replace(tzinfo=timezone.utc)
+    created_at_str = created_at.isoformat().replace('+00:00', 'Z') if hasattr(created_at, 'isoformat') else str(created_at) + 'Z'
+    
     return {
         'statusCode': 200,
         'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
@@ -121,7 +126,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'id': message_id,
             'user_id': user_id,
             'text': text,
-            'created_at': created_at.isoformat(),
+            'created_at': created_at_str,
             'energy': energy - 10
         }),
         'isBase64Encoded': False
