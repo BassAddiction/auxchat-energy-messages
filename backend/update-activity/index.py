@@ -97,7 +97,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     print(f'[UPDATE-ACTIVITY] Connected to DB')
     
     safe_user_id = str(user_id).replace("'", "''")
-    query = f"UPDATE users SET last_activity = CURRENT_TIMESTAMP WHERE id = '{safe_user_id}'"
+    # Use CURRENT_TIMESTAMP AT TIME ZONE 'UTC' to ensure consistent timezone
+    query = f"UPDATE users SET last_activity = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') WHERE id = '{safe_user_id}'"
     print(f'[UPDATE-ACTIVITY] Executing: {query}')
     
     cur.execute(query)

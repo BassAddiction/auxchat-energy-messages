@@ -124,17 +124,22 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         user_custom_status = str(row[11])
     
     # Compute online/offline status based on last_activity
-    from datetime import datetime, timedelta
+    from datetime import datetime, timedelta, timezone
     last_activity = row[7]  # last_activity column
     is_online = False
     last_seen = None
     if last_activity:
         print(f'[GET-USER] Raw last_activity from DB: {repr(last_activity)}, type: {type(last_activity)}')
+        # Ensure last_activity is timezone-aware (UTC)
         if isinstance(last_activity, str):
             last_activity = datetime.fromisoformat(last_activity.replace('Z', '+00:00'))
+        elif last_activity.tzinfo is None:
+            # Database returns naive datetime - assume it's UTC
+            last_activity = last_activity.replace(tzinfo=timezone.utc)
         print(f'[GET-USER] Parsed last_activity: {last_activity}, tzinfo: {last_activity.tzinfo}')
-        now = datetime.now(last_activity.tzinfo) if last_activity.tzinfo else datetime.now()
-        print(f'[GET-USER] Current now: {now}, tzinfo: {now.tzinfo if hasattr(now, "tzinfo") else "N/A"}')
+        # Always use UTC for comparison
+        now = datetime.now(timezone.utc)
+        print(f'[GET-USER] Current now (UTC): {now}, tzinfo: {now.tzinfo}')
         time_diff = now - last_activity
         print(f'[GET-USER] Time diff: {time_diff}, total_seconds: {time_diff.total_seconds()}')
         # Онлайн только если активность была меньше 15 секунд назад (как в WhatsApp)
