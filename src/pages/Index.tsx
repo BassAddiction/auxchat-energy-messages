@@ -15,9 +15,6 @@ import { api } from "@/lib/api";
 import { FUNCTIONS } from "@/lib/func2url";
 import { Message, User } from "@/types";
 import { playNotificationSound, calculatePrice, initializeUserId } from "@/lib/indexHelpers";
-import AuthDialog from "@/components/index/AuthDialog";
-import ProfileDialog from "@/components/index/ProfileDialog";
-import MessagesList from "@/components/index/MessagesList";
 
 const Index = () => {
   const navigate = useNavigate();
