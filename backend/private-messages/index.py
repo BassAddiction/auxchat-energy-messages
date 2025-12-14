@@ -133,7 +133,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     if created_at.tzinfo is None:
                         from datetime import timezone
                         created_at = created_at.replace(tzinfo=timezone.utc)
-                    created_at_str = created_at.isoformat()
+                    # Всегда используем Z вместо +00:00 для JS совместимости
+                    created_at_str = created_at.isoformat().replace('+00:00', 'Z')
                 else:
                     created_at_str = str(created_at) + 'Z'
                 
