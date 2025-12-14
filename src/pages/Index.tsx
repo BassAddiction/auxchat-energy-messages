@@ -723,41 +723,149 @@ const Index = () => {
         </div>
       </header>
 
-      <MessagesList
-        messages={messages}
-        user={user}
-        userId={userId}
-        messageText={messageText}
-        displayLimit={displayLimit}
-        initialLimit={initialLimit}
-        onMessageTextChange={setMessageText}
-        onSendMessage={handleSendMessage}
-        onUsernameClick={openSubscriptionModal}
-        onLoadMore={() => setDisplayLimit((prev) => prev + 5)}
-        onAddReaction={handleAddReaction}
-        canSendMessage={!!user && user.energy >= 1}
-      />
+      <main className="flex-1 overflow-y-auto px-2 md:px-3 py-2 space-y-3">
+        {messages.slice(-displayLimit).map((msg) => (
+          <div key={msg.id} className="bg-white rounded-lg shadow-sm p-3">
+            <div className="flex items-start gap-2">
+              <Avatar className="w-8 h-8 flex-shrink-0">
+                <AvatarImage src={msg.avatar} />
+                <AvatarFallback>{msg.username[0]}</AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => openSubscriptionModal(msg.userId, msg.username)}
+                    className="font-semibold text-sm hover:text-blue-600 transition-colors"
+                  >
+                    {msg.username}
+                  </button>
+                  <span className="text-xs text-gray-500">
+                    {msg.timestamp.toLocaleTimeString('ru-RU', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-700 break-words whitespace-pre-wrap mt-1">
+                  {msg.text}
+                </p>
+                {msg.reactions && msg.reactions.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {msg.reactions.map((reaction, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => handleAddReaction(msg.id, reaction.emoji)}
+                        className="text-xs bg-gray-100 hover:bg-gray-200 rounded-full px-2 py-0.5"
+                      >
+                        {reaction.emoji} {reaction.count}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <div className="flex gap-1 mt-2">
+                  {['👍', '❤️', '😂', '🔥'].map((emoji) => (
+                    <button
+                      key={emoji}
+                      onClick={() => handleAddReaction(msg.id, emoji)}
+                      className="text-lg hover:scale-125 transition-transform"
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+        {messages.length > displayLimit && (
+          <Button
+            variant="outline"
+            onClick={() => setDisplayLimit((prev) => prev + 5)}
+            className="w-full"
+          >
+            Показать больше
+          </Button>
+        )}
+        <div ref={messagesEndRef} />
+      </main>
 
-      <AuthDialog
-        isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
-        onAuthSuccess={handleAuthSuccess}
-      />
+      <footer className="bg-white/80 backdrop-blur-sm border-t border-gray-200 p-2 md:p-3 flex-shrink-0">
+        <div className="flex gap-2">
+          <textarea
+            value={messageText}
+            onChange={(e) => setMessageText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessage();
+              }
+            }}
+            placeholder={
+              !user
+                ? 'Войдите, чтобы отправить сообщение'
+                : user.energy < 1
+                ? 'Пополните энергию для отправки сообщений'
+                : 'Напишите сообщение...'
+            }
+            disabled={!user || user.energy < 1}
+            className="flex-1 resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            rows={2}
+          />
+          <Button
+            onClick={handleSendMessage}
+            disabled={!user || user.energy < 1 || !messageText.trim()}
+            className="self-end"
+            size="sm"
+          >
+            <Icon name="Send" size={18} />
+          </Button>
+        </div>
+      </footer>
+
+      <Dialog open={isAuthOpen} onOpenChange={setIsAuthOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Вход / Регистрация</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">Авторизуйтесь для отправки сообщений</p>
+            <Button onClick={() => { /* auth logic */ }} className="w-full">
+              Войти через телефон
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {user && (
-        <ProfileDialog
-          isOpen={showProfile}
-          onClose={() => setShowProfile(false)}
-          user={user}
-          userId={userId!}
-          profilePhotos={profilePhotos}
-          onUserUpdate={setUser}
-          onPhotosUpdate={setProfilePhotos}
-          onAddEnergy={() => {
-            setShowProfile(false);
-            setEnergyModalOpen(true);
-          }}
-        />
+        <Dialog open={showProfile} onOpenChange={setShowProfile}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Профиль</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <Avatar className="w-16 h-16">
+                  <AvatarImage src={user.avatar} />
+                  <AvatarFallback>{user.username[0]}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-bold">{user.username}</p>
+                  <p className="text-sm text-gray-600">{user.phone}</p>
+                  <p className="text-sm">⚡ {user.energy} энергии</p>
+                </div>
+              </div>
+              <Button
+                onClick={() => {
+                  setShowProfile(false);
+                  setEnergyModalOpen(true);
+                }}
+                className="w-full"
+              >
+                Пополнить энергию
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
 
       <Dialog
