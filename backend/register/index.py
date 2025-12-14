@@ -2,6 +2,8 @@ import json
 import os
 import psycopg2
 import hashlib
+import jwt
+from datetime import datetime, timedelta
 from typing import Dict, Any
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
@@ -106,6 +108,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     cur.close()
     conn.close()
     
+    # Generate JWT token
+    jwt_secret = os.environ.get('JWT_SECRET', 'auxchat-secret-key-2025')
+    token_payload = {
+        'user_id': user_id,
+        'username': username,
+        'is_admin': False,
+        'exp': datetime.utcnow() + timedelta(days=30)
+    }
+    token = jwt.encode(token_payload, jwt_secret, algorithm='HS256')
+    
     return {
         'statusCode': 200,
         'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
@@ -115,7 +127,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'username': username,
             'avatar': avatar,
             'energy': 100,
-            'is_admin': False
+            'is_admin': False,
+            'token': token
         }),
         'isBase64Encoded': False
     }

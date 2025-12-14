@@ -2,6 +2,8 @@ import json
 import os
 import psycopg2
 import hashlib
+import jwt
+from datetime import datetime, timedelta
 from typing import Dict, Any
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
@@ -110,6 +112,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     cur.close()
     conn.close()
     
+    # Generate JWT token
+    jwt_secret = os.environ.get('JWT_SECRET', 'auxchat-secret-key-2025')
+    token_payload = {
+        'user_id': user_id,
+        'username': username,
+        'is_admin': is_admin,
+        'exp': datetime.utcnow() + timedelta(days=30)  # Token expires in 30 days
+    }
+    token = jwt.encode(token_payload, jwt_secret, algorithm='HS256')
+    
     return {
         'statusCode': 200,
         'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
@@ -120,7 +132,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'avatar': avatar if avatar else f'https://api.dicebear.com/7.x/avataaars/svg?seed={username}',
             'energy': energy,
             'is_admin': is_admin,
-            'is_banned': is_banned
+            'is_banned': is_banned,
+            'token': token  # JWT token for future requests
         }),
         'isBase64Encoded': False
     }

@@ -1,13 +1,12 @@
 # ==========================================
 # Stage 1: Build Frontend
 # ==========================================
-# Cache bust: 2025-12-13 16:10 - FINAL FIX telemetry scripts removed index.html L27-31 УДАЛЕНЫ
-FROM node:18 AS frontend-builder
+FROM node:20-alpine AS frontend-builder
 
 WORKDIR /app
 
 # Копируем package.json и устанавливаем зависимости
-COPY package.json bun.lock ./
+COPY package.json ./
 RUN npm install -g bun && bun install
 
 # Копируем весь проект
@@ -43,7 +42,7 @@ RUN cat > /app/server.py << 'EOF'
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 import importlib.util
-import os
+import json
 from pathlib import Path
 
 app = FastAPI()
@@ -58,7 +57,19 @@ app.add_middleware(
 
 backend_dir = Path("/app/backend")
 functions = {}
+uuid_map = {}
 
+# Загружаем UUID → имя функции маппинг
+func2url_path = backend_dir / "func2url.json"
+if func2url_path.exists():
+    with open(func2url_path) as f:
+        func2url = json.load(f)
+        for func_name, url in func2url.items():
+            uuid = url.split('/')[-1]
+            uuid_map[uuid] = func_name
+            print(f"🔗 UUID {uuid[:8]}... → {func_name}")
+
+# Загружаем функции
 for func_dir in backend_dir.iterdir():
     if func_dir.is_dir() and (func_dir / "index.py").exists():
         func_name = func_dir.name
@@ -81,11 +92,14 @@ class Context:
 @app.api_route("/{function_name:path}", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
 async def proxy(function_name: str, request: Request):
     parts = function_name.split('/', 1)
-    func_name = parts[0]
+    func_id = parts[0]
     path = '/' + parts[1] if len(parts) > 1 else '/'
     
+    # Если запрос по UUID — преобразуем в имя функции
+    func_name = uuid_map.get(func_id, func_id)
+    
     if func_name not in functions:
-        return Response(content='{"error":"Function not found"}', status_code=404, media_type="application/json")
+        return Response(content=f'{{"error":"Function not found: {func_id}"}}', status_code=404, media_type="application/json")
     
     body = await request.body()
     event = {
@@ -122,7 +136,7 @@ async def proxy(function_name: str, request: Request):
 
 @app.get("/")
 async def root():
-    return {"status": "ok", "functions": list(functions.keys())}
+    return {"status": "ok", "functions": list(functions.keys()), "uuid_map": uuid_map}
 EOF
 
 # Настраиваем Nginx
