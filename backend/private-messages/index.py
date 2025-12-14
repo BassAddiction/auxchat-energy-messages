@@ -212,8 +212,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 escaped_text = text.replace("'", "''") if text else ''
                 insert_query = f"""
                     INSERT INTO private_messages 
-                    (sender_id, receiver_id, text, image_url, created_at) 
-                    VALUES ({user_id}, {receiver_id}, '{escaped_text}', '{escaped_image_url}', (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')) 
+                    (sender_id, receiver_id, text, image_url) 
+                    VALUES ({user_id}, {receiver_id}, '{escaped_text}', '{escaped_image_url}') 
                     RETURNING id
                 """
             elif voice_url:
@@ -222,23 +222,23 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     escaped_text = text.replace("'", "''")
                     insert_query = f"""
                         INSERT INTO private_messages 
-                        (sender_id, receiver_id, text, voice_url, voice_duration, created_at) 
-                        VALUES ({user_id}, {receiver_id}, '{escaped_text}', '{escaped_voice_url}', {voice_duration if voice_duration else 'NULL'}, (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')) 
+                        (sender_id, receiver_id, text, voice_url, voice_duration) 
+                        VALUES ({user_id}, {receiver_id}, '{escaped_text}', '{escaped_voice_url}', {voice_duration if voice_duration else 'NULL'}) 
                         RETURNING id
                     """
                 else:
                     insert_query = f"""
                         INSERT INTO private_messages 
-                        (sender_id, receiver_id, text, voice_url, voice_duration, created_at) 
-                        VALUES ({user_id}, {receiver_id}, '', '{escaped_voice_url}', {voice_duration if voice_duration else 'NULL'}, (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')) 
+                        (sender_id, receiver_id, text, voice_url, voice_duration) 
+                        VALUES ({user_id}, {receiver_id}, '', '{escaped_voice_url}', {voice_duration if voice_duration else 'NULL'}) 
                         RETURNING id
                     """
             else:
                 escaped_text = text.replace("'", "''")
                 insert_query = f"""
                     INSERT INTO private_messages 
-                    (sender_id, receiver_id, text, created_at) 
-                    VALUES ({user_id}, {receiver_id}, '{escaped_text}', (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')) 
+                    (sender_id, receiver_id, text) 
+                    VALUES ({user_id}, {receiver_id}, '{escaped_text}') 
                     RETURNING id
                 """
             cur.execute(insert_query)
