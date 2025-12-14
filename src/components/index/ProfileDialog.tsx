@@ -21,6 +21,7 @@ interface ProfileDialogProps {
   profilePhotos: { id: number; url: string }[];
   onUserUpdate: (user: User) => void;
   onPhotosUpdate: (photos: { id: number; url: string }[]) => void;
+  onAddEnergy: () => void;
 }
 
 export default function ProfileDialog({
@@ -31,6 +32,7 @@ export default function ProfileDialog({
   profilePhotos,
   onUserUpdate,
   onPhotosUpdate,
+  onAddEnergy,
 }: ProfileDialogProps) {
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   const [newUsername, setNewUsername] = useState("");
@@ -190,7 +192,21 @@ export default function ProfileDialog({
             </div>
 
             <div>
-              <Label>Статус</Label>
+              <div className="flex justify-between items-center">
+                <Label>Статус</Label>
+                {!isEditingStatus && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      setNewStatus(user?.status || "");
+                      setIsEditingStatus(true);
+                    }}
+                  >
+                    <Icon name="Edit" size={14} />
+                  </Button>
+                )}
+              </div>
               {isEditingStatus ? (
                 <div className="flex gap-2 mt-1">
                   <Input
@@ -288,12 +304,18 @@ export default function ProfileDialog({
               </div>
             </div>
 
-            <div className="flex justify-between items-center pt-2 border-t">
-              <span className="text-sm text-gray-600">Энергия</span>
-              <span className="font-bold text-green-600 flex items-center gap-1">
-                <Icon name="Zap" size={16} />
-                {user?.energy || 0}
-              </span>
+            <div className="pt-2 border-t space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Энергия</span>
+                <span className="font-bold text-green-600 flex items-center gap-1">
+                  <Icon name="Zap" size={16} />
+                  {user?.energy || 0}
+                </span>
+              </div>
+              <Button onClick={onAddEnergy} className="w-full" size="sm">
+                <Icon name="Zap" size={16} className="mr-2" />
+                Пополнить энергию
+              </Button>
             </div>
           </div>
         </DialogContent>

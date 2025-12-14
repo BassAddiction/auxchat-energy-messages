@@ -57,6 +57,7 @@ const Index = () => {
   });
   const [geoRadiusModalOpen, setGeoRadiusModalOpen] = useState(false);
   const [energyAmount, setEnergyAmount] = useState(500);
+  const [energyModalOpen, setEnergyModalOpen] = useState(false);
 
   const [geoPermissionModalOpen, setGeoPermissionModalOpen] = useState(false);
   const [updatingLocation, setUpdatingLocation] = useState(false);
@@ -755,6 +756,10 @@ const Index = () => {
           profilePhotos={profilePhotos}
           onUserUpdate={setUser}
           onPhotosUpdate={setProfilePhotos}
+          onAddEnergy={() => {
+            setShowProfile(false);
+            setEnergyModalOpen(true);
+          }}
         />
       )}
 
@@ -913,7 +918,7 @@ const Index = () => {
       </Dialog>
 
       {user && (
-        <Dialog open={false}>
+        <Dialog open={energyModalOpen} onOpenChange={setEnergyModalOpen}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
