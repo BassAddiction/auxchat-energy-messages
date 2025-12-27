@@ -1275,9 +1275,9 @@ const Index = () => {
                     </span>
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-h-[90vh] overflow-y-auto bg-gray-900 text-white border-gray-800">
                   <DialogHeader>
-                    <DialogTitle>Профиль</DialogTitle>
+                    <DialogTitle className="text-white">Профиль</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4 pb-4">
                     <div className="flex items-start gap-4">
@@ -1298,6 +1298,7 @@ const Index = () => {
                               value={newUsername}
                               onChange={(e) => setNewUsername(e.target.value)}
                               placeholder="Новое имя"
+                              className="bg-gray-800 border-gray-700 text-white"
                             />
                             <Button size="sm" onClick={handleUpdateUsername}>
                               <Icon name="Check" size={16} />
@@ -1305,7 +1306,7 @@ const Index = () => {
                           </div>
                         ) : (
                           <div className="flex items-center gap-2">
-                            <h3 className="font-semibold text-lg">
+                            <h3 className="font-semibold text-lg text-white">
                               {user.username}
                             </h3>
                             <Button
@@ -1327,7 +1328,7 @@ const Index = () => {
                               value={newStatus}
                               onChange={(e) => setNewStatus(e.target.value)}
                               placeholder="Ваш статус"
-                              className="text-sm"
+                              className="text-sm bg-gray-800 border-gray-700 text-white"
                               maxLength={100}
                             />
                             <Button size="sm" onClick={handleUpdateStatus}>
@@ -1352,128 +1353,195 @@ const Index = () => {
                               setIsEditingStatus(true);
                             }}
                           >
-                            <p className="text-sm text-muted-foreground italic">
+                            <p className="text-sm text-gray-400 italic">
                               {user.status || "Добавить статус..."}
                             </p>
                             <Icon
                               name="Edit2"
                               size={14}
-                              className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"
                             />
                           </div>
                         )}
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <div className="flex items-center gap-2 p-3 bg-yellow-50 rounded-lg">
+                      <div className="flex items-center gap-2 p-3 bg-gray-800/50 rounded-lg border border-gray-700">
                         <Icon
                           name="Zap"
-                          className="text-yellow-500"
+                          className="text-yellow-400"
                           size={24}
                         />
                         <div className="flex-1">
-                          <p className="font-semibold">{user.energy} энергии</p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="font-semibold text-white">{user.energy} энергии</p>
+                          <p className="text-xs text-gray-400">
                             1 сообщение = 10 энергии
                           </p>
                         </div>
                       </div>
-                      {/* Slider для пополнения энергии */}
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">
-                            Сумма пополнения
-                          </label>
-                          <Slider
-                            value={[energyAmount]}
-                            onValueChange={([value]) => setEnergyAmount(value)}
-                            min={500}
-                            max={10000}
-                            step={100}
-                            className="py-4"
-                          />
-                        </div>
+                      
+                      {!paymentMethodModalOpen ? (
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-300">
+                              Сумма пополнения
+                            </label>
+                            <Slider
+                              value={[energyAmount]}
+                              onValueChange={([value]) => setEnergyAmount(value)}
+                              min={500}
+                              max={10000}
+                              step={100}
+                              className="py-4"
+                            />
+                          </div>
 
-                        {/* Информация о покупке */}
-                        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg border border-purple-500/20">
-                          <div>
-                            <div className="text-2xl font-bold text-purple-600">
-                              {energyAmount}₽
+                          <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-lg border border-purple-500/30">
+                            <div>
+                              <div className="text-2xl font-bold text-purple-400">
+                                {energyAmount}₽
+                              </div>
+                              <div className="text-xs text-gray-400">
+                                К оплате
+                              </div>
                             </div>
-                            <div className="text-xs text-muted-foreground">
-                              К оплате
+                            <div className="text-right">
+                              <div className="flex items-center gap-1.5">
+                                <Icon
+                                  name="Zap"
+                                  size={20}
+                                  className="text-yellow-400"
+                                />
+                                <span className="text-2xl font-bold text-yellow-400">
+                                  +{calculatedEnergy}
+                                </span>
+                              </div>
+                              {discount > 0 && (
+                                <div className="text-xs text-green-400 font-medium">
+                                  +{discount}% бонус
+                                </div>
+                              )}
                             </div>
                           </div>
-                          <div className="text-right">
-                            <div className="flex items-center gap-1.5">
+
+                          {discount > 0 && (
+                            <div className="flex items-center gap-2 p-3 bg-green-500/10 rounded-lg border border-green-500/30">
                               <Icon
-                                name="Zap"
-                                size={20}
-                                className="text-yellow-500"
+                                name="TrendingUp"
+                                size={16}
+                                className="text-green-400"
                               />
-                              <span className="text-2xl font-bold text-yellow-600">
-                                +{calculatedEnergy}
+                              <span className="text-sm text-green-400 font-medium">
+                                Экономия {discount}% — дополнительно +
+                                {calculatedEnergy - energyAmount} энергии!
                               </span>
                             </div>
-                            {discount > 0 && (
-                              <div className="text-xs text-green-600 font-medium">
-                                +{discount}% бонус
-                              </div>
-                            )}
-                          </div>
-                        </div>
+                          )}
 
-                        {/* Выгода */}
-                        {discount > 0 && (
-                          <div className="flex items-center gap-2 p-2 bg-green-500/10 rounded-lg">
-                            <Icon
-                              name="TrendingUp"
-                              size={14}
-                              className="text-green-500"
-                            />
-                            <span className="text-xs text-green-600 font-medium">
-                              Экономия {discount}% — дополнительно +
-                              {calculatedEnergy - energyAmount} энергии!
-                            </span>
-                          </div>
-                        )}
+                          {discount < 30 && (
+                            <div className="text-xs text-gray-500 text-center">
+                              💡 При покупке на 10 000₽ скидка достигает 30%
+                            </div>
+                          )}
 
-                        {/* Подсказка */}
-                        {discount < 30 && (
-                          <div className="text-xs text-muted-foreground text-center">
-                            💡 При покупке на 10 000₽ скидка достигает 30%
-                          </div>
-                        )}
-
-                        {/* Кнопка покупки */}
-                        <Button
-                          onClick={() => handleAddEnergy(energyAmount)}
-                          className="w-full h-12 text-base font-semibold bg-gradient-to-r from-yellow-500 via-orange-500 to-pink-500 hover:from-yellow-600 hover:via-orange-600 hover:to-pink-600"
-                        >
-                          <Icon
-                            name="ShoppingCart"
-                            size={18}
-                            className="mr-2"
-                          />
-                          Пополнить на {energyAmount}₽
-                        </Button>
-
-                        {/* Ссылка на оферту */}
-                        <div className="text-center">
-                          <button
-                            onClick={() => {
-                              setShowProfile(false);
-                              navigate("/oferta");
-                            }}
-                            className="text-xs text-muted-foreground hover:text-primary underline"
+                          <Button
+                            onClick={() => setPaymentMethodModalOpen(true)}
+                            className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-yellow-500 via-orange-500 to-pink-500 hover:from-yellow-600 hover:via-orange-600 hover:to-pink-600 text-white"
                           >
-                            Публичная оферта
-                          </button>
+                            <Icon
+                              name="ShoppingCart"
+                              size={20}
+                              className="mr-2"
+                            />
+                            Пополнить на {energyAmount}₽
+                          </Button>
+
+                          <div className="text-center">
+                            <button
+                              onClick={() => {
+                                setShowProfile(false);
+                                navigate("/oferta");
+                              }}
+                              className="text-xs text-gray-400 hover:text-purple-400 underline"
+                            >
+                              Публичная оферта
+                            </button>
+                          </div>
                         </div>
-                      </div>
+                      ) : (
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+                            <span className="text-sm text-gray-400">К оплате:</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-2xl font-bold text-purple-400">{energyAmount}₽</span>
+                              <Icon name="ArrowRight" size={16} className="text-gray-600" />
+                              <Icon name="Zap" size={16} className="text-yellow-400" />
+                              <span className="text-2xl font-bold text-yellow-400">+{calculatedEnergy}</span>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <p className="text-sm text-gray-400 mb-3">Выберите способ оплаты:</p>
+                            
+                            <Button
+                              variant="outline"
+                              className="w-full h-14 justify-start gap-3 bg-gray-800/30 hover:bg-purple-600/20 hover:border-purple-500 border-gray-700 text-white"
+                              onClick={() => handlePaymentMethodSelect('sbp')}
+                            >
+                              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-xs">
+                                СБП
+                              </div>
+                              <div className="text-left flex-1">
+                                <p className="font-semibold text-white">Система Быстрых Платежей</p>
+                                <p className="text-xs text-gray-400">Оплата через банковское приложение</p>
+                              </div>
+                              <Icon name="ChevronRight" size={20} className="text-gray-500" />
+                            </Button>
+
+                            <Button
+                              variant="outline"
+                              className="w-full h-14 justify-start gap-3 bg-gray-800/30 hover:bg-green-600/20 hover:border-green-500 border-gray-700 text-white"
+                              onClick={() => handlePaymentMethodSelect('sberPay')}
+                            >
+                              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-600 to-green-400 flex items-center justify-center text-white">
+                                <Icon name="Smartphone" size={22} />
+                              </div>
+                              <div className="text-left flex-1">
+                                <p className="font-semibold text-white">SberPay</p>
+                                <p className="text-xs text-gray-400">Быстрая оплата через Сбербанк</p>
+                              </div>
+                              <Icon name="ChevronRight" size={20} className="text-gray-500" />
+                            </Button>
+
+                            <Button
+                              variant="outline"
+                              className="w-full h-14 justify-start gap-3 bg-gray-800/30 hover:bg-blue-600/20 hover:border-blue-500 border-gray-700 text-white"
+                              onClick={() => handlePaymentMethodSelect('tPay')}
+                            >
+                              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-400 flex items-center justify-center text-white font-bold text-xs">
+                                T
+                              </div>
+                              <div className="text-left flex-1">
+                                <p className="font-semibold text-white">Т-Банк (Tinkoff Pay)</p>
+                                <p className="text-xs text-gray-400">Оплата через приложение Т-Банка</p>
+                              </div>
+                              <Icon name="ChevronRight" size={20} className="text-gray-500" />
+                            </Button>
+                          </div>
+
+                          <Button
+                            variant="outline"
+                            onClick={() => setPaymentMethodModalOpen(false)}
+                            className="w-full border-gray-700 text-gray-400 hover:bg-gray-800 hover:text-white"
+                          >
+                            <Icon name="ArrowLeft" size={16} className="mr-2" />
+                            Назад
+                          </Button>
+                        </div>
+                      )}
                     </div>
-                    <div className="border-t pt-4">
-                      <h3 className="font-semibold mb-3">
+                    <div className="border-t border-gray-800 pt-4">
+                      <h3 className="font-semibold mb-3 text-white">
                         Фотографии ({profilePhotos.length}/6)
                       </h3>
 
@@ -1583,7 +1651,7 @@ const Index = () => {
                           ))}
                         </div>
                       ) : (
-                        <p className="text-sm text-muted-foreground text-center py-4">
+                        <p className="text-sm text-gray-400 text-center py-4">
                           Добавьте фото
                         </p>
                       )}
@@ -1591,7 +1659,7 @@ const Index = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="w-full"
+                          className="w-full border-gray-700 text-gray-300 hover:bg-gray-800"
                           onClick={() => openPhotoViewer(0)}
                         >
                           <Icon name="Image" size={14} className="mr-2" />
@@ -1600,23 +1668,23 @@ const Index = () => {
                       )}
                     </div>
 
-                    <div className="border-t pt-4">
-                      <h3 className="font-semibold mb-2">Местоположение</h3>
+                    <div className="border-t border-gray-800 pt-4">
+                      <h3 className="font-semibold mb-2 text-white">Местоположение</h3>
                       {userLocation ? (
-                        <div className="flex items-center gap-2 text-sm text-green-700 mb-2">
+                        <div className="flex items-center gap-2 text-sm text-green-400 mb-2">
                           <Icon
                             name="MapPin"
                             size={14}
-                            className="text-green-600"
+                            className="text-green-400"
                           />
                           <span>{userLocation.city || "Установлено"}</span>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-2 text-sm text-yellow-700 mb-2">
+                        <div className="flex items-center gap-2 text-sm text-yellow-400 mb-2">
                           <Icon
                             name="AlertCircle"
                             size={14}
-                            className="text-yellow-600"
+                            className="text-yellow-400"
                           />
                           <span>Не установлено</span>
                         </div>
@@ -1624,7 +1692,7 @@ const Index = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="w-full"
+                        className="w-full border-gray-700 text-gray-300 hover:bg-gray-800"
                         type="button"
                         onClick={async (e) => {
                           e.preventDefault();
@@ -1655,7 +1723,7 @@ const Index = () => {
                     <div className="space-y-2">
                       <Button
                         variant="outline"
-                        className="w-full"
+                        className="w-full border-gray-700 text-gray-300 hover:bg-gray-800"
                         onClick={() => {
                           setShowProfile(false);
                           navigate("/blacklist");
@@ -1666,7 +1734,7 @@ const Index = () => {
                       </Button>
                       <Button
                         variant="outline"
-                        className="w-full"
+                        className="w-full border-gray-700 text-gray-300 hover:bg-gray-800"
                         onClick={handleLogout}
                       >
                         <Icon name="LogOut" size={16} className="mr-2" />
