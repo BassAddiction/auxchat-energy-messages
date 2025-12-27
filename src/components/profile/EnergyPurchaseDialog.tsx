@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Slider } from '@/components/ui/slider';
 import Icon from '@/components/ui/icon';
 import { useState } from 'react';
+import PaymentMethodSheet from '@/components/PaymentMethodSheet';
 
 interface UserProfile {
   id: number;
@@ -50,16 +51,16 @@ export default function EnergyPurchaseDialog({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md bg-gray-900 text-white border-gray-800">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-white">
-            <Icon name="Zap" className="text-yellow-400" />
-            Пополнение энергии
-          </DialogTitle>
-        </DialogHeader>
-        
-        {!showPaymentMethods ? (
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-md bg-gray-900 text-white border-gray-800">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-white">
+              <Icon name="Zap" className="text-yellow-400" />
+              Пополнение энергии
+            </DialogTitle>
+          </DialogHeader>
+          
           <div className="space-y-6">
             <div className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700">
               <span className="text-sm text-gray-400">Текущий баланс:</span>
@@ -128,78 +129,16 @@ export default function EnergyPurchaseDialog({
               Пополнить на {energyAmount}₽
             </Button>
           </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700">
-              <span className="text-sm text-gray-400">К оплате:</span>
-              <div className="flex items-center gap-2">
-                <span className="text-2xl font-bold text-purple-400">{energyAmount}₽</span>
-                <Icon name="ArrowRight" size={16} className="text-gray-600" />
-                <Icon name="Zap" size={16} className="text-yellow-400" />
-                <span className="text-2xl font-bold text-yellow-400">+{energy}</span>
-              </div>
-            </div>
+        </DialogContent>
+      </Dialog>
 
-            <div className="space-y-2">
-              <p className="text-sm text-gray-400 mb-3">Выберите способ оплаты:</p>
-              
-              <Button
-                variant="outline"
-                className="w-full h-14 justify-start gap-3 bg-gray-800/30 hover:bg-purple-600/20 hover:border-purple-500 border-gray-700 text-white"
-                onClick={() => handlePaymentSelect('sbp')}
-              >
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-xs">
-                  СБП
-                </div>
-                <div className="text-left flex-1">
-                  <p className="font-semibold text-white">Система Быстрых Платежей</p>
-                  <p className="text-xs text-gray-400">Оплата через банковское приложение</p>
-                </div>
-                <Icon name="ChevronRight" size={20} className="text-gray-500" />
-              </Button>
-
-              <Button
-                variant="outline"
-                className="w-full h-14 justify-start gap-3 bg-gray-800/30 hover:bg-green-600/20 hover:border-green-500 border-gray-700 text-white"
-                onClick={() => handlePaymentSelect('sberPay')}
-              >
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-600 to-green-400 flex items-center justify-center text-white">
-                  <Icon name="Smartphone" size={22} />
-                </div>
-                <div className="text-left flex-1">
-                  <p className="font-semibold text-white">SberPay</p>
-                  <p className="text-xs text-gray-400">Быстрая оплата через Сбербанк</p>
-                </div>
-                <Icon name="ChevronRight" size={20} className="text-gray-500" />
-              </Button>
-
-              <Button
-                variant="outline"
-                className="w-full h-14 justify-start gap-3 bg-gray-800/30 hover:bg-blue-600/20 hover:border-blue-500 border-gray-700 text-white"
-                onClick={() => handlePaymentSelect('tPay')}
-              >
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-400 flex items-center justify-center text-white font-bold text-xs">
-                  T
-                </div>
-                <div className="text-left flex-1">
-                  <p className="font-semibold text-white">Т-Банк (Tinkoff Pay)</p>
-                  <p className="text-xs text-gray-400">Оплата через приложение Т-Банка</p>
-                </div>
-                <Icon name="ChevronRight" size={20} className="text-gray-500" />
-              </Button>
-            </div>
-
-            <Button
-              variant="outline"
-              onClick={() => setShowPaymentMethods(false)}
-              className="w-full border-gray-700 text-gray-400 hover:bg-gray-800 hover:text-white"
-            >
-              <Icon name="ArrowLeft" size={16} className="mr-2" />
-              Назад
-            </Button>
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
+      <PaymentMethodSheet
+        isOpen={showPaymentMethods}
+        onClose={() => setShowPaymentMethods(false)}
+        onSelectMethod={handlePaymentSelect}
+        amount={energyAmount}
+        energy={energy}
+      />
+    </>
   );
 }
