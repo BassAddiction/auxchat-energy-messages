@@ -41,8 +41,8 @@ export default function PaymentMethodSheet({
             onClick={() => onSelectMethod('sbp')}
             className="w-full flex items-center gap-4 p-4 bg-gray-900 hover:bg-gray-800 rounded-2xl border border-gray-800 transition-all group"
           >
-            <div className="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center flex-shrink-0">
-              <Icon name="Zap" size={24} className="text-red-500" />
+            <div className="w-12 h-12 rounded-xl bg-red-500 flex items-center justify-center flex-shrink-0">
+              <Icon name="Zap" size={24} className="text-white" />
             </div>
             <div className="flex-1 text-left">
               <p className="font-semibold text-white text-base">СБП</p>
@@ -56,8 +56,8 @@ export default function PaymentMethodSheet({
             onClick={() => onSelectMethod('sberPay')}
             className="w-full flex items-center gap-4 p-4 bg-gray-900 hover:bg-gray-800 rounded-2xl border border-gray-800 transition-all group"
           >
-            <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center flex-shrink-0">
-              <Icon name="CreditCard" size={24} className="text-green-500" />
+            <div className="w-12 h-12 rounded-xl bg-green-500 flex items-center justify-center flex-shrink-0">
+              <Icon name="CreditCard" size={24} className="text-white" />
             </div>
             <div className="flex-1 text-left">
               <p className="font-semibold text-white text-base">SberPay</p>
@@ -71,8 +71,8 @@ export default function PaymentMethodSheet({
             onClick={() => onSelectMethod('tPay')}
             className="w-full flex items-center gap-4 p-4 bg-gray-900 hover:bg-gray-800 rounded-2xl border border-gray-800 transition-all group"
           >
-            <div className="w-12 h-12 rounded-xl bg-yellow-500/10 flex items-center justify-center flex-shrink-0">
-              <Icon name="Smartphone" size={24} className="text-yellow-500" />
+            <div className="w-12 h-12 rounded-xl bg-yellow-500 flex items-center justify-center flex-shrink-0">
+              <Icon name="Smartphone" size={24} className="text-white" />
             </div>
             <div className="flex-1 text-left">
               <p className="font-semibold text-white text-base">T-Pay</p>
