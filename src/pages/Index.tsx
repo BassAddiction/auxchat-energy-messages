@@ -439,6 +439,60 @@ const Index = () => {
     }
   };
 
+  const handleLogin = async () => {
+    if (!phone || !password) {
+      alert("Введите телефон и пароль");
+      return;
+    }
+
+    try {
+      // FUNCTION: login - Авторизация пользователя
+      const data = await api.login(phone, password);
+
+      if (data.user_id) {
+        handleAuthSuccess({
+          id: data.user_id,
+          username: data.username,
+          avatar: data.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.username}`,
+          phone: data.phone,
+          energy: data.energy,
+          status: data.status || "",
+          token: data.token
+        });
+        resetAuthForm();
+        alert("Вход выполнен успешно!");
+      } else {
+        alert(data.error || "Ошибка входа");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("Ошибка подключения");
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!password || password.length < 6) {
+      alert("Введите новый пароль (минимум 6 символов)");
+      return;
+    }
+
+    try {
+      // FUNCTION: reset-password - Сброс пароля через SMS
+      const data = await api.resetPassword(phone, smsCode, password);
+
+      if (data.success) {
+        alert("Пароль успешно изменён!");
+        setAuthMode("login");
+        resetAuthForm();
+      } else {
+        alert(data.error || "Ошибка сброса пароля");
+      }
+    } catch (error) {
+      console.error("Reset password error:", error);
+      alert("Ошибка подключения");
+    }
+  };
+
   const handleRegister = async () => {
     if (!username || !password || password.length < 6) {
       alert("Введите имя и пароль (минимум 6 символов)");
