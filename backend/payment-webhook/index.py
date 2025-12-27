@@ -12,6 +12,9 @@ from typing import Dict, Any
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     method: str = event.get('httpMethod', 'GET')
     
+    print(f"[WEBHOOK] Received {method} request")
+    print(f"[WEBHOOK] Event data: {json.dumps(event, ensure_ascii=False)}")
+    
     if method == 'OPTIONS':
         return {
             'statusCode': 200,
@@ -35,7 +38,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     body_data = json.loads(event.get('body', '{}'))
     
+    print(f"[WEBHOOK] Body data: {json.dumps(body_data, ensure_ascii=False)}")
+    
     event_type = body_data.get('event')
+    print(f"[WEBHOOK] Event type: {event_type}")
     if event_type != 'payment.succeeded':
         return {
             'statusCode': 200,
@@ -49,6 +55,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     user_id = metadata.get('user_id')
     energy_amount = metadata.get('energy_amount')
+    
+    print(f"[WEBHOOK] Metadata: user_id={user_id}, energy_amount={energy_amount}")
     
     if not user_id or not energy_amount:
         return {
@@ -75,6 +83,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     conn.commit()
     cur.close()
     conn.close()
+    
+    print(f"[WEBHOOK] Successfully added {energy_amount} energy to user {user_id}")
     
     return {
         'statusCode': 200,
