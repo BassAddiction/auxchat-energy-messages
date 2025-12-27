@@ -448,7 +448,7 @@ const Index = () => {
     // Запрашиваем геолокацию
     let latitude = null;
     let longitude = null;
-    let city = "";
+    const city = "";
 
     try {
       if (navigator.geolocation) {
@@ -461,28 +461,25 @@ const Index = () => {
         );
         latitude = position.coords.latitude;
         longitude = position.coords.longitude;
-
-      const response = await fetch(FUNCTIONS["update-location"], {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-User-Id": userId.toString(),
-        },
-        body: JSON.stringify({
-          latitude,
-          longitude,
-        }),
-      });
-
-      if (response.ok) {
-        alert("Пароль успешно изменён! Теперь войдите с новым паролем.");
-        setAuthMode("login");
-        resetAuthForm();
-      } else {
-        alert(data.error || "Ошибка сброса пароля");
       }
     } catch (error) {
-      console.error("Reset error:", error);
+      console.log("Geolocation not available:", error);
+    }
+
+    try {
+      const data = await api.register(username, phone, password, smsCode);
+      if (data.user_id) {
+        localStorage.setItem("auxchat_user_id", data.user_id.toString());
+        setUserId(data.user_id);
+        setUser(data.user);
+        setIsAuthOpen(false);
+        resetAuthForm();
+        alert("Регистрация успешна!");
+      } else {
+        alert(data.error || "Ошибка регистрации");
+      }
+    } catch (error) {
+      console.error("Register error:", error);
       alert("Ошибка подключения");
     }
   };
