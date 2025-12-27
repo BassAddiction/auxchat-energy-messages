@@ -45,30 +45,37 @@ export default function Profile() {
 
   const { energy, discount } = calculatePrice(energyAmount);
 
-  const handleEnergyPurchase = async () => {
+  const handleEnergyPurchase = async (method: 'sbp' | 'sberPay' | 'tPay') => {
+    if (!currentUserId) {
+      toast.error('Необходимо авторизоваться');
+      return;
+    }
+
     try {
-      const response = await fetch(FUNCTIONS['add-energy'], {
+      const response = await fetch(FUNCTIONS['create-payment'], {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-User-Id': currentUserId || '0'
+          'X-User-Id': currentUserId
         },
         body: JSON.stringify({ 
-          energy_amount: energy,
-          price: energyAmount 
+          user_id: parseInt(currentUserId),
+          amount: energyAmount,
+          payment_method: method
         })
       });
 
       if (response.ok) {
-        toast.success(`Получено ${energy} энергии за ${energyAmount}₽!`);
-        setEnergyModalOpen(false);
-        loadProfile();
-      } else {
         const data = await response.json();
-        toast.error(data.error || 'Ошибка покупки');
+        if (data.payment_url) {
+          window.location.href = data.payment_url;
+        }
+      } else {
+        const error = await response.json();
+        toast.error(error.error || 'Ошибка создания платежа');
       }
     } catch (error) {
-      toast.error('Ошибка покупки энергии');
+      toast.error('Ошибка соединения с сервером оплаты');
     }
   };
 
